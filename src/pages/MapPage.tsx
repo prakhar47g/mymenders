@@ -94,9 +94,9 @@ export function MapPage() {
               icon={createMenderIcon()}
             >
               <Popup className="vendormap-popup">
-                <div className="min-w-[240px] p-1">
+                <div className="min-w-[240px] p-1 pt-2">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-slate-900 text-lg leading-tight">{vendor.name}</h3>
+                    <h3 className="font-bold text-slate-900 text-base leading-tight">{vendor.name}</h3>
                   </div>
                   
                   <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand/10 text-brand rounded-full text-xs font-medium mb-3">

@@ -87,24 +87,54 @@ export function MapPage() {
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         
-        {vendors.map((vendor) => (
-          <Marker 
-            key={vendor.id} 
-            position={[vendor.latitude, vendor.longitude]} 
-            icon={createMenderIcon()}
-          >
-            <Popup className="rounded-2xl overflow-hidden shadow-2xl border-0 p-2">
-              <div>
-                <h3 className="font-bold text-slate-900 text-lg mb-1">{vendor.name}</h3>
-                {vendor.phone && (
-                  <p className="text-sm text-slate-500 mb-2 font-medium">{vendor.phone}</p>
-                )}
-                <div className="h-px w-full bg-slate-200 my-2" />
-                <p className="text-sm text-slate-600 leading-relaxed">{vendor.category}</p>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+{vendors.map((vendor) => (
+            <Marker 
+              key={vendor.id} 
+              position={[vendor.latitude, vendor.longitude]} 
+              icon={createMenderIcon()}
+            >
+              <Popup className="vendormap-popup">
+                <div className="min-w-[240px] p-1">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-bold text-slate-900 text-lg leading-tight">{vendor.name}</h3>
+                  </div>
+                  
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand/10 text-brand rounded-full text-xs font-medium mb-3">
+                    {vendor.category}
+                  </div>
+                  
+                  {vendor.phone && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                      <span className="text-slate-400">📞</span>
+                      {vendor.phone}
+                    </div>
+                  )}
+                  
+                  {vendor.address && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                      <span className="text-slate-400">📍</span>
+                      <span className="line-clamp-1">{vendor.address}</span>
+                    </div>
+                  )}
+                  
+                  {vendor.hours && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                      <span className="text-slate-400">🕐</span>
+                      {vendor.hours}
+                    </div>
+                  )}
+                  
+                  {vendor.rating > 0 && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-amber-500">⭐</span>
+                      <span className="text-sm font-medium text-slate-700">{vendor.rating.toFixed(1)}</span>
+                      <span className="text-xs text-slate-400">({vendor.rating_count} reviews)</span>
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
         <MapController centerPos={centerMapTo} />
       </MapContainer>

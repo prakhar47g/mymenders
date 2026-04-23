@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-backdrop: #EFF3F4;
+  --color-pin: #99C4CB;
+  --color-brand: #B5D2D0;
+  --color-brand-hover: #9bbab8; /* Darker shade of brand for hovers */
+  --color-brand-light: #d6e5e4;
+}
+
+/* Leaflet map default height */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+

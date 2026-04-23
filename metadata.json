@@ -1,0 +1,8 @@
+{
+  "name": "My Mender",
+  "description": "A crowdsourced mapping platform called My Mender.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

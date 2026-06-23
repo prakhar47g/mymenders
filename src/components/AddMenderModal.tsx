@@ -1,42 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Vendor } from '../types';
-import { X, MapPin } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { X } from 'lucide-react';
+import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
 
 interface AddMenderModalProps {
   onClose: () => void;
   onAdd: (vendor: Omit<Vendor, 'id'>) => void;
-}
-
-// Reusable mini-map icon
-const createPinIcon = () => {
-    return L.divIcon({
-      html: `<div class="w-8 h-8 flex items-center justify-center translate-y-[-50%]"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#99C4CB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3" fill="#99C4CB"/></svg></div>`,
-      className: '',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-    });
-};
-
-function LocationPicker({ position, setPosition }: { position: [number, number], setPosition: (p: [number, number]) => void }) {
-  useMapEvents({
-    click(e) {
-      setPosition([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-  
-  return position ? <Marker position={position} icon={createPinIcon()} /> : null;
-}
-
-function MapLocateUpdater({ center, zoomLevel }: { center: [number, number] | null, zoomLevel: number }) {
-  const map = useMap();
-  useEffect(() => {
-    if (center) {
-      map.flyTo(center, zoomLevel, { duration: 0.5 });
-    }
-  }, [center, map, zoomLevel]);
-  return null;
 }
 
 export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
@@ -47,6 +16,11 @@ export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
   const [position, setPosition] = useState<[number, number]>([51.505, -0.09]); // Default position, ideally user's current loc
   const [locateCenter, setLocateCenter] = useState<[number, number] | null>(null);
   const [zoom, setZoom] = useState(2);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const pinMarkerRef = useRef<any>(null);
+  const clickListenerRef = useRef<any>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
   
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -63,6 +37,63 @@ export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
       );
     }
   }, []);
+
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    loadGoogleMapsScript(apiKey || '')
+      .then(() => {
+        if (!mapContainerRef.current) return;
+        const google = (window as any).google;
+        if (!google?.maps) return;
+
+        const map = new google.maps.Map(mapContainerRef.current, {
+          center: { lat: position[0], lng: position[1] },
+          zoom,
+          mapTypeControl: false,
+          streetViewControl: false,
+        });
+
+        mapInstanceRef.current = map;
+        setIsMapReady(true);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!isMapReady || !mapInstanceRef.current) return;
+    const google = (window as any).google;
+    const map = mapInstanceRef.current as any;
+
+    if (locateCenter) {
+      map.setCenter({ lat: locateCenter[0], lng: locateCenter[1] });
+      map.setZoom(13);
+      setLocateCenter(null);
+    } else {
+      map.setCenter({ lat: position[0], lng: position[1] });
+      map.setZoom(zoom);
+    }
+
+    if (!pinMarkerRef.current) {
+      pinMarkerRef.current = new google.maps.Marker({
+        map,
+        position: { lat: position[0], lng: position[1] },
+        icon: createLocationPinIcon(google.maps, '#99C4CB', '#99C4CB'),
+        draggable: false,
+      });
+    } else {
+      pinMarkerRef.current.setPosition({ lat: position[0], lng: position[1] });
+    }
+
+    if (!clickListenerRef.current) {
+      clickListenerRef.current = map.addListener('click', (event: any) => {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+        setPosition([lat, lng]);
+      });
+    }
+  }, [position, zoom, isMapReady, locateCenter]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,14 +180,7 @@ export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Location *</label>
             <p className="text-xs text-slate-400 mb-2">Drag/pan the map and click to drop a pin.</p>
             <div className="h-40 rounded-lg overflow-hidden border border-slate-200 relative z-0">
-              <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <LocationPicker position={position} setPosition={setPosition} />
-                <MapLocateUpdater center={locateCenter} zoomLevel={zoom} />
-              </MapContainer>
+              <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
             </div>
           </div>
           

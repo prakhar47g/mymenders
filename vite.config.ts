@@ -10,6 +10,46 @@ export default defineConfig(({mode}) => {
     ? new Pool({connectionString: env.DATABASE_URL})
     : null;
 
+  const normalizeStringArray = (value: unknown): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean).map(String);
+    if (typeof value === 'string') {
+      if (!value.trim()) return [];
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
+      } catch {
+        // Fall through to delimiter-based parsing.
+      }
+      return value.split(',').map((item) => item.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
+  const normalizeRating = (value: unknown): number => {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) return 0;
+    return Math.min(5, Math.max(0, parsed));
+  };
+
+  const normalizeRatingCount = (value: unknown): number => {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) return 0;
+    return Math.max(0, Math.floor(parsed));
+  };
+
+  const safeParseMetadata = (value: unknown) => {
+    if (!value) return {};
+    if (typeof value === 'object') return value;
+    if (typeof value !== 'string') return {};
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  };
+
   return {
     plugins: [
       react(),
@@ -54,6 +94,14 @@ export default defineConfig(({mode}) => {
                   hours,
                   photo_url,
                   photos,
+                  entry_level,
+                  types,
+                  categories,
+                  regional_techniques,
+                  online_presence,
+                  review_text,
+                  rating,
+                  rating_count,
                 } = JSON.parse(body || '{}');
 
                 if (!name || latitude === undefined || longitude === undefined) {
@@ -67,6 +115,18 @@ export default defineConfig(({mode}) => {
                   return;
                 }
 
+                const parsedPhotos = {
+                  ...(safeParseMetadata(photos) || {}),
+                  entry_level: entry_level || category || 'Menders',
+                  types: normalizeStringArray(types),
+                  categories: normalizeStringArray(categories),
+                  regional_techniques: normalizeStringArray(regional_techniques),
+                  online_presence: online_presence || website || undefined,
+                  review_text: review_text || undefined,
+                  rating: normalizeRating(rating),
+                  rating_count: normalizeRatingCount(rating_count),
+                };
+
                 const result = await pool.query(
                   `INSERT INTO vendors (name, address, latitude, longitude, category, phone, website, hours, photo_url, photos)
                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
@@ -76,12 +136,12 @@ export default defineConfig(({mode}) => {
                     address || null,
                     latitude,
                     longitude,
-                    category || 'Other',
+                    entry_level || category || 'Menders',
                     phone || null,
-                    website || null,
+                    online_presence || website || null,
                     hours || null,
                     photo_url || null,
-                    photos ? JSON.stringify(photos) : null,
+                    photos ? JSON.stringify(parsedPhotos) : JSON.stringify(parsedPhotos),
                   ],
                 );
 

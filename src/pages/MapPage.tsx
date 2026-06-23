@@ -1,15 +1,101 @@
 import React, { useEffect, useRef, useState } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { Navigation, Plus } from 'lucide-react';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
-import { loadGoogleMapsScript } from '../utils/googleMaps';
 
-const DEFAULT_CENTER: [number, number] = [20, 0];
-const GLOBE_RANGE_METERS = 18_000_000;
-const LOCAL_RANGE_METERS = 2_400;
-const LOCAL_TILT_DEGREES = 0;
+const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
+const GLOBAL_ZOOM = 2.1;
+const LOCAL_ZOOM = 13;
+const DEFAULT_ENTRY_LEVEL = 'Menders';
+const PIN_COLOR_MAP: Record<string, string> = {
+  Menders: '#2A9D8F',
+  'Member of the public': '#F4A261',
+  default: '#99C4CB',
+};
 
-type MapMode = 'ROADMAP' | 'SATELLITE' | 'HYBRID';
+const parseCoordinate = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const parseListFromSource = (value: unknown): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (typeof value === 'string') {
+    if (!value.trim()) return [];
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
+    } catch {
+      // fallback below
+    }
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const getPinColor = (entryLevel?: string) => {
+  if (!entryLevel) return PIN_COLOR_MAP.default;
+  return PIN_COLOR_MAP[entryLevel] || PIN_COLOR_MAP.default;
+};
+
+const normalizeVendor = (raw: any): Vendor => {
+  let metadata: Record<string, any> = {};
+  try {
+    if (typeof raw?.photos === 'string') {
+      const parsed = JSON.parse(raw.photos);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        metadata = parsed;
+      }
+    } else if (raw?.photos && typeof raw.photos === 'object') {
+      metadata = raw.photos;
+    }
+  } catch {
+    metadata = {};
+  }
+
+  return {
+    ...raw,
+    latitude: parseCoordinate(raw.latitude) ?? Number.NaN,
+    longitude: parseCoordinate(raw.longitude) ?? Number.NaN,
+    rating: typeof raw.rating === 'number' ? raw.rating : Number(raw.rating) || 0,
+    rating_count: Number(raw.rating_count) || Number((metadata as any)?.rating_count) || 0,
+    types: parseListFromSource(raw.types || (metadata as any)?.types || (raw as any).type || (metadata as any)?.type),
+    categories: parseListFromSource(raw.categories || (metadata as any)?.categories),
+    regional_techniques: parseListFromSource(raw.regional_techniques || (metadata as any)?.regional_techniques),
+    online_presence: raw.online_presence || raw.website || (metadata as any)?.online_presence || (metadata as any)?.website,
+    review_text: raw.review_text || (metadata as any)?.review_text,
+    entry_level: raw.entry_level || (metadata as any)?.entry_level || DEFAULT_ENTRY_LEVEL,
+  };
+};
+
+const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) => {
+  if (!items.length) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mb-3';
+
+  const title = document.createElement('div');
+  title.className = 'text-xs font-semibold uppercase tracking-tighter text-slate-500 mb-1';
+  title.textContent = label;
+  wrapper.append(title);
+
+  const tags = document.createElement('div');
+  tags.className = 'flex flex-wrap gap-1.5';
+  items.forEach((tag) => {
+    const chip = document.createElement('span');
+    chip.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs';
+    chip.textContent = tag;
+    tags.append(chip);
+  });
+  wrapper.append(tags);
+  container.append(wrapper);
+};
 
 const appendTextRow = (container: HTMLDivElement, label: string, value: string) => {
   const row = document.createElement('div');
@@ -27,140 +113,208 @@ const appendTextRow = (container: HTMLDivElement, label: string, value: string) 
   container.append(row);
 };
 
+const createPinElement = (color: string) => {
+  const pin = document.createElement('div');
+  pin.style.width = '18px';
+  pin.style.height = '18px';
+  pin.style.borderRadius = '50%';
+  pin.style.border = '2px solid rgba(255, 255, 255, 0.95)';
+  pin.style.boxShadow = '0 4px 10px rgba(15, 23, 42, 0.35)';
+  pin.style.cursor = 'pointer';
+  pin.style.transform = 'translate(-50%, -100%)';
+  pin.style.background = color;
+  return pin;
+};
+
 const buildPopoverContent = (vendor: Vendor) => {
   const container = document.createElement('div');
-  container.className = 'min-w-[240px] p-1 pt-2';
+  container.className = 'min-w-[240px] p-2';
 
   const title = document.createElement('h3');
   title.className = 'font-bold text-slate-900 text-base leading-tight mb-2';
   title.textContent = vendor.name;
   container.append(title);
 
-  const category = document.createElement('div');
-  category.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-brand/10 text-brand rounded-full text-xs font-medium mb-3';
-  category.textContent = vendor.category;
-  container.append(category);
+  const entry = document.createElement('div');
+  entry.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-brand/10 text-brand rounded-full text-xs font-medium mb-3';
+  entry.textContent = vendor.entry_level || vendor.category || 'Menders';
+  container.append(entry);
 
-  if (vendor.phone) appendTextRow(container, 'Phone', vendor.phone);
+  if (vendor.types?.length) {
+    buildTagRow(container, 'Type', vendor.types);
+  }
+
+  const contactLines: string[] = [];
+  if (vendor.phone) contactLines.push(vendor.phone);
+  if (vendor.online_presence) contactLines.push(vendor.online_presence);
+  if (contactLines.length) {
+    const contact = document.createElement('div');
+    contact.className = 'text-sm text-slate-600 leading-relaxed mb-2';
+    contact.textContent = contactLines.join(' • ');
+    container.append(contact);
+  }
+
   if (vendor.address) appendTextRow(container, 'Place', vendor.address);
-  if (vendor.hours) appendTextRow(container, 'Time', vendor.hours);
+  if (vendor.online_presence) appendTextRow(container, 'Online', vendor.online_presence);
+  buildTagRow(container, 'Categories', vendor.categories || []);
+  buildTagRow(container, 'Regional techniques', vendor.regional_techniques || []);
 
-  if (vendor.rating > 0) {
+  if (vendor.review_text) {
+    appendTextRow(container, 'Review', vendor.review_text);
+  }
+
+  if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
     rating.className = 'flex items-center gap-1 mt-2';
-    rating.textContent = `${vendor.rating.toFixed(1)} (${vendor.rating_count} reviews)`;
+    rating.textContent = `${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})`;
     container.append(rating);
   }
 
   return container;
 };
 
+const applyGlobeProjectionIfSupported = (map: maplibregl.Map) => {
+  if (!map || typeof (map as any).setProjection !== 'function') {
+    return;
+  }
+
+  try {
+    (map as any).setProjection({ type: 'globe' });
+  } catch {
+    // Some runtimes can ship without globe support; gracefully continue.
+  }
+};
+
+const toLngLat = (latitude: number, longitude: number) => [longitude, latitude] as [number, number];
+
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [centerMapTo, setCenterMapTo] = useState<[number, number] | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
-  const [mapMode, setMapMode] = useState<MapMode>('ROADMAP');
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerElementsRef = useRef<any[]>([]);
-  const popoverRef = useRef<any>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<maplibregl.Map | null>(null);
+  const markerRefs = useRef<maplibregl.Marker[]>([]);
+  const hasAutoCentered = useRef(false);
 
   useEffect(() => {
     fetch(`${window.location.origin}/api/vendors`)
-      .then(res => res.json())
-      .then(data => setVendors(data))
-      .catch(err => console.error('Failed to fetch vendors:', err));
+      .then((res) => res.json())
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        setVendors(data.map(normalizeVendor));
+      })
+      .catch((err) => console.error('Failed to fetch vendors:', err));
   }, []);
 
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    let cancelled = false;
+    if (!mapContainerRef.current) return;
 
-    loadGoogleMapsScript(apiKey || '')
-      .then(async () => {
-        if (!mapContainerRef.current) return;
-        const google = (window as any).google;
-        if (!google?.maps) return;
-        const { Map3DElement, PopoverElement } = await google.maps.importLibrary('maps3d');
-        if (cancelled || !mapContainerRef.current) return;
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: {
+      version: 8,
+      sources: {
+        osm: {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors',
+          maxzoom: 19,
+          minzoom: 0,
+          },
+        },
+        layers: [
+          {
+            id: 'osm',
+            type: 'raster',
+            source: 'osm',
+          },
+        ],
+      },
+      center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
+      zoom: GLOBAL_ZOOM,
+      attributionControl: true,
+      logoPosition: 'bottom-left',
+    });
 
-        const map = new Map3DElement({
-          center: { lat: DEFAULT_CENTER[0], lng: DEFAULT_CENTER[1], altitude: 0 },
-          range: GLOBE_RANGE_METERS,
-          tilt: 0,
-          heading: 0,
-          mode: mapMode,
-          gestureHandling: 'GREEDY',
-        });
+    map.on('load', () => {
+      applyGlobeProjectionIfSupported(map);
+      setIsMapReady(true);
+    });
 
-        const popover = new PopoverElement({
-          open: false,
-        });
-        map.append(popover);
-
-        mapContainerRef.current.replaceChildren(map);
-        mapInstanceRef.current = map;
-        popoverRef.current = popover;
-        setIsMapReady(true);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    mapInstanceRef.current = map;
 
     return () => {
-      cancelled = true;
-      markerElementsRef.current = [];
-      popoverRef.current = null;
+      map.remove();
+      markerRefs.current = [];
       mapInstanceRef.current = null;
-      if (mapContainerRef.current) {
-        mapContainerRef.current.replaceChildren();
-      }
+      setIsMapReady(false);
+      hasAutoCentered.current = false;
     };
   }, []);
 
   useEffect(() => {
-    if (!isMapReady || !mapInstanceRef.current) return;
-    const google = (window as any).google;
-    const map = mapInstanceRef.current as any;
+    if (!isMapReady) return;
 
-    google.maps.importLibrary('maps3d').then(({ Marker3DInteractiveElement }: any) => {
-      markerElementsRef.current.forEach(marker => marker.remove());
-      markerElementsRef.current = [];
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
-      vendors.forEach((vendor) => {
-        const marker = new Marker3DInteractiveElement({
-          position: { lat: vendor.latitude, lng: vendor.longitude, altitude: 0 },
-          altitudeMode: 'CLAMP_TO_GROUND',
-          label: vendor.name,
-        });
+    markerRefs.current.forEach((marker) => marker.remove());
+    markerRefs.current = [];
 
-        marker.addEventListener('gmp-click', () => {
-          if (!popoverRef.current) return;
-          popoverRef.current.replaceChildren(buildPopoverContent(vendor));
-          popoverRef.current.positionAnchor = marker;
-          popoverRef.current.open = true;
-        });
+    vendors.forEach((vendor) => {
+      const latitude = parseCoordinate(vendor.latitude);
+      const longitude = parseCoordinate(vendor.longitude);
+      if (latitude === undefined || longitude === undefined) return;
 
-        map.append(marker);
-        markerElementsRef.current.push(marker);
-      });
+      const pinColor = getPinColor(vendor.entry_level || vendor.category || DEFAULT_ENTRY_LEVEL);
+      const markerElement = createPinElement(pinColor);
+      const popup = new maplibregl.Popup({ closeButton: true, maxWidth: 260 })
+        .setDOMContent(buildPopoverContent(vendor));
+
+      const marker = new maplibregl.Marker({ element: markerElement })
+        .setLngLat(toLngLat(latitude, longitude))
+        .setPopup(popup)
+        .addTo(map);
+
+      markerRefs.current.push(marker);
     });
   }, [vendors, isMapReady]);
 
   useEffect(() => {
-    if (!isMapReady || !centerMapTo || !mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
-    map.center = { lat: centerMapTo[0], lng: centerMapTo[1], altitude: 0 };
-    map.range = LOCAL_RANGE_METERS;
-    map.tilt = LOCAL_TILT_DEGREES;
-  }, [centerMapTo, isMapReady]);
+    if (!isMapReady || !map || centerMapTo) return;
+
+    if (!vendors.length || hasAutoCentered.current) return;
+
+    const validVendor = vendors.find((vendor) => {
+      const latitude = parseCoordinate(vendor.latitude);
+      const longitude = parseCoordinate(vendor.longitude);
+      return latitude !== undefined && longitude !== undefined;
+    });
+
+    if (!validVendor) return;
+
+    map.flyTo({
+      center: toLngLat(validVendor.latitude, validVendor.longitude),
+      zoom: LOCAL_ZOOM,
+      duration: 1200,
+    });
+    hasAutoCentered.current = true;
+  }, [vendors, isMapReady, centerMapTo]);
 
   useEffect(() => {
-    if (!isMapReady || !mapInstanceRef.current) return;
-    mapInstanceRef.current.mode = mapMode;
-  }, [mapMode, isMapReady]);
+    const map = mapInstanceRef.current;
+    if (!isMapReady || !centerMapTo || !map) return;
+    map.flyTo({
+      center: [centerMapTo[1], centerMapTo[0]],
+      zoom: LOCAL_ZOOM,
+      duration: 900,
+    });
+  }, [centerMapTo, isMapReady]);
 
   const locateUser = () => {
     setFindingLocation(true);
@@ -174,7 +328,7 @@ export function MapPage() {
           console.error("Error finding location: ", error);
           alert("Couldn't find your location. Please check your browser permissions.");
           setFindingLocation(false);
-        }
+        },
       );
     } else {
       alert("Geolocation is not supported by your browser.");
@@ -190,9 +344,10 @@ export function MapPage() {
         body: JSON.stringify(newMenderData),
       });
       const newVendor = await res.json();
-      setVendors(prev => [...prev, newVendor]);
+      setVendors((prev) => [...prev, normalizeVendor(newVendor)]);
       setShowAddModal(false);
       setCenterMapTo([newVendor.latitude, newVendor.longitude]);
+      hasAutoCentered.current = true;
     } catch (err) {
       console.error('Failed to add vendor:', err);
     }
@@ -204,7 +359,7 @@ export function MapPage() {
 
       {/* Floating Action Buttons */}
       <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
-        <button 
+        <button
           onClick={locateUser}
           disabled={findingLocation}
           className="bg-white border border-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-100 shadow-sm flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-slate-900"
@@ -213,7 +368,7 @@ export function MapPage() {
           {findingLocation ? 'Locating...' : 'Near Me'}
         </button>
 
-        <button 
+        <button
           onClick={() => setShowAddModal(true)}
           className="bg-brand text-slate-800 px-5 py-2.5 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2 hover:bg-brand-hover transition-colors"
         >
@@ -222,29 +377,7 @@ export function MapPage() {
         </button>
       </div>
 
-      <div className="absolute top-6 right-6 z-10 flex rounded-lg border border-slate-300 bg-white/95 p-1 shadow-sm backdrop-blur">
-        {(['ROADMAP', 'SATELLITE', 'HYBRID'] as MapMode[]).map(mode => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setMapMode(mode)}
-            className={`rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
-              mapMode === mode
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-700 hover:bg-slate-100'
-            }`}
-          >
-            {mode === 'ROADMAP' ? 'Road' : mode === 'SATELLITE' ? 'Satellite' : 'Hybrid'}
-          </button>
-        ))}
-      </div>
-
-      {showAddModal && (
-        <AddMenderModal 
-          onClose={() => setShowAddModal(false)} 
-          onAdd={handleAddMender} 
-        />
-      )}
+      {showAddModal && <AddMenderModal onClose={() => setShowAddModal(false)} onAdd={handleAddMender} />}
     </div>
   );
 }

@@ -1,14 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Select, { type MultiValue } from 'react-select';
 import { Vendor } from '../types';
 import { X } from 'lucide-react';
 import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
+import { reverseGeocode as geoReverse } from '../utils/geoapify';
+import { GeoAutocomplete } from './GeoAutocomplete';
 
-interface AddMenderModalProps {
-  onClose: () => void;
-  onAdd: (vendor: Omit<Vendor, 'id'>) => void;
-}
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
 
-const ENTRY_LEVEL_OPTIONS = ['Menders', 'Member of the public'];
+const ENTRY_LEVEL_OPTIONS = ['Menders', 'Member of the public'] as const;
 
 const TYPE_OPTIONS = ['Home', 'Itinerant', 'Shop', 'Workshop', 'Chain', 'Dry-clean'];
 
@@ -37,7 +39,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 const TECHNIQUE_OPTIONS = [
-  'Appliqué Repair',
+  'Applique Repair',
   'Boro',
   'Darning',
   'Kantha Repair',
@@ -51,151 +53,339 @@ const TECHNIQUE_OPTIONS = [
   'Swiss Darning',
 ];
 
-const pinColourByEntryLevel: Record<string, string> = {
+const PIN_COLORS: Record<string, string> = {
   Menders: '#2A9D8F',
   'Member of the public': '#F4A261',
 };
 
-const getPinColor = (entryLevel: string) => {
-  return pinColourByEntryLevel[entryLevel] || '#99C4CB';
+const getPinColor = (level: string) => PIN_COLORS[level] || '#99C4CB';
+
+const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London
+
+// ---------------------------------------------------------------------------
+// react-select helpers
+// ---------------------------------------------------------------------------
+
+type Option = { value: string; label: string };
+
+const typeOptions: Option[] = TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
+const techniqueOptions: Option[] = TECHNIQUE_OPTIONS.map((t) => ({ value: t, label: t }));
+
+const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);
+
+const selectStyles = {
+  control: (base: any) => ({
+    ...base,
+    backgroundColor: 'rgb(248 250 252)',
+    borderColor: 'rgb(226 232 240)',
+    borderRadius: '0.5rem',
+    minHeight: '2.5rem',
+    fontSize: '0.875rem',
+    boxShadow: 'none',
+    '&:hover': { borderColor: 'rgb(226 232 240)' },
+  }),
+  menu: (base: any) => ({ ...base, fontSize: '0.875rem', zIndex: 50 }),
+  multiValue: (base: any) => ({
+    ...base,
+    backgroundColor: 'rgb(241 245 249)',
+    borderRadius: '0.375rem',
+  }),
+  multiValueLabel: (base: any) => ({ ...base, fontSize: '0.75rem', padding: '0.125rem 0.375rem' }),
+  multiValueRemove: (base: any) => ({
+    ...base,
+    borderRadius: '0 0.375rem 0.375rem 0',
+    '&:hover': { backgroundColor: 'rgb(248 113 113)', color: 'white' },
+  }),
+  placeholder: (base: any) => ({ ...base, color: 'rgb(148 163 184)' }),
 };
 
-export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
+interface AddMenderModalProps {
+  onClose: () => void;
+  onAdd: (vendor: Omit<Vendor, 'id'>) => void;
+  onAddressSelect?: (coords: [number, number], address: string) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderModalProps) {
+  // ---- form fields ----
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [onlinePresence, setOnlinePresence] = useState('');
-  const [entryLevel, setEntryLevel] = useState<(typeof ENTRY_LEVEL_OPTIONS)[number]>('Menders');
+  const [entryLevel, setEntryLevel] = useState<string>('Menders');
   const [types, setTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [regionalTechniques, setRegionalTechniques] = useState<string[]>([]);
   const [reviewStars, setReviewStars] = useState('');
   const [reviewText, setReviewText] = useState('');
-  const [position, setPosition] = useState<[number, number]>([51.505, -0.09]); // Default position, ideally user's current loc
-  const [locateCenter, setLocateCenter] = useState<[number, number] | null>(null);
-  const [zoom, setZoom] = useState(2);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const pinMarkerRef = useRef<any>(null);
-  const clickListenerRef = useRef<any>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
 
+  // ---- map / location state ----
+  const [position, setPosition] = useState<[number, number] | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState('');
+  const [placesReady, setPlacesReady] = useState(false);
+
+  // ---- refs to survive effect closures ----
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const autocompleteElRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const autocompleteHostRef = useRef<HTMLDivElement>(null);
+
+  // Keep a ref copy of position so GMaps callbacks always read the latest value
+  const positionRef = useRef(position);
+  positionRef.current = position;
+
+  // ------------------------------------------------------------------
+  // Helpers that touch the map directly (not via state)
+  // ------------------------------------------------------------------
+
+  const panMapTo = useCallback((lat: number, lng: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setCenter({ lat, lng });
+    map.setZoom(16);
+  }, []);
+
+  const reverseGeocode = useCallback(
+    (lat: number, lng: number) => {
+      // Try Google first
+      if ((window as any).google?.maps) {
+        const geocoder = new (window as any).google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+          if (status === 'OK' && results?.[0]?.formatted_address) {
+            setAddress(results[0].formatted_address);
+          } else {
+            // Fall back to Geoapify
+            geoReverse(lat, lng).then((addr) => { if (addr) setAddress(addr); });
+          }
+        });
+      } else {
+        // Google not loaded — use Geoapify directly
+        geoReverse(lat, lng).then((addr) => { if (addr) setAddress(addr); });
+      }
+    },
+    [],
+  );
+
+  // Central "go here" action used by autocomplete, click, and drag
+  const goToLocation = useCallback(
+    (lat: number, lng: number, addr?: string) => {
+      setPosition([lat, lng]);
+      if (addr) setAddress(addr);
+      panMapTo(lat, lng);
+      reverseGeocode(lat, lng);
+    },
+    [panMapTo, reverseGeocode],
+  );
+
+  // ------------------------------------------------------------------
+  // Effect 1 — Geolocation
+  // ------------------------------------------------------------------
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const newPos: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-          setPosition(newPos);
-          setLocateCenter(newPos);
-          setZoom(13);
-        },
-        () => {
-          // Gracefully fail if geolocation is denied.
-        }
+        (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
+        () => setPosition(DEFAULT_CENTER),
       );
+    } else {
+      setPosition(DEFAULT_CENTER);
     }
   }, []);
 
+  // ------------------------------------------------------------------
+  // Effect 2 — Google Maps initialisation
+  // ------------------------------------------------------------------
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    loadGoogleMapsScript(apiKey || '')
-      .then(() => {
-        if (!mapContainerRef.current) return;
-        const google = (window as any).google;
-        if (!google?.maps) return;
+    setMapError(null);
 
-        const map = new google.maps.Map(mapContainerRef.current, {
-          center: { lat: position[0], lng: position[1] },
-          zoom,
+    // Set up the global auth-failure callback
+    const onGmAuthFailure = () =>
+      setMapError(
+        'Google Maps authentication failed. Check your API key, billing, and domain restrictions.',
+      );
+    (window as any).gm_authFailure = onGmAuthFailure;
+
+    let cancelled = false;
+
+    loadGoogleMapsScript(apiKey || '')
+      .then(async () => {
+        if (cancelled || !mapContainerRef.current) return;
+        const g = (window as any).google;
+        if (!g?.maps) return;
+
+        // Ensure Places is available
+        try { await g.maps.importLibrary('places'); } catch { /* ok */ }
+
+        // ---- Create the mini map ----
+        const initial = positionRef.current || DEFAULT_CENTER;
+        const map = new g.maps.Map(mapContainerRef.current, {
+          center: { lat: initial[0], lng: initial[1] },
+          zoom: 13,
           mapTypeControl: false,
           streetViewControl: false,
         });
+        mapRef.current = map;
 
-        mapInstanceRef.current = map;
-        setIsMapReady(true);
+        // ---- Place Autocomplete ----
+        const hasPlaces = !!g.maps.places?.PlaceAutocompleteElement;
+        if (hasPlaces && autocompleteHostRef.current) {
+          autocompleteHostRef.current.innerHTML = '';
+          const ac = new g.maps.places.PlaceAutocompleteElement();
+          ac.id = 'address-autocomplete';
+          ac.placeholder = 'Street address';
+          Object.assign(ac.style, {
+            width: '100%',
+            padding: '0.625rem',
+            borderRadius: '0.5rem',
+            border: '1px solid rgb(226 232 240)',
+            backgroundColor: 'rgb(248 250 252)',
+            boxSizing: 'border-box',
+            fontSize: '0.875rem',
+            outline: 'none',
+          } as any);
+          ac.autocomplete = 'off';
+
+          ac.addEventListener('gmp-select', async (evt: any) => {
+            const place = evt?.place || evt?.detail?.place;
+            if (!place) return;
+            try {
+              await place.fetchFields({ fields: ['formattedAddress', 'location'] });
+              if (!place.location) return;
+              const lat = place.location.lat;
+              const lng = place.location.lng;
+              const addr = place.formattedAddress || '';
+              setAddress(addr);
+              setPosition([lat, lng]);
+              panMapTo(lat, lng);
+              setMapError(null);
+              onAddressSelect?.([lat, lng], addr);
+            } catch {
+              setMapError('Unable to resolve the selected address. Try another suggestion.');
+            }
+          });
+
+          autocompleteHostRef.current.appendChild(ac);
+          autocompleteElRef.current = ac;
+          setPlacesReady(true);
+        }
+
+        // ---- Marker (draggable) ----
+        const marker = new g.maps.Marker({
+          map,
+          position: { lat: initial[0], lng: initial[1] },
+          icon: createLocationPinIcon(g.maps, getPinColor('Menders'), '#ffffff'),
+          draggable: true,
+        });
+        markerRef.current = marker;
+
+        // ---- Map click ----
+        map.addListener('click', (evt: any) => {
+          if (!evt.latLng) return;
+          const lat = evt.latLng.lat();
+          const lng = evt.latLng.lng();
+          setPosition([lat, lng]);
+          panMapTo(lat, lng);
+          reverseGeocode(lat, lng);
+        });
+
+        // ---- Marker drag ----
+        marker.addListener('dragend', () => {
+          const pos = marker.getPosition();
+          if (!pos) return;
+          const lat = pos.lat();
+          const lng = pos.lng();
+          setPosition([lat, lng]);
+          panMapTo(lat, lng);
+          reverseGeocode(lat, lng);
+        });
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((err: any) => {
+        if (cancelled) return;
+        setMapError(err instanceof Error ? err.message : 'Failed to load Google Maps.');
       });
-  }, []);
 
+    return () => {
+      cancelled = true;
+      if ((window as any).gm_authFailure === onGmAuthFailure) {
+        (window as any).gm_authFailure = undefined;
+      }
+      // Remove autocomplete from DOM
+      if (autocompleteElRef.current && autocompleteHostRef.current) {
+        try { autocompleteHostRef.current.removeChild(autocompleteElRef.current); } catch { /* */ }
+      }
+      autocompleteElRef.current = null;
+      markerRef.current = null;
+      mapRef.current = null;
+      setPlacesReady(false);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ------------------------------------------------------------------
+  // Effect 3 — sync marker position + colour when position/entryLevel changes
+  // ------------------------------------------------------------------
   useEffect(() => {
-    if (!isMapReady || !mapInstanceRef.current) return;
-    const google = (window as any).google;
-    const map = mapInstanceRef.current as any;
+    if (!position || !markerRef.current) return;
+    const g = (window as any).google;
+    if (!g?.maps) return;
 
-    if (locateCenter) {
-      map.setCenter({ lat: locateCenter[0], lng: locateCenter[1] });
-      map.setZoom(13);
-      setLocateCenter(null);
-    } else {
-      map.setCenter({ lat: position[0], lng: position[1] });
-      map.setZoom(zoom);
-    }
+    const latLng = { lat: position[0], lng: position[1] };
+    markerRef.current.setPosition(latLng);
+    markerRef.current.setIcon(
+      createLocationPinIcon(g.maps, getPinColor(entryLevel), '#ffffff'),
+    );
+  }, [position, entryLevel]);
 
-    if (!pinMarkerRef.current) {
-      pinMarkerRef.current = new google.maps.Marker({
-        map,
-        position: { lat: position[0], lng: position[1] },
-        icon: createLocationPinIcon(google.maps, getPinColor(entryLevel), '#ffffff'),
-        draggable: false,
-      });
-    } else {
-      pinMarkerRef.current.setPosition({ lat: position[0], lng: position[1] });
-      pinMarkerRef.current.setIcon(createLocationPinIcon(google.maps, getPinColor(entryLevel), '#ffffff'));
-    }
-
-    if (!clickListenerRef.current) {
-      clickListenerRef.current = map.addListener('click', (event: any) => {
-        const lat = event.latLng.lat();
-        const lng = event.latLng.lng();
-        setPosition([lat, lng]);
-      });
-    }
-  }, [position, zoom, isMapReady, locateCenter, entryLevel]);
-
-  const toggleInList = (value: string, currentList: string[], setList: React.Dispatch<React.SetStateAction<string[]>>) => {
-    if (currentList.includes(value)) {
-      setList(currentList.filter((item) => item !== value));
-    } else {
-      setList([...currentList, value]);
-    }
-  };
+  // ------------------------------------------------------------------
+  // Form helpers
+  // ------------------------------------------------------------------
 
   const resetReviewFields = () => {
     setReviewStars('');
     setReviewText('');
   };
 
-  const handleEntryLevelChange = (value: (typeof ENTRY_LEVEL_OPTIONS)[number]) => {
-    setEntryLevel(value);
-    if (value === 'Menders') {
-      resetReviewFields();
-    }
+  const onEntryLevelChange = (level: string) => {
+    setEntryLevel(level);
+    if (level === 'Menders') resetReviewFields();
   };
+
+  // ------------------------------------------------------------------
+  // Submit
+  // ------------------------------------------------------------------
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || position[0] === 0 || !types.length) return;
+    setSubmitError('');
 
+    if (!name.trim()) {
+      setSubmitError('Name is required.');
+      return;
+    }
+
+    if (!position || !Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
+      setSubmitError('Please select a location on the map — click or drag the pin.');
+      return;
+    }
+
+    const resolvedAddress = address.trim() || 'Location selected on map';
     const reviewScore = Number(reviewStars);
     const normalizedReview = Number.isFinite(reviewScore) ? Math.min(5, Math.max(0, reviewScore)) : 0;
-
-    const metadata = {
-      entry_level: entryLevel,
-      types,
-      categories,
-      regional_techniques: regionalTechniques,
-      online_presence: onlinePresence,
-      review_text: reviewText,
-    };
 
     onAdd({
       name,
       category: entryLevel,
       entry_level: entryLevel,
       types,
-      address: address || undefined,
+      address: resolvedAddress,
       latitude: position[0],
       longitude: position[1],
       phone,
@@ -206,189 +396,242 @@ export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
       regional_techniques: regionalTechniques,
       review_text: reviewText,
       rating: entryLevel === 'Member of the public' ? normalizedReview : 0,
-      rating_count: entryLevel === 'Member of the public' && (reviewText || normalizedReview > 0) ? 1 : 0,
-      photos: JSON.stringify(metadata),
+      rating_count:
+        entryLevel === 'Member of the public' && (reviewText || normalizedReview > 0) ? 1 : 0,
+      photos: JSON.stringify({
+        entry_level: entryLevel,
+        types,
+        categories,
+        regional_techniques: regionalTechniques,
+        online_presence: onlinePresence,
+        review_text: reviewText,
+      }),
     });
   };
 
+  // ------------------------------------------------------------------
+  // Derived UI flags
+  // ------------------------------------------------------------------
+
+  // Show the fallback text input when Places isn't available OR we hit an error
+  const showFallbackInput = !placesReady;
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
+
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm sm:p-0">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-start mb-6">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-[min(95vw,1120px)] h-[min(90vh,840px)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="flex justify-between items-start p-6 pb-4">
           <h2 className="text-lg font-bold text-slate-900">Add New Mender</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Name *</label>
-            <input
-              id="name"
-              type="text"
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="e.g. Maria's Shoe Repair"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-            />
-          </div>
-
-          <div>
-            <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Entry Level *</p>
-            <div className="grid grid-cols-2 gap-2">
-              {ENTRY_LEVEL_OPTIONS.map(level => (
-                <label key={level} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
-                  <input
-                    type="radio"
-                    name="entry-level"
-                    value={level}
-                    checked={entryLevel === level}
-                    onChange={() => handleEntryLevelChange(level as (typeof ENTRY_LEVEL_OPTIONS)[number])}
-                  />
-                  <span className="text-sm text-slate-700">{level}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Type * (tick multiple)</p>
-            <div className="grid grid-cols-2 gap-2">
-              {TYPE_OPTIONS.map(type => (
-                <label key={type} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
-                  <input
-                    type="checkbox"
-                    value={type}
-                    checked={types.includes(type)}
-                    onChange={() => toggleInList(type, types, setTypes)}
-                  />
-                  <span className="text-sm text-slate-700">{type}</span>
-                </label>
-              ))}
-            </div>
-            {!types.length ? (
-              <p className="text-xs text-amber-600 mt-1">Please tick at least one type.</p>
-            ) : null}
-          </div>
-
-          <div>
-            <label htmlFor="address" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Address *</label>
-            <input
-              id="address"
-              type="text"
-              required
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              placeholder="Street address"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Tel Number *</label>
-            <input
-              id="phone"
-              type="text"
-              required
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="Phone"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="online" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Online Presence</label>
-            <input
-              id="online"
-              type="text"
-              value={onlinePresence}
-              onChange={e => setOnlinePresence(e.target.value)}
-              placeholder="Website or social link"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-            />
-          </div>
-
-          {ENTRY_LEVEL_OPTIONS.includes(entryLevel) && entryLevel === 'Member of the public' && (
-            <>
+        <form onSubmit={handleSubmit} className="h-[calc(100%-5rem)] px-6 pb-6 overflow-y-auto">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* ==================== LEFT COLUMN ==================== */}
+            <div className="space-y-4">
+              {/* Name */}
               <div>
-                <label htmlFor="review-stars" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Star system (0 to 5)</label>
+                <label htmlFor="name" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Name *
+                </label>
                 <input
-                  id="review-stars"
-                  type="number"
-                  min={0}
-                  max={5}
-                  step={0.5}
-                  value={reviewStars}
-                  onChange={e => setReviewStars(e.target.value)}
-                  placeholder="4.5"
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Maria's Shoe Repair"
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
                 />
               </div>
 
+              {/* Entry Level */}
               <div>
-                <label htmlFor="review-text" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Written review</label>
-                <textarea
-                  id="review-text"
-                  value={reviewText}
-                  onChange={e => setReviewText(e.target.value)}
-                  placeholder="Leave your feedback"
-                  rows={3}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-                />
-              </div>
-            </>
-          )}
-
-          <div>
-            <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-2">Categories (tick multiple)</p>
-            {CATEGORY_OPTIONS.map(group => (
-              <div key={group.label} className="mb-2">
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1">{group.label}</p>
+                <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Entry Level *
+                </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {group.items.map(category => (
-                    <label key={category} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
+                  {ENTRY_LEVEL_OPTIONS.map((level) => (
+                    <label key={level} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
                       <input
-                        type="checkbox"
-                        value={category}
-                        checked={categories.includes(category)}
-                        onChange={() => toggleInList(category, categories, setCategories)}
+                        type="radio"
+                        name="entry-level"
+                        value={level}
+                        checked={entryLevel === level}
+                        onChange={() => onEntryLevelChange(level)}
                       />
-                      <span className="text-sm text-slate-700">{category}</span>
+                      <span className="text-sm text-slate-700">{level}</span>
                     </label>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
 
-          <div>
-            <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-2">Regional techniques (tick multiple)</p>
-            <div className="grid grid-cols-2 gap-2">
-              {TECHNIQUE_OPTIONS.map(technique => (
-                <label key={technique} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
-                  <input
-                    type="checkbox"
-                    value={technique}
-                    checked={regionalTechniques.includes(technique)}
-                    onChange={() => toggleInList(technique, regionalTechniques, setRegionalTechniques)}
-                  />
-                  <span className="text-sm text-slate-700">{technique}</span>
+              {/* Type */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Type</label>
+                <Select
+                  isMulti
+                  options={typeOptions}
+                  value={typeOptions.filter((o) => types.includes(o.value))}
+                  onChange={(opts) => setTypes(toValues(opts))}
+                  placeholder="Select types..."
+                  styles={selectStyles}
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Address
                 </label>
-              ))}
+
+                {/* Places Autocomplete (loaded when ready) */}
+                <div
+                  ref={autocompleteHostRef}
+                  className={showFallbackInput ? 'hidden' : 'w-full text-sm'}
+                />
+
+                {/* Fallback: Geoapify-powered autocomplete */}
+                {showFallbackInput && (
+                  <GeoAutocomplete
+                    value={address}
+                    onChange={(val) => setAddress(val)}
+                    onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
+                    placeholder="Street address"
+                  />
+                )}
+
+                {mapError && <p className="text-xs text-amber-600 mt-1">{mapError}</p>}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Tel Number
+                </label>
+                <input
+                  id="phone"
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Phone"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                />
+              </div>
+
+              {/* Online Presence */}
+              <div>
+                <label htmlFor="online" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Online Presence
+                </label>
+                <input
+                  id="online"
+                  type="text"
+                  value={onlinePresence}
+                  onChange={(e) => setOnlinePresence(e.target.value)}
+                  placeholder="Website or social link"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                />
+              </div>
+
+              {/* Review (Member of the public only) */}
+              {entryLevel === 'Member of the public' && (
+                <>
+                  <div>
+                    <label htmlFor="review-stars" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                      Star rating (0–5)
+                    </label>
+                    <input
+                      id="review-stars"
+                      type="number"
+                      min={0}
+                      max={5}
+                      step={0.5}
+                      value={reviewStars}
+                      onChange={(e) => setReviewStars(e.target.value)}
+                      placeholder="4.5"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="review-text" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                      Written review
+                    </label>
+                    <textarea
+                      id="review-text"
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      placeholder="Leave your feedback"
+                      rows={3}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Mini Map */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Location *
+                </label>
+                <p className="text-xs text-slate-400 mb-2">
+                  Drag the pin or click the map to set a precise location.
+                </p>
+                <div className="h-40 rounded-lg overflow-hidden border border-slate-200 relative z-0">
+                  <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* ==================== RIGHT COLUMN ==================== */}
+            <div className="space-y-4">
+              {/* Categories */}
+              <div>
+                <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-2">Categories</p>
+                {CATEGORY_OPTIONS.map((group) => (
+                  <div key={group.label} className="mb-2">
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1">{group.label}</p>
+                    <Select
+                      isMulti
+                      options={group.items.map((item) => ({ value: item, label: item }))}
+                      value={group.items
+                        .filter((item) => categories.includes(item))
+                        .map((item) => ({ value: item, label: item }))}
+                      onChange={(opts) => {
+                        const picked = toValues(opts);
+                        const others = categories.filter((c) => !group.items.includes(c));
+                        setCategories([...others, ...picked]);
+                      }}
+                      placeholder={`Select ${group.label.toLowerCase()}...`}
+                      styles={selectStyles}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Regional Techniques */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Regional techniques
+                </label>
+                <Select
+                  isMulti
+                  options={techniqueOptions}
+                  value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
+                  onChange={(opts) => setRegionalTechniques(toValues(opts))}
+                  placeholder="Select techniques..."
+                  styles={selectStyles}
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Location *</label>
-            <p className="text-xs text-slate-400 mb-2">Drag/pan the map and click to drop a pin.</p>
-            <div className="h-40 rounded-lg overflow-hidden border border-slate-200 relative z-0">
-              <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
-            </div>
-          </div>
-
+          {/* Buttons */}
           <div className="mt-6 flex gap-3 pt-2">
             <button
               type="button"
@@ -404,6 +647,7 @@ export function AddMenderModal({ onClose, onAdd }: AddMenderModalProps) {
               Publish to Map
             </button>
           </div>
+          {submitError && <p className="mt-3 text-xs text-amber-700">{submitError}</p>}
         </form>
       </div>
     </div>

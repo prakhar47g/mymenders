@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Navigation, Plus } from 'lucide-react';
+import { Globe, Minus, Navigation, Plus } from 'lucide-react';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
 
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
-const GLOBAL_ZOOM = 2.1;
+const GLOBAL_ZOOM = 1.9;
 const LOCAL_ZOOM = 13;
+const AUTO_CENTER_TO_FIRST_VENDOR = false;
 const DEFAULT_ENTRY_LEVEL = 'Menders';
 const PIN_COLOR_MAP: Record<string, string> = {
   Menders: '#2A9D8F',
@@ -126,7 +127,7 @@ const createPinElement = (color: string) => {
   return pin;
 };
 
-const buildPopoverContent = (vendor: Vendor) => {
+const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
   container.className = 'min-w-[240px] p-2';
 
@@ -154,8 +155,8 @@ const buildPopoverContent = (vendor: Vendor) => {
     container.append(contact);
   }
 
-  if (vendor.address) appendTextRow(container, 'Place', vendor.address);
-  if (vendor.online_presence) appendTextRow(container, 'Online', vendor.online_presence);
+  if (vendor.address) appendTextRow(container, 'Address', vendor.address);
+  if (vendor.online_presence) appendTextRow(container, 'Online Presence', vendor.online_presence);
   buildTagRow(container, 'Categories', vendor.categories || []);
   buildTagRow(container, 'Regional techniques', vendor.regional_techniques || []);
 
@@ -169,6 +170,24 @@ const buildPopoverContent = (vendor: Vendor) => {
     rating.textContent = `${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})`;
     container.append(rating);
   }
+
+  const directionsButton = document.createElement('button');
+  directionsButton.type = 'button';
+  directionsButton.className =
+    'mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors';
+  directionsButton.innerHTML = `
+    <span class="inline-flex items-center justify-center w-4 h-4">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13.5 3.5l-3 17 2.5-6.5h6l-3 6.5 3-2.5v-2l-3.5-2.5-3 1.5-1.5-4L6 8l4-2.5 2 3z"/>
+        <path d="M3.5 8.5L21 21"/>
+      </svg>
+    </span>
+    Directions
+  `;
+  directionsButton.addEventListener('click', () => {
+    onDirections(vendor);
+  });
+  container.append(directionsButton);
 
   return container;
 };
@@ -186,11 +205,13 @@ const applyGlobeProjectionIfSupported = (map: maplibregl.Map) => {
 };
 
 const toLngLat = (latitude: number, longitude: number) => [longitude, latitude] as [number, number];
+const DIRECTION_ZOOM = 14.5;
+const DIRECTION_FLY_DURATION_MS = Math.round(800 * 1.3);
 
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [centerMapTo, setCenterMapTo] = useState<[number, number] | null>(null);
+  const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -219,9 +240,14 @@ export function MapPage() {
       sources: {
         osm: {
           type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tiles: [
+            'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+            'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+            'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+            'https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+          ],
           tileSize: 256,
-          attribution: '© OpenStreetMap contributors',
+          attribution: '© OpenStreetMap contributors, © CARTO',
           maxzoom: 19,
           minzoom: 0,
           },
@@ -272,8 +298,18 @@ export function MapPage() {
 
       const pinColor = getPinColor(vendor.entry_level || vendor.category || DEFAULT_ENTRY_LEVEL);
       const markerElement = createPinElement(pinColor);
-      const popup = new maplibregl.Popup({ closeButton: true, maxWidth: 260 })
-        .setDOMContent(buildPopoverContent(vendor));
+      const popup = new maplibregl.Popup({ closeButton: true, maxWidth: 260 }).setDOMContent(
+        buildPopoverContent(vendor, (selectedVendor) => {
+          const targetLatitude = parseCoordinate(selectedVendor.latitude);
+          const targetLongitude = parseCoordinate(selectedVendor.longitude);
+          if (targetLatitude === undefined || targetLongitude === undefined) return;
+          map.flyTo({
+            center: toLngLat(targetLatitude, targetLongitude),
+            zoom: DIRECTION_ZOOM,
+            duration: DIRECTION_FLY_DURATION_MS,
+          });
+        }),
+      );
 
       const marker = new maplibregl.Marker({ element: markerElement })
         .setLngLat(toLngLat(latitude, longitude))
@@ -285,10 +321,10 @@ export function MapPage() {
   }, [vendors, isMapReady]);
 
   useEffect(() => {
-    const map = mapInstanceRef.current;
+  const map = mapInstanceRef.current;
     if (!isMapReady || !map || centerMapTo) return;
 
-    if (!vendors.length || hasAutoCentered.current) return;
+    if (!vendors.length || hasAutoCentered.current || !AUTO_CENTER_TO_FIRST_VENDOR) return;
 
     const validVendor = vendors.find((vendor) => {
       const latitude = parseCoordinate(vendor.latitude);
@@ -310,8 +346,8 @@ export function MapPage() {
     const map = mapInstanceRef.current;
     if (!isMapReady || !centerMapTo || !map) return;
     map.flyTo({
-      center: [centerMapTo[1], centerMapTo[0]],
-      zoom: LOCAL_ZOOM,
+      center: [centerMapTo.lng, centerMapTo.lat],
+      zoom: centerMapTo.zoom ?? LOCAL_ZOOM,
       duration: 900,
     });
   }, [centerMapTo, isMapReady]);
@@ -321,7 +357,11 @@ export function MapPage() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCenterMapTo([position.coords.latitude, position.coords.longitude]);
+          setCenterMapTo({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            zoom: LOCAL_ZOOM,
+          });
           setFindingLocation(false);
         },
         (error) => {
@@ -346,7 +386,11 @@ export function MapPage() {
       const newVendor = await res.json();
       setVendors((prev) => [...prev, normalizeVendor(newVendor)]);
       setShowAddModal(false);
-      setCenterMapTo([newVendor.latitude, newVendor.longitude]);
+      setCenterMapTo({
+        lat: newVendor.latitude,
+        lng: newVendor.longitude,
+        zoom: LOCAL_ZOOM,
+      });
       hasAutoCentered.current = true;
     } catch (err) {
       console.error('Failed to add vendor:', err);
@@ -356,6 +400,51 @@ export function MapPage() {
   return (
     <div className="relative w-full h-[calc(100vh-64px)] mt-16 z-0">
       <div ref={mapContainerRef} className="w-full h-full" />
+
+      {/* Map controls */}
+      <div className="absolute right-6 top-6 z-10 flex flex-col gap-2">
+        <button
+          onClick={() => {
+            const map = mapInstanceRef.current;
+            if (!map) return;
+            map.zoomIn();
+          }}
+          className="w-11 h-11 rounded-full bg-white border border-slate-300 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50"
+          aria-label="Zoom in"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={() => {
+            const map = mapInstanceRef.current;
+            if (!map) return;
+            map.zoomOut();
+          }}
+          className="w-11 h-11 rounded-full bg-white border border-slate-300 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50"
+          aria-label="Zoom out"
+        >
+          <Minus className="w-5 h-5" />
+        </button>
+
+        <button
+          onClick={() => {
+            const map = mapInstanceRef.current;
+            if (!map) return;
+            map.flyTo({
+              center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
+              zoom: GLOBAL_ZOOM,
+              pitch: 0,
+              bearing: 0,
+              duration: 700,
+            });
+          }}
+          className="w-11 h-11 rounded-full bg-white border border-slate-300 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50"
+          aria-label="Reset to globe view"
+        >
+          <Globe className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Floating Action Buttons */}
       <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
@@ -377,7 +466,19 @@ export function MapPage() {
         </button>
       </div>
 
-      {showAddModal && <AddMenderModal onClose={() => setShowAddModal(false)} onAdd={handleAddMender} />}
+      {showAddModal && (
+        <AddMenderModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddMender}
+          onAddressSelect={(coords) => {
+            setCenterMapTo({
+              lat: coords[0],
+              lng: coords[1],
+              zoom: 16,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

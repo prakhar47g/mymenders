@@ -1,4 +1,4 @@
-export const GOOGLE_MAPS_SCRIPT_ID = 'google-maps-js';
+const GOOGLE_MAPS_SCRIPT_ID = 'google-maps-js';
 
 declare global {
   interface Window {
@@ -50,7 +50,7 @@ export const loadGoogleMapsScript = (apiKey: string): Promise<void> => {
 
   const script = document.createElement('script');
   script.id = GOOGLE_MAPS_SCRIPT_ID;
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly&libraries=marker,maps3d`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=beta&libraries=places`;
   script.async = true;
   script.defer = true;
 

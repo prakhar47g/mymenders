@@ -20,11 +20,3 @@ export interface Vendor {
   photos?: string;
   contact?: string;
 }
-
-export type Mender = Omit<Vendor, 'id' | 'address' | 'category' | 'rating' | 'rating_count' | 'phone' | 'website' | 'hours' | 'photo_url' | 'photos'> & {
-  id: string;
-  lat: number;
-  lng: number;
-  note: string;
-  contact?: string;
-};

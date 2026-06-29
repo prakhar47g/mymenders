@@ -102,7 +102,7 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
         onFocus={() => { if (suggestions.length > 0) setOpen(true); }}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
       />
       {open && suggestions.length > 0 && (
         <ul

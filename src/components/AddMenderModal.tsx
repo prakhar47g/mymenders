@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Select, { type MultiValue } from 'react-select';
+import { PhoneInput } from 'react-international-phone';
 import { Vendor } from '../types';
 import { X } from 'lucide-react';
 import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
@@ -135,9 +136,9 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   // ---- refs to survive effect closures ----
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
-  const autocompleteElRef = useRef<any>(null);
+  const googleAutocompleteRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const autocompleteHostRef = useRef<HTMLDivElement>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
 
   // Keep a ref copy of position so GMaps callbacks always read the latest value
   const positionRef = useRef(position);
@@ -236,45 +237,29 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
         mapRef.current = map;
 
         // ---- Place Autocomplete ----
-        const hasPlaces = !!g.maps.places?.PlaceAutocompleteElement;
-        if (hasPlaces && autocompleteHostRef.current) {
-          autocompleteHostRef.current.innerHTML = '';
-          const ac = new g.maps.places.PlaceAutocompleteElement();
-          ac.id = 'address-autocomplete';
-          ac.placeholder = 'Street address';
-          Object.assign(ac.style, {
-            width: '100%',
-            padding: '0.625rem',
-            borderRadius: '0.5rem',
-            border: '1px solid rgb(226 232 240)',
-            backgroundColor: 'rgb(248 250 252)',
-            boxSizing: 'border-box',
-            fontSize: '0.875rem',
-            outline: 'none',
-          } as any);
-          ac.autocomplete = 'off';
-
-          ac.addEventListener('gmp-select', async (evt: any) => {
-            const place = evt?.place || evt?.detail?.place;
-            if (!place) return;
-            try {
-              await place.fetchFields({ fields: ['formattedAddress', 'location'] });
-              if (!place.location) return;
-              const lat = place.location.lat;
-              const lng = place.location.lng;
-              const addr = place.formattedAddress || '';
-              setAddress(addr);
-              setPosition([lat, lng]);
-              panMapTo(lat, lng);
-              setMapError(null);
-              onAddressSelect?.([lat, lng], addr);
-            } catch {
-              setMapError('Unable to resolve the selected address. Try another suggestion.');
-            }
+        const hasPlaces = !!g.maps.places?.Autocomplete;
+        if (hasPlaces && addressInputRef.current) {
+          const autocomplete = new g.maps.places.Autocomplete(addressInputRef.current, {
+            fields: ['formatted_address', 'geometry', 'name'],
           });
+          googleAutocompleteRef.current = autocomplete;
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            const location = place?.geometry?.location;
+            if (!location) {
+              setMapError('Unable to resolve the selected address. Try another suggestion.');
+              return;
+            }
 
-          autocompleteHostRef.current.appendChild(ac);
-          autocompleteElRef.current = ac;
+            const lat = location.lat();
+            const lng = location.lng();
+            const addr = place.formatted_address || place.name || addressInputRef.current?.value || '';
+            setAddress(addr);
+            setPosition([lat, lng]);
+            panMapTo(lat, lng);
+            setMapError(null);
+            onAddressSelect?.([lat, lng], addr);
+          });
           setPlacesReady(true);
         }
 
@@ -318,11 +303,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
       if ((window as any).gm_authFailure === onGmAuthFailure) {
         (window as any).gm_authFailure = undefined;
       }
-      // Remove autocomplete from DOM
-      if (autocompleteElRef.current && autocompleteHostRef.current) {
-        try { autocompleteHostRef.current.removeChild(autocompleteElRef.current); } catch { /* */ }
-      }
-      autocompleteElRef.current = null;
+      googleAutocompleteRef.current = null;
       markerRef.current = null;
       mapRef.current = null;
       setPlacesReady(false);
@@ -484,43 +465,25 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 />
               </div>
 
-              {/* Address */}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                  Address
-                </label>
-
-                {/* Places Autocomplete (loaded when ready) */}
-                <div
-                  ref={autocompleteHostRef}
-                  className={showFallbackInput ? 'hidden' : 'w-full text-sm'}
-                />
-
-                {/* Fallback: Geoapify-powered autocomplete */}
-                {showFallbackInput && (
-                  <GeoAutocomplete
-                    value={address}
-                    onChange={(val) => setAddress(val)}
-                    onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
-                    placeholder="Street address"
-                  />
-                )}
-
-                {mapError && <p className="text-xs text-amber-600 mt-1">{mapError}</p>}
-              </div>
-
               {/* Phone */}
               <div>
                 <label htmlFor="phone" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
                   Tel Number
                 </label>
-                <input
-                  id="phone"
-                  type="text"
+                <PhoneInput
+                  defaultCountry="gb"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(nextPhone) => setPhone(nextPhone)}
                   placeholder="Phone"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                  inputProps={{ id: 'phone', name: 'phone' }}
+                  className="mymenders-phone-input"
+                  inputClassName="mymenders-phone-input__field"
+                  countrySelectorStyleProps={{
+                    buttonClassName: 'mymenders-phone-input__country-button',
+                    dropdownStyleProps: {
+                      className: 'mymenders-phone-input__dropdown',
+                    },
+                  }}
                 />
               </div>
 
@@ -574,6 +537,38 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </>
               )}
 
+            </div>
+
+            {/* ==================== RIGHT COLUMN ==================== */}
+            <div className="space-y-4">
+              {/* Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Address
+                </label>
+
+                {!showFallbackInput ? (
+                  <input
+                    ref={addressInputRef}
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Street address"
+                    autoComplete="off"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                  />
+                ) : (
+                  <GeoAutocomplete
+                    value={address}
+                    onChange={(val) => setAddress(val)}
+                    onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
+                    placeholder="Street address"
+                  />
+                )}
+
+                {mapError && <p className="text-xs text-amber-600 mt-1">{mapError}</p>}
+              </div>
+
               {/* Mini Map */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
@@ -586,10 +581,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
                 </div>
               </div>
-            </div>
 
-            {/* ==================== RIGHT COLUMN ==================== */}
-            <div className="space-y-4">
               {/* Categories */}
               <div>
                 <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-2">Categories</p>

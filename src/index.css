@@ -52,3 +52,49 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+.mymenders-phone-input {
+  --react-international-phone-height: 42px;
+  --react-international-phone-border-radius: 0.5rem;
+  --react-international-phone-border-color: rgb(226 232 240);
+  --react-international-phone-background-color: rgb(248 250 252);
+  --react-international-phone-text-color: rgb(15 23 42);
+  --react-international-phone-country-selector-background-color: rgb(248 250 252);
+  --react-international-phone-country-selector-background-color-hover: rgb(241 245 249);
+  --react-international-phone-selected-dropdown-item-background-color: rgb(214 229 228);
+  --react-international-phone-dropdown-item-text-color: rgb(15 23 42);
+  --react-international-phone-dropdown-item-dial-code-color: rgb(100 116 139);
+  width: 100%;
+}
+
+.mymenders-phone-input .react-international-phone-country-selector-button,
+.mymenders-phone-input .react-international-phone-input {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.mymenders-phone-input .react-international-phone-country-selector-button {
+  width: 3.5rem;
+}
+
+.mymenders-phone-input .react-international-phone-input {
+  width: 100%;
+  padding-inline: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.mymenders-phone-input:focus-within .react-international-phone-country-selector-button,
+.mymenders-phone-input:focus-within .react-international-phone-input {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-brand-light);
+}
+
+.mymenders-phone-input__country-button:focus-visible,
+.mymenders-phone-input__field:focus-visible {
+  outline: none;
+}
+
+.mymenders-phone-input__dropdown {
+  z-index: 2100;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}

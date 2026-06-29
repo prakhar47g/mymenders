@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { Pool } from 'pg';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
-import { insertVendor, ValidationError } from './api/lib/db';
+import { insertVendor, ValidationError } from './api/lib/db.js';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');

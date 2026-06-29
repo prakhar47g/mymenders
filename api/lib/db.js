@@ -1,6 +1,4 @@
-import { Pool } from 'pg';
-
-export const normalizeStringArray = (value: unknown): string[] => {
+export const normalizeStringArray = (value) => {
   if (!value) return [];
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
   if (typeof value === 'string') {
@@ -16,21 +14,21 @@ export const normalizeStringArray = (value: unknown): string[] => {
   return [];
 };
 
-export const normalizeRating = (value: unknown): number => {
+export const normalizeRating = (value) => {
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return 0;
   return Math.min(5, Math.max(0, parsed));
 };
 
-export const normalizeRatingCount = (value: unknown): number => {
+export const normalizeRatingCount = (value) => {
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return 0;
   return Math.max(0, Math.floor(parsed));
 };
 
-export const safeParseMetadata = (value: unknown): Record<string, unknown> => {
+export const safeParseMetadata = (value) => {
   if (!value) return {};
-  if (typeof value === 'object') return value as Record<string, unknown>;
+  if (typeof value === 'object') return value;
   if (typeof value !== 'string') return {};
   try {
     const parsed = JSON.parse(value);
@@ -40,31 +38,7 @@ export const safeParseMetadata = (value: unknown): Record<string, unknown> => {
   }
 };
 
-export interface VendorInput {
-  name: string;
-  address?: string;
-  latitude: number;
-  longitude: number;
-  entry_level?: string;
-  category?: string;
-  phone?: string | null;
-  online_presence?: string | null;
-  website?: string | null;
-  hours?: string | null;
-  photo_url?: string | null;
-  photos?: unknown;
-  types?: unknown;
-  categories?: unknown;
-  regional_techniques?: unknown;
-  review_text?: string | null;
-  rating?: unknown;
-  rating_count?: unknown;
-}
-
-export async function insertVendor(
-  pool: Pool,
-  data: VendorInput,
-) {
+export async function insertVendor(pool, data) {
   const {
     name,
     address,
@@ -91,7 +65,7 @@ export async function insertVendor(
   }
 
   const parsedPhotos = {
-    ...(safeParseMetadata(photos)),
+    ...safeParseMetadata(photos),
     entry_level: entry_level || category || 'Menders',
     types: normalizeStringArray(types),
     categories: normalizeStringArray(categories),
@@ -116,7 +90,7 @@ export async function insertVendor(
       online_presence || website || null,
       hours || null,
       photo_url || null,
-      photos ? JSON.stringify(parsedPhotos) : JSON.stringify(parsedPhotos),
+      JSON.stringify(parsedPhotos),
     ],
   );
 
@@ -124,7 +98,7 @@ export async function insertVendor(
 }
 
 export class ValidationError extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'ValidationError';
   }

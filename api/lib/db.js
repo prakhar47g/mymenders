@@ -97,6 +97,35 @@ export async function insertVendor(pool, data) {
   return result.rows[0];
 }
 
+export async function updateVendorAddress(pool, data) {
+  const { id, address } = data;
+
+  const vendorId = Number(id);
+  const normalizedAddress = typeof address === 'string' ? address.trim() : '';
+
+  if (!Number.isInteger(vendorId) || vendorId <= 0) {
+    throw new ValidationError('Valid vendor id is required');
+  }
+
+  if (!normalizedAddress) {
+    throw new ValidationError('Address is required');
+  }
+
+  const result = await pool.query(
+    `UPDATE vendors
+     SET address = $2
+     WHERE id = $1
+     RETURNING *`,
+    [vendorId, normalizedAddress],
+  );
+
+  if (!result.rows[0]) {
+    throw new ValidationError('Vendor not found');
+  }
+
+  return result.rows[0];
+}
+
 export class ValidationError extends Error {
   constructor(message) {
     super(message);

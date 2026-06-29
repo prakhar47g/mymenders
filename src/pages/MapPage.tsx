@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Globe, Globe2, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
+import { Globe, Globe2, Layers3, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
@@ -10,7 +10,7 @@ import { reverseGeocode } from '../utils/geoapify';
 
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
 const GLOBAL_ZOOM = 2.5;
-const LOCAL_ZOOM = 13;
+const LOCAL_ZOOM = 15;
 const AUTO_CENTER_TO_FIRST_VENDOR = false;
 const DEFAULT_ENTRY_LEVEL = 'Menders';
 const VENDOR_SOURCE_ID = 'vendors';
@@ -18,6 +18,14 @@ const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
 const UNCLUSTERED_LAYER_ID = 'vendor-points';
 const ADDRESS_PLACEHOLDER = 'address not available';
+const BASEMAP_STYLES = [
+  { id: 'positron', label: 'Positron', styleUrl: 'https://tiles.openfreemap.org/styles/positron' },
+  { id: 'bright', label: 'Bright', styleUrl: 'https://tiles.openfreemap.org/styles/bright' },
+  { id: 'liberty', label: 'Liberty', styleUrl: 'https://tiles.openfreemap.org/styles/liberty' },
+  { id: 'dark', label: 'Dark', styleUrl: 'https://tiles.openfreemap.org/styles/dark' },
+  { id: 'fiord', label: 'Fiord', styleUrl: 'https://tiles.openfreemap.org/styles/fiord' },
+] as const;
+const DEFAULT_BASEMAP_STYLE_ID = 'bright';
 const PIN_COLOR_MAP: Record<string, string> = {
   Menders: '#2A9D8F',
   'Member of the public': '#F4A261',
@@ -115,6 +123,23 @@ const hydrateVendorAddress = async (vendor: Vendor): Promise<Vendor> => {
     ...vendor,
     address: resolvedAddress,
   };
+};
+
+const persistVendorAddress = async (vendor: Vendor) => {
+  if (!vendor.id || !vendor.address) return;
+
+  const res = await fetch(`${window.location.origin}/api/vendors`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: vendor.id,
+      address: vendor.address,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to persist vendor address: ${res.status}`);
+  }
 };
 
 const normalizeVendor = (raw: any): Vendor => {
@@ -244,6 +269,118 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   return container;
 };
 
+const englishLabelField = [
+  'coalesce',
+  ['get', 'name_en'],
+  ['get', 'name:en'],
+  ['get', 'name_int'],
+  ['get', 'name:latin'],
+  ['get', 'name'],
+] as const;
+
+const getEnglishLabelOverride = (textField: unknown) => {
+  if (typeof textField === 'string') {
+    return textField.toLowerCase().includes('name') ? englishLabelField : null;
+  }
+
+  if (Array.isArray(textField)) {
+    return JSON.stringify(textField).toLowerCase().includes('name') ? englishLabelField : null;
+  }
+
+  return null;
+};
+
+const applyEnglishLabelOverrides = (map: maplibregl.Map) => {
+  const layers = map.getStyle()?.layers || [];
+
+  layers.forEach((layer) => {
+    if (layer.type !== 'symbol') return;
+
+    const textField = map.getLayoutProperty(layer.id, 'text-field');
+    const override = getEnglishLabelOverride(textField);
+    if (!override) return;
+
+    map.setLayoutProperty(layer.id, 'text-field', override);
+  });
+};
+
+const ensureVendorLayers = (map: maplibregl.Map) => {
+  if (!map.getSource(VENDOR_SOURCE_ID)) {
+    map.addSource(VENDOR_SOURCE_ID, {
+      type: 'geojson',
+      data: emptyVendorFeatureCollection,
+      cluster: true,
+      clusterMaxZoom: 14,
+      clusterRadius: 56,
+    });
+  }
+
+  if (!map.getLayer(CLUSTER_CIRCLE_LAYER_ID)) {
+    map.addLayer({
+      id: CLUSTER_CIRCLE_LAYER_ID,
+      type: 'circle',
+      source: VENDOR_SOURCE_ID,
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': [
+          'step',
+          ['get', 'point_count'],
+          '#99C4CB',
+          10,
+          '#6EB7B0',
+          25,
+          '#2A9D8F',
+        ],
+        'circle-radius': [
+          'step',
+          ['get', 'point_count'],
+          18,
+          10,
+          22,
+          25,
+          28,
+        ],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+        'circle-opacity': 0.95,
+      },
+    });
+  }
+
+  if (!map.getLayer(CLUSTER_COUNT_LAYER_ID)) {
+    map.addLayer({
+      id: CLUSTER_COUNT_LAYER_ID,
+      type: 'symbol',
+      source: VENDOR_SOURCE_ID,
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': ['get', 'point_count_abbreviated'],
+        'text-font': ['Open Sans Semibold'],
+        'text-size': 12,
+      },
+      paint: {
+        'text-color': '#ffffff',
+      },
+    });
+  }
+
+  if (!map.getLayer(UNCLUSTERED_LAYER_ID)) {
+    map.addLayer({
+      id: UNCLUSTERED_LAYER_ID,
+      type: 'circle',
+      source: VENDOR_SOURCE_ID,
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
+        'circle-radius': 7,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+        'circle-opacity': 0.98,
+      },
+    });
+  }
+};
+
 const applyGlobeProjectionIfSupported = (map: maplibregl.Map) => {
   if (!map || typeof (map as any).setProjection !== 'function') {
     return;
@@ -266,12 +403,15 @@ export function MapPage() {
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [selectedBasemapStyleId, setSelectedBasemapStyleId] =
+    useState<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
+  const activeBasemapStyleIdRef = useRef<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
 
   useEffect(() => {
     let cancelled = false;
@@ -282,11 +422,7 @@ export function MapPage() {
         const data = await res.json();
         if (!Array.isArray(data) || cancelled) return;
 
-        const normalizedVendors = data.map(normalizeVendor);
-        const hydratedVendors = await Promise.all(normalizedVendors.map(hydrateVendorAddress));
-        if (cancelled) return;
-
-        setVendors(hydratedVendors);
+        setVendors(data.map(normalizeVendor));
       } catch (err) {
         console.error('Failed to fetch vendors:', err);
       }
@@ -303,113 +439,29 @@ export function MapPage() {
     vendorsRef.current = vendors;
   }, [vendors]);
 
+  const selectedBasemapStyle =
+    BASEMAP_STYLES.find((style) => style.id === selectedBasemapStyleId) ?? BASEMAP_STYLES[0];
+
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: {
-      version: 8,
-      sources: {
-        osm: {
-          type: 'raster',
-          tiles: [
-            'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-            'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-            'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-            'https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-          ],
-          tileSize: 256,
-          attribution: '© OpenStreetMap contributors, © CARTO',
-          maxzoom: 19,
-          minzoom: 0,
-          },
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm',
-          },
-        ],
-      },
+      style: selectedBasemapStyle.styleUrl,
       center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
       zoom: GLOBAL_ZOOM,
       attributionControl: true,
       logoPosition: 'bottom-left',
     });
 
-    map.on('load', () => {
+    const handleStyleLoad = () => {
       applyGlobeProjectionIfSupported(map);
-      map.addSource(VENDOR_SOURCE_ID, {
-        type: 'geojson',
-        data: emptyVendorFeatureCollection,
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 56,
-      });
-
-      map.addLayer({
-        id: CLUSTER_CIRCLE_LAYER_ID,
-        type: 'circle',
-        source: VENDOR_SOURCE_ID,
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': [
-            'step',
-            ['get', 'point_count'],
-            '#99C4CB',
-            10,
-            '#6EB7B0',
-            25,
-            '#2A9D8F',
-          ],
-          'circle-radius': [
-            'step',
-            ['get', 'point_count'],
-            18,
-            10,
-            22,
-            25,
-            28,
-          ],
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
-          'circle-opacity': 0.95,
-        },
-      });
-
-      map.addLayer({
-        id: CLUSTER_COUNT_LAYER_ID,
-        type: 'symbol',
-        source: VENDOR_SOURCE_ID,
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-font': ['Open Sans Semibold'],
-          'text-size': 12,
-        },
-        paint: {
-          'text-color': '#ffffff',
-        },
-      });
-
-      map.addLayer({
-        id: UNCLUSTERED_LAYER_ID,
-        type: 'circle',
-        source: VENDOR_SOURCE_ID,
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
-          'circle-radius': 7,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
-          'circle-opacity': 0.98,
-        },
-      });
-
+      applyEnglishLabelOverrides(map);
+      ensureVendorLayers(map);
       setIsMapReady(true);
-    });
+    };
+
+    map.on('style.load', handleStyleLoad);
 
     const handleMapClick = async (event: maplibregl.MapMouseEvent) => {
       if (!map.getLayer(CLUSTER_CIRCLE_LAYER_ID) || !map.getLayer(UNCLUSTERED_LAYER_ID)) return;
@@ -446,12 +498,20 @@ export function MapPage() {
       const vendor = vendorsRef.current.find((item) => item.id === vendorId);
       if (!vendor) return;
 
+      const resolvedVendor = await hydrateVendorAddress(vendor);
+      if (resolvedVendor.address !== vendor.address) {
+        setVendors((prev) => prev.map((item) => (item.id === resolvedVendor.id ? resolvedVendor : item)));
+        persistVendorAddress(resolvedVendor).catch((error) => {
+          console.error('Failed to persist resolved vendor address:', error);
+        });
+      }
+
       const [longitude, latitude] = (vendorFeature.geometry as GeoJSON.Point).coordinates;
       popupRef.current?.remove();
       popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 280 })
         .setLngLat([longitude, latitude])
         .setDOMContent(
-          buildPopoverContent(vendor, (selectedVendor) => {
+          buildPopoverContent(resolvedVendor, (selectedVendor) => {
             const targetLatitude = parseCoordinate(selectedVendor.latitude);
             const targetLongitude = parseCoordinate(selectedVendor.longitude);
             if (targetLatitude === undefined || targetLongitude === undefined) return;
@@ -487,6 +547,7 @@ export function MapPage() {
     return () => {
       popupRef.current?.remove();
       popupRef.current = null;
+      map.off('style.load', handleStyleLoad);
       map.off('click', handleMapClick);
       map.off('mousemove', handlePointerMove);
       map.off('mouseout', clearPointerCursor);
@@ -507,6 +568,21 @@ export function MapPage() {
     if (!source) return;
     source.setData(buildVendorFeatureCollection(vendors));
   }, [vendors, isMapReady]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (activeBasemapStyleIdRef.current === selectedBasemapStyle.id) {
+      return;
+    }
+
+    activeBasemapStyleIdRef.current = selectedBasemapStyle.id;
+    popupRef.current?.remove();
+    popupRef.current = null;
+    setIsMapReady(false);
+    map.setStyle(selectedBasemapStyle.styleUrl);
+  }, [selectedBasemapStyle]);
 
   useEffect(() => {
   const map = mapInstanceRef.current;
@@ -573,8 +649,7 @@ export function MapPage() {
       });
       const newVendor = await res.json();
       const normalizedVendor = normalizeVendor(newVendor);
-      const hydratedVendor = await hydrateVendorAddress(normalizedVendor);
-      setVendors((prev) => [...prev, hydratedVendor]);
+      setVendors((prev) => [...prev, normalizedVendor]);
       setShowAddModal(false);
       setCenterMapTo({
         lat: normalizedVendor.latitude,
@@ -634,6 +709,30 @@ export function MapPage() {
         >
           <Globe className="w-5 h-5" />
         </button>
+
+        <div className="mt-1 overflow-hidden rounded-2xl border border-slate-300 bg-white/95 shadow-sm backdrop-blur-sm">
+          <label
+            htmlFor="map-style-select"
+            className="flex items-center gap-2 border-b border-slate-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500"
+          >
+            <Layers3 className="h-3.5 w-3.5 text-slate-400" />
+            Style
+          </label>
+          <select
+            id="map-style-select"
+            value={selectedBasemapStyleId}
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+              setSelectedBasemapStyleId(event.target.value as (typeof BASEMAP_STYLES)[number]['id'])
+            }
+            className="w-full appearance-none bg-transparent px-3 py-2.5 text-sm font-medium text-slate-900 outline-none"
+          >
+            {BASEMAP_STYLES.map((style) => (
+              <option key={style.id} value={style.id}>
+                {style.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Floating Action Buttons */}

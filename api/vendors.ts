@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { insertVendor, ValidationError } from './lib/db.js';
+import { insertVendor, updateVendorAddress, ValidationError } from './lib/db.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -41,6 +41,30 @@ export async function POST(request: Request) {
     }
     console.error('Error creating vendor:', err);
     return new Response(JSON.stringify({ error: 'Failed to create vendor' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const vendor = await updateVendorAddress(pool, body);
+
+    return new Response(JSON.stringify(vendor), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const status = err.message === 'Vendor not found' ? 404 : 400;
+      return new Response(JSON.stringify({ error: err.message }), {
+        status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    console.error('Error updating vendor:', err);
+    return new Response(JSON.stringify({ error: 'Failed to update vendor' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

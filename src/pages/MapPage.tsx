@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Globe, Minus, Navigation, Plus } from 'lucide-react';
+import { Globe, Minus, Navigation, Plus, Signpost } from 'lucide-react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
 
@@ -44,6 +45,8 @@ const getPinColor = (entryLevel?: string) => {
   if (!entryLevel) return PIN_COLOR_MAP.default;
   return PIN_COLOR_MAP[entryLevel] || PIN_COLOR_MAP.default;
 };
+
+const DIRECTIONS_BUTTON_ICON = renderToStaticMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
 
 const normalizeVendor = (raw: any): Vendor => {
   let metadata: Record<string, any> = {};
@@ -177,12 +180,9 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
     'mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors';
   directionsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M13.5 3.5l-3 17 2.5-6.5h6l-3 6.5 3-2.5v-2l-3.5-2.5-3 1.5-1.5-4L6 8l4-2.5 2 3z"/>
-        <path d="M3.5 8.5L21 21"/>
-      </svg>
+      ${DIRECTIONS_BUTTON_ICON}
     </span>
-    Directions
+    Details
   `;
   directionsButton.addEventListener('click', () => {
     onDirections(vendor);

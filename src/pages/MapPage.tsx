@@ -6,6 +6,7 @@ import { Globe, Globe2, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Pl
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
+import { reverseGeocode } from '../utils/geoapify';
 
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
 const GLOBAL_ZOOM = 1.9;
@@ -16,6 +17,7 @@ const VENDOR_SOURCE_ID = 'vendors';
 const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
 const UNCLUSTERED_LAYER_ID = 'vendor-points';
+const ADDRESS_PLACEHOLDER = 'address not available';
 const PIN_COLOR_MAP: Record<string, string> = {
   Menders: '#2A9D8F',
   'Member of the public': '#F4A261',
@@ -62,6 +64,9 @@ const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria
 
 const toDisplayName = (name?: string) => (name || '').trim();
 
+const shouldResolveVendorAddress = (address?: string) =>
+  (address || '').trim().toLowerCase() === ADDRESS_PLACEHOLDER;
+
 const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
   type: 'FeatureCollection',
   features: [],
@@ -89,6 +94,28 @@ const buildVendorFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollect
     ];
   }),
 });
+
+const hydrateVendorAddress = async (vendor: Vendor): Promise<Vendor> => {
+  if (!shouldResolveVendorAddress(vendor.address)) {
+    return vendor;
+  }
+
+  const latitude = parseCoordinate(vendor.latitude);
+  const longitude = parseCoordinate(vendor.longitude);
+  if (latitude === undefined || longitude === undefined) {
+    return vendor;
+  }
+
+  const resolvedAddress = await reverseGeocode(latitude, longitude);
+  if (!resolvedAddress) {
+    return vendor;
+  }
+
+  return {
+    ...vendor,
+    address: resolvedAddress,
+  };
+};
 
 const normalizeVendor = (raw: any): Vendor => {
   let metadata: Record<string, any> = {};
@@ -145,10 +172,10 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
 
 const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
   const row = document.createElement('div');
-  row.className = 'mb-2 flex items-start gap-2.5 rounded-xl bg-slate-50/90 px-2.5 py-2 text-sm text-slate-700';
+  row.className = 'mb-2 flex items-start gap-2 text-sm text-slate-700';
 
   const icon = document.createElement('div');
-  icon.className = 'mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80';
+  icon.className = 'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-slate-500';
   icon.innerHTML = iconMarkup;
 
   const text = document.createElement('span');
@@ -164,12 +191,12 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   container.className = 'min-w-[252px] p-3 pr-4';
 
   const title = document.createElement('h3');
-  title.className = 'mb-2 pr-8 text-base font-bold leading-tight tracking-[-0.01em] text-slate-900 capitalize';
+  title.className = 'mb-2 pr-8 text-base font-medium leading-tight tracking-[-0.01em] text-slate-900 capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-800';
+  entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2 py-0.5 text-[10px] font-normal uppercase tracking-[0.08em] text-slate-800';
   entry.textContent = vendor.entry_level || vendor.category || 'Menders';
   container.append(entry);
 
@@ -247,13 +274,29 @@ export function MapPage() {
   const hasAutoCentered = useRef(false);
 
   useEffect(() => {
-    fetch(`${window.location.origin}/api/vendors`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!Array.isArray(data)) return;
-        setVendors(data.map(normalizeVendor));
-      })
-      .catch((err) => console.error('Failed to fetch vendors:', err));
+    let cancelled = false;
+
+    const loadVendors = async () => {
+      try {
+        const res = await fetch(`${window.location.origin}/api/vendors`);
+        const data = await res.json();
+        if (!Array.isArray(data) || cancelled) return;
+
+        const normalizedVendors = data.map(normalizeVendor);
+        const hydratedVendors = await Promise.all(normalizedVendors.map(hydrateVendorAddress));
+        if (cancelled) return;
+
+        setVendors(hydratedVendors);
+      } catch (err) {
+        console.error('Failed to fetch vendors:', err);
+      }
+    };
+
+    loadVendors();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -529,11 +572,13 @@ export function MapPage() {
         body: JSON.stringify(newMenderData),
       });
       const newVendor = await res.json();
-      setVendors((prev) => [...prev, normalizeVendor(newVendor)]);
+      const normalizedVendor = normalizeVendor(newVendor);
+      const hydratedVendor = await hydrateVendorAddress(normalizedVendor);
+      setVendors((prev) => [...prev, hydratedVendor]);
       setShowAddModal(false);
       setCenterMapTo({
-        lat: newVendor.latitude,
-        lng: newVendor.longitude,
+        lat: normalizedVendor.latitude,
+        lng: normalizedVendor.longitude,
         zoom: LOCAL_ZOOM,
       });
       hasAutoCentered.current = true;

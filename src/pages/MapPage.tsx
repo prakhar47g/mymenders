@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Globe, Minus, Navigation, Plus, Signpost } from 'lucide-react';
+import { Globe, Globe2, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
@@ -11,6 +12,10 @@ const GLOBAL_ZOOM = 1.9;
 const LOCAL_ZOOM = 13;
 const AUTO_CENTER_TO_FIRST_VENDOR = false;
 const DEFAULT_ENTRY_LEVEL = 'Menders';
+const VENDOR_SOURCE_ID = 'vendors';
+const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
+const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
+const UNCLUSTERED_LAYER_ID = 'vendor-points';
 const PIN_COLOR_MAP: Record<string, string> = {
   Menders: '#2A9D8F',
   'Member of the public': '#F4A261',
@@ -46,7 +51,44 @@ const getPinColor = (entryLevel?: string) => {
   return PIN_COLOR_MAP[entryLevel] || PIN_COLOR_MAP.default;
 };
 
-const DIRECTIONS_BUTTON_ICON = renderToStaticMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
+const renderIconMarkup = (icon: React.ReactElement) => renderToStaticMarkup(icon);
+
+const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
+const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="true" />);
+const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);
+const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
+const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
+const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
+
+const toDisplayName = (name?: string) => (name || '').trim();
+
+const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
+  type: 'FeatureCollection',
+  features: [],
+};
+
+const buildVendorFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollection<GeoJSON.Point> => ({
+  type: 'FeatureCollection',
+  features: vendors.flatMap((vendor) => {
+    const latitude = parseCoordinate(vendor.latitude);
+    const longitude = parseCoordinate(vendor.longitude);
+    if (latitude === undefined || longitude === undefined) return [];
+
+    return [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: toLngLat(latitude, longitude),
+        },
+        properties: {
+          vendorId: vendor.id,
+          pinColor: getPinColor(vendor.entry_level || vendor.category || DEFAULT_ENTRY_LEVEL),
+        },
+      },
+    ];
+  }),
+});
 
 const normalizeVendor = (raw: any): Vendor => {
   let metadata: Record<string, any> = {};
@@ -101,46 +143,33 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   container.append(wrapper);
 };
 
-const appendTextRow = (container: HTMLDivElement, label: string, value: string) => {
+const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
   const row = document.createElement('div');
-  row.className = 'flex items-center gap-2 text-sm text-slate-600 mb-1';
+  row.className = 'mb-2 flex items-start gap-2.5 rounded-xl bg-slate-50/90 px-2.5 py-2 text-sm text-slate-700';
 
-  const icon = document.createElement('span');
-  icon.className = 'text-slate-400';
-  icon.textContent = label;
+  const icon = document.createElement('div');
+  icon.className = 'mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80';
+  icon.innerHTML = iconMarkup;
 
   const text = document.createElement('span');
-  text.className = 'line-clamp-1';
+  text.className = 'min-w-0 flex-1 break-words leading-relaxed';
   text.textContent = value;
 
   row.append(icon, text);
   container.append(row);
 };
 
-const createPinElement = (color: string) => {
-  const pin = document.createElement('div');
-  pin.style.width = '18px';
-  pin.style.height = '18px';
-  pin.style.borderRadius = '50%';
-  pin.style.border = '2px solid rgba(255, 255, 255, 0.95)';
-  pin.style.boxShadow = '0 4px 10px rgba(15, 23, 42, 0.35)';
-  pin.style.cursor = 'pointer';
-  pin.style.transform = 'translate(-50%, -100%)';
-  pin.style.background = color;
-  return pin;
-};
-
 const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
-  container.className = 'min-w-[240px] p-2';
+  container.className = 'min-w-[252px] p-3 pr-4';
 
   const title = document.createElement('h3');
-  title.className = 'font-bold text-slate-900 text-base leading-tight mb-2';
-  title.textContent = vendor.name;
+  title.className = 'mb-2 pr-8 text-base font-bold leading-tight tracking-[-0.01em] text-slate-900 capitalize';
+  title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-brand/10 text-brand rounded-full text-xs font-medium mb-3';
+  entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-800';
   entry.textContent = vendor.entry_level || vendor.category || 'Menders';
   container.append(entry);
 
@@ -148,29 +177,25 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
     buildTagRow(container, 'Type', vendor.types);
   }
 
-  const contactLines: string[] = [];
-  if (vendor.phone) contactLines.push(vendor.phone);
-  if (vendor.online_presence) contactLines.push(vendor.online_presence);
-  if (contactLines.length) {
-    const contact = document.createElement('div');
-    contact.className = 'text-sm text-slate-600 leading-relaxed mb-2';
-    contact.textContent = contactLines.join(' • ');
-    container.append(contact);
-  }
-
-  if (vendor.address) appendTextRow(container, 'Address', vendor.address);
-  if (vendor.online_presence) appendTextRow(container, 'Online Presence', vendor.online_presence);
+  if (vendor.phone) appendTextRow(container, PHONE_ICON, vendor.phone);
+  if (vendor.address) appendTextRow(container, ADDRESS_ICON, vendor.address);
+  if (vendor.online_presence) appendTextRow(container, ONLINE_ICON, vendor.online_presence);
   buildTagRow(container, 'Categories', vendor.categories || []);
   buildTagRow(container, 'Regional techniques', vendor.regional_techniques || []);
 
   if (vendor.review_text) {
-    appendTextRow(container, 'Review', vendor.review_text);
+    appendTextRow(container, REVIEW_ICON, vendor.review_text);
   }
 
   if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
-    rating.className = 'flex items-center gap-1 mt-2';
-    rating.textContent = `${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})`;
+    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800';
+    rating.innerHTML = `
+      <span class="inline-flex h-5 w-5 items-center justify-center text-amber-600">
+        ${RATING_ICON}
+      </span>
+      <span>${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})</span>
+    `;
     container.append(rating);
   }
 
@@ -217,7 +242,8 @@ export function MapPage() {
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
-  const markerRefs = useRef<maplibregl.Marker[]>([]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
 
   useEffect(() => {
@@ -229,6 +255,10 @@ export function MapPage() {
       })
       .catch((err) => console.error('Failed to fetch vendors:', err));
   }, []);
+
+  useEffect(() => {
+    vendorsRef.current = vendors;
+  }, [vendors]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -268,14 +298,156 @@ export function MapPage() {
 
     map.on('load', () => {
       applyGlobeProjectionIfSupported(map);
+      map.addSource(VENDOR_SOURCE_ID, {
+        type: 'geojson',
+        data: emptyVendorFeatureCollection,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 56,
+      });
+
+      map.addLayer({
+        id: CLUSTER_CIRCLE_LAYER_ID,
+        type: 'circle',
+        source: VENDOR_SOURCE_ID,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#99C4CB',
+            10,
+            '#6EB7B0',
+            25,
+            '#2A9D8F',
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            18,
+            10,
+            22,
+            25,
+            28,
+          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+          'circle-opacity': 0.95,
+        },
+      });
+
+      map.addLayer({
+        id: CLUSTER_COUNT_LAYER_ID,
+        type: 'symbol',
+        source: VENDOR_SOURCE_ID,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['Open Sans Semibold'],
+          'text-size': 12,
+        },
+        paint: {
+          'text-color': '#ffffff',
+        },
+      });
+
+      map.addLayer({
+        id: UNCLUSTERED_LAYER_ID,
+        type: 'circle',
+        source: VENDOR_SOURCE_ID,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
+          'circle-radius': 7,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+          'circle-opacity': 0.98,
+        },
+      });
+
       setIsMapReady(true);
     });
+
+    const handleMapClick = async (event: maplibregl.MapMouseEvent) => {
+      if (!map.getLayer(CLUSTER_CIRCLE_LAYER_ID) || !map.getLayer(UNCLUSTERED_LAYER_ID)) return;
+
+      const clusterFeatures = map.queryRenderedFeatures(event.point, {
+        layers: [CLUSTER_CIRCLE_LAYER_ID, CLUSTER_COUNT_LAYER_ID],
+      });
+      const clusterFeature = clusterFeatures[0];
+
+      if (clusterFeature) {
+        const clusterId = Number(clusterFeature.properties?.cluster_id);
+        const source = map.getSource(VENDOR_SOURCE_ID) as GeoJSONSource | undefined;
+        if (!source || !Number.isFinite(clusterId)) return;
+
+        const expansionZoom = await source.getClusterExpansionZoom(clusterId);
+        const [longitude, latitude] = (clusterFeature.geometry as GeoJSON.Point).coordinates;
+
+        map.flyTo({
+          center: [longitude, latitude],
+          zoom: expansionZoom,
+          duration: 700,
+        });
+        return;
+      }
+
+      const vendorFeatures = map.queryRenderedFeatures(event.point, {
+        layers: [UNCLUSTERED_LAYER_ID],
+      });
+      const vendorFeature = vendorFeatures[0];
+
+      if (!vendorFeature) return;
+
+      const vendorId = Number(vendorFeature.properties?.vendorId);
+      const vendor = vendorsRef.current.find((item) => item.id === vendorId);
+      if (!vendor) return;
+
+      const [longitude, latitude] = (vendorFeature.geometry as GeoJSON.Point).coordinates;
+      popupRef.current?.remove();
+      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 280 })
+        .setLngLat([longitude, latitude])
+        .setDOMContent(
+          buildPopoverContent(vendor, (selectedVendor) => {
+            const targetLatitude = parseCoordinate(selectedVendor.latitude);
+            const targetLongitude = parseCoordinate(selectedVendor.longitude);
+            if (targetLatitude === undefined || targetLongitude === undefined) return;
+            map.flyTo({
+              center: toLngLat(targetLatitude, targetLongitude),
+              zoom: DIRECTION_ZOOM,
+              duration: DIRECTION_FLY_DURATION_MS,
+            });
+          }),
+        )
+        .addTo(map);
+    };
+
+    const handlePointerMove = (event: maplibregl.MapMouseEvent) => {
+      if (!map.getLayer(CLUSTER_CIRCLE_LAYER_ID) || !map.getLayer(UNCLUSTERED_LAYER_ID)) return;
+
+      const interactiveFeatures = map.queryRenderedFeatures(event.point, {
+        layers: [CLUSTER_CIRCLE_LAYER_ID, CLUSTER_COUNT_LAYER_ID, UNCLUSTERED_LAYER_ID],
+      });
+      map.getCanvas().style.cursor = interactiveFeatures.length ? 'pointer' : '';
+    };
+
+    const clearPointerCursor = () => {
+      map.getCanvas().style.cursor = '';
+    };
+
+    map.on('click', handleMapClick);
+    map.on('mousemove', handlePointerMove);
+    map.on('mouseout', clearPointerCursor);
 
     mapInstanceRef.current = map;
 
     return () => {
+      popupRef.current?.remove();
+      popupRef.current = null;
+      map.off('click', handleMapClick);
+      map.off('mousemove', handlePointerMove);
+      map.off('mouseout', clearPointerCursor);
       map.remove();
-      markerRefs.current = [];
       mapInstanceRef.current = null;
       setIsMapReady(false);
       hasAutoCentered.current = false;
@@ -288,36 +460,9 @@ export function MapPage() {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    markerRefs.current.forEach((marker) => marker.remove());
-    markerRefs.current = [];
-
-    vendors.forEach((vendor) => {
-      const latitude = parseCoordinate(vendor.latitude);
-      const longitude = parseCoordinate(vendor.longitude);
-      if (latitude === undefined || longitude === undefined) return;
-
-      const pinColor = getPinColor(vendor.entry_level || vendor.category || DEFAULT_ENTRY_LEVEL);
-      const markerElement = createPinElement(pinColor);
-      const popup = new maplibregl.Popup({ closeButton: true, maxWidth: 260 }).setDOMContent(
-        buildPopoverContent(vendor, (selectedVendor) => {
-          const targetLatitude = parseCoordinate(selectedVendor.latitude);
-          const targetLongitude = parseCoordinate(selectedVendor.longitude);
-          if (targetLatitude === undefined || targetLongitude === undefined) return;
-          map.flyTo({
-            center: toLngLat(targetLatitude, targetLongitude),
-            zoom: DIRECTION_ZOOM,
-            duration: DIRECTION_FLY_DURATION_MS,
-          });
-        }),
-      );
-
-      const marker = new maplibregl.Marker({ element: markerElement })
-        .setLngLat(toLngLat(latitude, longitude))
-        .setPopup(popup)
-        .addTo(map);
-
-      markerRefs.current.push(marker);
-    });
+    const source = map.getSource(VENDOR_SOURCE_ID) as GeoJSONSource | undefined;
+    if (!source) return;
+    source.setData(buildVendorFeatureCollection(vendors));
   }, [vendors, isMapReady]);
 
   useEffect(() => {

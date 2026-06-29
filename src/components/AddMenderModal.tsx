@@ -180,9 +180,12 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   const goToLocation = useCallback(
     (lat: number, lng: number, addr?: string) => {
       setPosition([lat, lng]);
-      if (addr) setAddress(addr);
+      if (addr) {
+        setAddress(addr);
+      } else {
+        reverseGeocode(lat, lng);
+      }
       panMapTo(lat, lng);
-      reverseGeocode(lat, lng);
     },
     [panMapTo, reverseGeocode],
   );

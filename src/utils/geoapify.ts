@@ -18,6 +18,49 @@ export interface GeoapifyResult {
   lng: number;
 }
 
+type GeoapifyRawResult = {
+  formatted?: string;
+  lat?: number | string;
+  lon?: number | string;
+  lng?: number | string;
+  city?: string;
+  street?: string;
+  housenumber?: string;
+  postcode?: string;
+  country?: string;
+};
+
+const toSuggestion = (raw: GeoapifyRawResult): GeoapifySuggestion | null => {
+  const lat = Number(raw.lat);
+  const lng = Number(raw.lon ?? raw.lng);
+  const formatted = raw.formatted?.trim() || '';
+
+  if (!formatted || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+
+  return {
+    formatted,
+    lat,
+    lng,
+    city: raw.city,
+    street: raw.street,
+    housenumber: raw.housenumber,
+    postcode: raw.postcode,
+    country: raw.country,
+  };
+};
+
+const readResults = (data: any): GeoapifyRawResult[] => {
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.features)) {
+    return data.features
+      .map((feature: any) => feature?.properties)
+      .filter(Boolean);
+  }
+  return [];
+};
+
 /** Search for address suggestions as the user types */
 export async function autocomplete(query: string): Promise<GeoapifySuggestion[]> {
   if (!query || query.trim().length < 3) return [];
@@ -28,18 +71,9 @@ export async function autocomplete(query: string): Promise<GeoapifySuggestion[]>
     const res = await fetch(url);
     if (!res.ok) return [];
     const data = await res.json();
-    if (!data?.features?.length) return [];
-
-    return data.features.map((f: any) => ({
-      formatted: f.properties?.formatted || '',
-      lat: f.properties?.lat,
-      lng: f.properties?.lon,
-      city: f.properties?.city,
-      street: f.properties?.street,
-      housenumber: f.properties?.housenumber,
-      postcode: f.properties?.postcode,
-      country: f.properties?.country,
-    }));
+    return readResults(data)
+      .map(toSuggestion)
+      .filter((item): item is GeoapifySuggestion => item !== null);
   } catch {
     return [];
   }
@@ -53,7 +87,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
-    return data?.features?.[0]?.properties?.formatted || null;
+    return readResults(data)[0]?.formatted || null;
   } catch {
     return null;
   }
@@ -71,9 +105,13 @@ export async function forwardGeocode(
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
-    const r = data?.results?.[0];
-    if (!r) return null;
-    return { formatted: r.formatted, lat: r.lat, lng: r.lon };
+    const suggestion = toSuggestion(readResults(data)[0] || {});
+    if (!suggestion) return null;
+    return {
+      formatted: suggestion.formatted,
+      lat: suggestion.lat,
+      lng: suggestion.lng,
+    };
   } catch {
     return null;
   }

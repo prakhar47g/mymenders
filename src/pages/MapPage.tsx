@@ -9,7 +9,7 @@ import { AddMenderModal } from '../components/AddMenderModal';
 import { reverseGeocode } from '../utils/geoapify';
 
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
-const GLOBAL_ZOOM = 1.9;
+const GLOBAL_ZOOM = 2.5;
 const LOCAL_ZOOM = 13;
 const AUTO_CENTER_TO_FIRST_VENDOR = false;
 const DEFAULT_ENTRY_LEVEL = 'Menders';

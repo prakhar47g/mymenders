@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Select, { type MultiValue, type SingleValue } from 'react-select';
 import { createPortal } from 'react-dom';
 import { PhoneInput } from 'react-international-phone';
+import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
+import '@smastrom/react-rating/style.css';
 import { Vendor } from '../types';
 import { X } from 'lucide-react';
 import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
@@ -72,6 +74,7 @@ type Option = { value: string; label: string };
 
 const typeOptions: Option[] = TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
 const techniqueOptions: Option[] = TECHNIQUE_OPTIONS.map((t) => ({ value: t, label: t }));
+const reviewItemLabels = ['Rate 1 star', 'Rate 2 stars', 'Rate 3 stars', 'Rate 4 stars', 'Rate 5 stars'];
 
 const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);
 const toSingleValue = (opt: SingleValue<Option>): string[] => (opt ? [opt.value] : []);
@@ -102,6 +105,15 @@ const selectStyles = {
   placeholder: (base: any) => ({ ...base, color: 'rgb(148 163 184)' }),
 };
 
+const reviewRatingStyles = {
+  itemShapes: ThinRoundedStar,
+  itemStrokeWidth: 1.8,
+  activeFillColor: '#F4A261',
+  activeStrokeColor: '#F4A261',
+  inactiveFillColor: '#fff7ed',
+  inactiveStrokeColor: '#fdba74',
+};
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -126,7 +138,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   const [types, setTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [regionalTechniques, setRegionalTechniques] = useState<string[]>([]);
-  const [reviewStars, setReviewStars] = useState('');
+  const [reviewStars, setReviewStars] = useState(0);
   const [reviewText, setReviewText] = useState('');
 
   // ---- map / location state ----
@@ -335,7 +347,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   // ------------------------------------------------------------------
 
   const resetReviewFields = () => {
-    setReviewStars('');
+    setReviewStars(0);
     setReviewText('');
   };
 
@@ -353,7 +365,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
     setSubmitError('');
 
     if (!name.trim()) {
-      setSubmitError('Name is required.');
+      setSubmitError('Shop name is required.');
       return;
     }
 
@@ -363,8 +375,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
     }
 
     const resolvedAddress = address.trim() || 'Location selected on map';
-    const reviewScore = Number(reviewStars);
-    const normalizedReview = Number.isFinite(reviewScore) ? Math.min(5, Math.max(0, reviewScore)) : 0;
+    const normalizedReview = Number.isFinite(reviewStars) ? Math.min(5, Math.max(0, reviewStars)) : 0;
 
     onAdd({
       name,
@@ -421,21 +432,6 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
           <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto px-5 py-4 md:grid-cols-2">
             {/* ==================== LEFT COLUMN ==================== */}
             <div className="space-y-3">
-              {/* Name */}
-              <div>
-                <label htmlFor="name" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                  Name *
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Maria's Shoe Repair"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-                />
-              </div>
-
               {/* Entry Level */}
               <div>
                 <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
@@ -457,39 +453,55 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </div>
               </div>
 
-              {/* Type */}
+              {/* Shop Name */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Type</label>
-                <Select
-                  options={typeOptions}
-                  value={typeOptions.find((o) => types.includes(o.value)) ?? null}
-                  onChange={(opt) => setTypes(toSingleValue(opt))}
-                  placeholder="Select a type..."
-                  isClearable
-                  styles={selectStyles}
+                <label htmlFor="name" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                  Shop Name *
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Maria's Shoe Repair"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
                 />
               </div>
 
-              {/* Phone */}
-              <div>
-                <label htmlFor="phone" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                  Tel Number
-                </label>
-                <PhoneInput
-                  defaultCountry="gb"
-                  value={phone}
-                  onChange={(nextPhone) => setPhone(nextPhone)}
-                  placeholder="Phone"
-                  inputProps={{ id: 'phone', name: 'phone' }}
-                  className="mymenders-phone-input"
-                  inputClassName="mymenders-phone-input__field"
-                  countrySelectorStyleProps={{
-                    buttonClassName: 'mymenders-phone-input__country-button',
-                    dropdownStyleProps: {
-                      className: 'mymenders-phone-input__dropdown',
-                    },
-                  }}
-                />
+              {/* Type + Phone */}
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Type</label>
+                  <Select
+                    options={typeOptions}
+                    value={typeOptions.find((o) => types.includes(o.value)) ?? null}
+                    onChange={(opt) => setTypes(toSingleValue(opt))}
+                    placeholder="Select a type..."
+                    isClearable
+                    styles={selectStyles}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
+                    Tel Number
+                  </label>
+                  <PhoneInput
+                    defaultCountry="gb"
+                    value={phone}
+                    onChange={(nextPhone) => setPhone(nextPhone)}
+                    placeholder="Phone"
+                    inputProps={{ id: 'phone', name: 'phone' }}
+                    className="mymenders-phone-input"
+                    inputClassName="mymenders-phone-input__field"
+                    countrySelectorStyleProps={{
+                      buttonClassName: 'mymenders-phone-input__country-button',
+                      dropdownStyleProps: {
+                        className: 'mymenders-phone-input__dropdown',
+                      },
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Social */}
@@ -511,33 +523,34 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               {entryLevel === 'Member of the public' && (
                 <>
                   <div>
-                    <label htmlFor="review-stars" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                      Star rating (0–5)
-                    </label>
-                    <input
-                      id="review-stars"
-                      type="number"
-                      min={0}
-                      max={5}
-                      step={0.5}
-                      value={reviewStars}
-                      onChange={(e) => setReviewStars(e.target.value)}
-                      placeholder="4.5"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="review-text" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                      Written review
-                    </label>
-                    <textarea
-                      id="review-text"
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      placeholder="Leave your feedback"
-                      rows={2}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
-                    />
+                    <span
+                      id="review-stars-label"
+                      className="mb-1 block text-xs font-bold text-slate-500 uppercase tracking-tighter"
+                    >
+                      Review
+                    </span>
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                      <ReactRating
+                        id="review-stars"
+                        style={{ maxWidth: 180 }}
+                        value={reviewStars}
+                        onChange={setReviewStars}
+                        transition="colors"
+                        spaceBetween="small"
+                        itemStyles={reviewRatingStyles}
+                        visibleLabelId="review-stars-label"
+                        invisibleItemLabels={reviewItemLabels}
+                      />
+                      <textarea
+                        id="review-text"
+                        aria-label="Written review"
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        placeholder="Leave your feedback"
+                        rows={2}
+                        className="mt-3 w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
+                      />
+                    </div>
                   </div>
                 </>
               )}

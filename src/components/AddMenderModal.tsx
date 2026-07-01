@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Select, { type MultiValue } from 'react-select';
+import Select, { type MultiValue, type SingleValue } from 'react-select';
+import { createPortal } from 'react-dom';
 import { PhoneInput } from 'react-international-phone';
 import { Vendor } from '../types';
 import { X } from 'lucide-react';
@@ -73,6 +74,7 @@ const typeOptions: Option[] = TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
 const techniqueOptions: Option[] = TECHNIQUE_OPTIONS.map((t) => ({ value: t, label: t }));
 
 const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);
+const toSingleValue = (opt: SingleValue<Option>): string[] => (opt ? [opt.value] : []);
 
 const selectStyles = {
   control: (base: any) => ({
@@ -404,21 +406,21 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   // Render
   // ------------------------------------------------------------------
 
-  return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm sm:p-0">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-[min(95vw,1120px)] h-[min(90vh,840px)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+  const modalContent = (
+    <div className="fixed inset-0 z-[3200] flex items-center justify-center p-3 bg-gray-900/40 backdrop-blur-sm sm:p-4">
+      <div className="flex max-h-[min(84vh,760px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex justify-between items-start p-6 pb-4">
+        <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-bold text-slate-900">Add New Mender</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="h-[calc(100%-5rem)] px-6 pb-6 overflow-y-auto">
-          <div className="grid gap-4 md:grid-cols-2">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto px-5 py-4 md:grid-cols-2">
             {/* ==================== LEFT COLUMN ==================== */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Name */}
               <div>
                 <label htmlFor="name" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
@@ -441,7 +443,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {ENTRY_LEVEL_OPTIONS.map((level) => (
-                    <label key={level} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
+                    <label key={level} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-1.5">
                       <input
                         type="radio"
                         name="entry-level"
@@ -459,11 +461,11 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">Type</label>
                 <Select
-                  isMulti
                   options={typeOptions}
-                  value={typeOptions.filter((o) => types.includes(o.value))}
-                  onChange={(opts) => setTypes(toValues(opts))}
-                  placeholder="Select types..."
+                  value={typeOptions.find((o) => types.includes(o.value)) ?? null}
+                  onChange={(opt) => setTypes(toSingleValue(opt))}
+                  placeholder="Select a type..."
+                  isClearable
                   styles={selectStyles}
                 />
               </div>
@@ -490,10 +492,10 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 />
               </div>
 
-              {/* Online Presence */}
+              {/* Social */}
               <div>
                 <label htmlFor="online" className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
-                  Online Presence
+                  Social
                 </label>
                 <input
                   id="online"
@@ -533,7 +535,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                       placeholder="Leave your feedback"
-                      rows={3}
+                      rows={2}
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-light focus:border-brand"
                     />
                   </div>
@@ -543,7 +545,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
             </div>
 
             {/* ==================== RIGHT COLUMN ==================== */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Address */}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-1">
@@ -580,7 +582,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 <p className="text-xs text-slate-400 mb-2">
                   Drag the pin or click the map to set a precise location.
                 </p>
-                <div className="h-40 rounded-lg overflow-hidden border border-slate-200 relative z-0">
+                <div className="h-32 rounded-lg overflow-hidden border border-slate-200 relative z-0 lg:h-36">
                   <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
                 </div>
               </div>
@@ -589,7 +591,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               <div>
                 <p className="block text-xs font-bold text-slate-500 uppercase tracking-tighter mb-2">Categories</p>
                 {CATEGORY_OPTIONS.map((group) => (
-                  <div key={group.label} className="mb-2">
+                  <div key={group.label} className="mb-1.5">
                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1">{group.label}</p>
                     <Select
                       isMulti
@@ -627,24 +629,32 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
           </div>
 
           {/* Buttons */}
-          <div className="mt-6 flex gap-3 pt-2">
+          <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4">
+            <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-white text-slate-900 border border-slate-300 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors"
+              className="flex-1 rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-bold text-slate-900 shadow-sm transition-colors hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-brand text-slate-800 rounded-xl font-bold text-sm shadow-lg shadow-brand-light hover:bg-brand-hover transition-colors"
+              className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-slate-800 shadow-lg shadow-brand-light transition-colors hover:bg-brand-hover"
             >
               Publish to Map
             </button>
+            </div>
+            {submitError && <p className="mt-3 text-xs text-amber-700">{submitError}</p>}
           </div>
-          {submitError && <p className="mt-3 text-xs text-amber-700">{submitError}</p>}
         </form>
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 }

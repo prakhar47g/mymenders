@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Select, { type MultiValue, type SingleValue } from 'react-select';
+import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { createPortal } from 'react-dom';
 import { PhoneInput } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -100,8 +100,13 @@ const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London
 // ---------------------------------------------------------------------------
 
 type Option = { value: string; label: string };
+type CategoryGroup = GroupBase<Option>;
 
 const typeOptions: Option[] = TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
+const categoryOptions: CategoryGroup[] = CATEGORY_OPTIONS.map((group) => ({
+  label: group.label,
+  options: group.items.map((item) => ({ value: item, label: item })),
+}));
 const techniqueOptions: Option[] = TECHNIQUE_OPTIONS.map((t) => ({ value: t, label: t }));
 const reviewItemLabels = ['Rate 1 star', 'Rate 2 stars', 'Rate 3 stars', 'Rate 4 stars', 'Rate 5 stars'];
 
@@ -120,6 +125,7 @@ const selectStyles = {
     '&:hover': { borderColor: 'rgb(226 232 240)' },
   }),
   menu: (base: any) => ({ ...base, fontSize: '0.875rem', zIndex: 50 }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
   multiValue: (base: any) => ({
     ...base,
     backgroundColor: 'rgb(241 245 249)',
@@ -175,6 +181,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   const [mapError, setMapError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState('');
   const [placesReady, setPlacesReady] = useState(false);
+  const selectMenuPortalTarget = typeof document !== 'undefined' ? document.body : undefined;
 
   // ---- refs to survive effect closures ----
   const mapRef = useRef<any>(null);
@@ -448,19 +455,23 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
   const modalContent = (
     <div className="fixed inset-0 z-[3200] flex items-center justify-center p-3 bg-gray-900/40 backdrop-blur-sm sm:p-4">
-      <div className="flex max-h-[min(84vh,760px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex max-h-[min(92vh,900px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="text-lg font-bold text-slate-900">Add New Mender</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="flex items-start justify-between border-b border-brand-hover bg-brand px-5 py-4">
+          <h2 className="text-lg font-bold text-slate-800">Add New Mender</h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-slate-700 transition-colors hover:bg-brand-hover/70 hover:text-slate-900"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-          <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto px-5 py-4 md:grid-cols-2">
-            {/* ==================== LEFT COLUMN ==================== */}
-            <div className="space-y-3">
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="grid gap-3 px-5 py-4 md:grid-cols-2">
+              {/* ==================== LEFT COLUMN ==================== */}
+              <div className="space-y-3">
               {/* Entry Level */}
               <fieldset>
                 <legend className="block text-xs font-normal text-slate-500 uppercase tracking-tighter mb-1">
@@ -538,6 +549,8 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                     onChange={(opt) => setTypes(toSingleValue(opt))}
                     placeholder="Select a type..."
                     isClearable
+                    menuPortalTarget={selectMenuPortalTarget}
+                    menuPosition="fixed"
                     styles={selectStyles}
                   />
                 </div>
@@ -615,10 +628,10 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </>
               )}
 
-            </div>
+              </div>
 
-            {/* ==================== RIGHT COLUMN ==================== */}
-            <div className="space-y-3">
+              {/* ==================== RIGHT COLUMN ==================== */}
+              <div className="space-y-3">
               {/* Address */}
               <div>
                 <label className="block text-xs font-normal text-slate-500 uppercase tracking-tighter mb-1">
@@ -663,25 +676,18 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               {/* Categories */}
               <div>
                 <p className="block text-xs font-normal text-slate-500 uppercase tracking-tighter mb-2">Categories</p>
-                {CATEGORY_OPTIONS.map((group) => (
-                  <div key={group.label} className="mb-1.5">
-                    <p className="text-[11px] font-normal text-slate-500 uppercase tracking-wide mb-1">{group.label}</p>
-                    <Select
-                      isMulti
-                      options={group.items.map((item) => ({ value: item, label: item }))}
-                      value={group.items
-                        .filter((item) => categories.includes(item))
-                        .map((item) => ({ value: item, label: item }))}
-                      onChange={(opts) => {
-                        const picked = toValues(opts);
-                        const others = categories.filter((c) => !group.items.includes(c));
-                        setCategories([...others, ...picked]);
-                      }}
-                      placeholder={`Select ${group.label.toLowerCase()}...`}
-                      styles={selectStyles}
-                    />
-                  </div>
-                ))}
+                <Select
+                  isMulti
+                  options={categoryOptions}
+                  value={categoryOptions
+                    .flatMap((group) => group.options)
+                    .filter((option) => categories.includes(option.value))}
+                  onChange={(opts) => setCategories(toValues(opts))}
+                  placeholder="Select categories..."
+                  menuPortalTarget={selectMenuPortalTarget}
+                  menuPosition="fixed"
+                  styles={selectStyles}
+                />
               </div>
 
               {/* Regional Techniques */}
@@ -695,30 +701,31 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
                   onChange={(opts) => setRegionalTechniques(toValues(opts))}
                   placeholder="Select techniques..."
+                  menuPortalTarget={selectMenuPortalTarget}
+                  menuPosition="fixed"
                   styles={selectStyles}
                 />
               </div>
             </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4">
-            <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-bold text-slate-900 shadow-sm transition-colors hover:bg-slate-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-slate-800 shadow-lg shadow-brand-light transition-colors hover:bg-brand-hover"
-            >
-              Publish to Map
-            </button>
             </div>
-            {submitError && <p className="mt-3 text-xs text-amber-700">{submitError}</p>}
+            <div className="border-t border-slate-100 bg-white px-5 py-4">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-bold text-slate-900 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-slate-800 shadow-lg shadow-brand-light transition-colors hover:bg-brand-hover"
+                >
+                  Publish to Map
+                </button>
+              </div>
+              {submitError && <p className="mt-3 text-xs text-amber-700">{submitError}</p>}
+            </div>
           </div>
         </form>
       </div>

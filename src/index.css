@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
 
 @theme {
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -101,6 +102,11 @@
   --react-international-phone-dropdown-item-text-color: rgb(15 23 42);
   --react-international-phone-dropdown-item-dial-code-color: rgb(100 116 139);
   width: 100%;
+}
+
+.add-mender-modal-label {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace !important;
 }
 
 .mymenders-phone-input .react-international-phone-country-selector-button,

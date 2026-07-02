@@ -458,9 +458,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
       <div className="flex max-h-[min(92vh,900px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-200 bg-[#f5f5f7] px-5 py-4">
-          <h2 className="text-lg font-bold text-[#1d1d1f]" style={{ fontFamily: '"IBM Plex Mono", monospace' }}>
-            Add New Mender
-          </h2>
+          <h2 className="text-lg font-bold text-slate-900">Add New Mender</h2>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-slate-700 transition-colors hover:bg-brand-hover/70 hover:text-slate-900"
@@ -526,7 +524,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
               {/* Shop Name */}
               <div>
-                <label htmlFor="name" className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                <label htmlFor="name" className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                   Shop Name
                 </label>
                 <input
@@ -542,7 +540,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               {/* Type + Phone */}
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-normal text-slate-500 uppercase mb-1">Shop Type</label>
+                  <label className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">Shop Type</label>
                   <Select
                     options={typeOptions}
                     value={typeOptions.find((o) => types.includes(o.value)) ?? null}
@@ -556,7 +554,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                  <label htmlFor="phone" className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                     Tel Number
                   </label>
                   <PhoneInput
@@ -579,7 +577,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
               {/* Social */}
               <div>
-                <label htmlFor="online" className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                <label htmlFor="online" className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                   Social
                 </label>
                 <input
@@ -598,7 +596,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   <div>
                     <span
                       id="review-stars-label"
-                      className="mb-1 block text-xs font-normal text-slate-500 uppercase"
+                      className="add-mender-modal-label mb-1 block text-xs font-normal text-slate-500 uppercase"
                     >
                       Review
                     </span>
@@ -634,7 +632,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               <div className="space-y-3">
               {/* Address */}
               <div>
-                <label className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                <label className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                   Address
                 </label>
 
@@ -662,7 +660,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
               {/* Mini Map */}
               <div>
-                <label className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                <label className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                   Location
                 </label>
                 <p className="text-xs text-slate-400 mb-2">
@@ -675,7 +673,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
               {/* Categories */}
               <div>
-                <p className="block text-xs font-normal text-slate-500 uppercase mb-2">Categories</p>
+                <p className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-2">Categories</p>
                 <Select
                   isMulti
                   options={categoryOptions}
@@ -692,7 +690,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
               {/* Regional Techniques */}
               <div>
-                <label className="block text-xs font-normal text-slate-500 uppercase mb-1">
+                <label className="add-mender-modal-label block text-xs font-normal text-slate-500 uppercase mb-1">
                   Regional techniques
                 </label>
                 <Select

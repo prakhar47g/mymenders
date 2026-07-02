@@ -2,7 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Globe, Globe2, House, Layers3, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
+import {
+  Globe,
+  Globe2,
+  House,
+  MapPin,
+  MessageSquareQuote,
+  Minus,
+  Navigation,
+  Phone,
+  Plus,
+  Settings2,
+  Signpost,
+  Star,
+} from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
@@ -412,12 +425,14 @@ export function MapPage() {
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [selectedBasemapStyleId, setSelectedBasemapStyleId] =
     useState<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const styleMenuRef = useRef<HTMLDivElement>(null);
   const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
   const activeBasemapStyleIdRef = useRef<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
@@ -447,6 +462,19 @@ export function MapPage() {
   useEffect(() => {
     vendorsRef.current = vendors;
   }, [vendors]);
+
+  useEffect(() => {
+    if (!isStyleMenuOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!styleMenuRef.current?.contains(event.target as Node)) {
+        setIsStyleMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [isStyleMenuOpen]);
 
   const selectedBasemapStyle =
     BASEMAP_STYLES.find((style) => style.id === selectedBasemapStyleId) ?? BASEMAP_STYLES[0];
@@ -723,28 +751,38 @@ export function MapPage() {
           <Globe className="w-5 h-5" />
         </button>
 
-        <div className="mymenders-cloth-panel mt-1 overflow-hidden rounded-2xl border bg-cloth/95 backdrop-blur-sm">
-          <label
-            htmlFor="map-style-select"
-            className="flex items-center gap-2 border-b border-gray-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#75604b]"
+        <div className="relative">
+          <div ref={styleMenuRef}>
+          <button
+            onClick={() => setIsStyleMenuOpen((value) => !value)}
+            className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
+            aria-label="Map style"
+            aria-expanded={isStyleMenuOpen}
           >
-            <Layers3 className="h-3.5 w-3.5 text-stitch" />
-            Style
-          </label>
-          <select
-            id="map-style-select"
-            value={selectedBasemapStyleId}
-            onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
-              setSelectedBasemapStyleId(event.target.value as (typeof BASEMAP_STYLES)[number]['id'])
-            }
-            className="w-full appearance-none bg-transparent px-3 py-2.5 text-sm font-medium text-[#3e3024] outline-none"
-          >
-            {BASEMAP_STYLES.map((style) => (
-              <option key={style.id} value={style.id}>
-                {style.label}
-              </option>
-            ))}
-          </select>
+            <Settings2 className="w-5 h-5" />
+          </button>
+
+          {isStyleMenuOpen && (
+            <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-lg border bg-cloth/95 p-1 backdrop-blur-sm">
+              {BASEMAP_STYLES.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => {
+                    setSelectedBasemapStyleId(style.id);
+                    setIsStyleMenuOpen(false);
+                  }}
+                  className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                    selectedBasemapStyleId === style.id
+                      ? 'bg-brand/20 text-[#2f3e39] font-medium'
+                      : 'text-[#3e3024] hover:bg-[#fff1e6]'
+                  }`}
+                >
+                  {style.label}
+                </button>
+              ))}
+            </div>
+          )}
+          </div>
         </div>
       </div>
 
@@ -753,7 +791,7 @@ export function MapPage() {
         <button
           onClick={locateUser}
           disabled={findingLocation}
-          className="mymenders-cloth-panel bg-cloth border rounded-lg text-sm font-semibold hover:bg-[#fffaf1] flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-[#3e3024]"
+          className="mymenders-cloth-panel bg-cloth border rounded-lg text-sm font-medium hover:bg-[#fffaf1] flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-[#3e3024]"
         >
           <Navigation className={`w-4 h-4 ${findingLocation ? 'animate-pulse text-[#aa9276]' : 'text-[#3e3024]'}`} />
           {findingLocation ? 'Locating...' : 'Near Me'}
@@ -761,7 +799,7 @@ export function MapPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-brand text-[#2f3e39] px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-brand-hover transition-colors"
+          className="bg-brand text-[#2f3e39] px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-brand-hover transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Mender

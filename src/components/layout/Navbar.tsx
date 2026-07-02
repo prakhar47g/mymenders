@@ -16,23 +16,23 @@ export function Navbar() {
                 <rect x="40" y="10" width="20" height="80" fill="#131C18" />
                 <rect x="70" y="10" width="20" height="80" fill="#131C18" />
               </svg>
-              <span className="text-2xl font-black tracking-tight text-slate-900">My Mender</span>
+              <span className="text-2xl font-black tracking-tight text-slate-900 mymenders-logo-font">My Mender</span>
             </NavLink>
           </div>
           
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex h-16 items-stretch gap-6">
             <NavLink 
               to="/" 
               className={({ isActive }) => 
-                `text-sm font-bold transition-colors hover:text-brand-hover ${isActive ? 'text-brand-hover' : 'text-slate-500'}`
+                `relative inline-flex w-32 items-center justify-center border-b-2 text-sm font-medium transition-colors hover:text-brand-hover ${isActive ? 'text-brand-hover border-brand-hover' : 'text-slate-500 border-transparent'}`
               }
             >
-              Explore Map
+              Map
             </NavLink>
             <NavLink 
               to="/about" 
               className={({ isActive }) => 
-                `text-sm font-bold transition-colors hover:text-brand-hover ${isActive ? 'text-brand-hover' : 'text-slate-500'}`
+                `relative inline-flex w-32 items-center justify-center border-b-2 text-sm font-medium transition-colors hover:text-brand-hover ${isActive ? 'text-brand-hover border-brand-hover' : 'text-slate-500 border-transparent'}`
               }
             >
               About Us
@@ -57,16 +57,16 @@ export function Navbar() {
               to="/" 
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => 
-                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth border border-gray-200' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
+                `block px-3 py-2 rounded-lg text-sm font-medium ${isActive ? 'text-brand-hover border-b-2 border-brand-hover' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
               }
             >
-              <div className="flex items-center gap-2"><MapIcon className="w-5 h-5" /> Explore Map</div>
+              <div className="flex items-center gap-2"><MapIcon className="w-5 h-5" /> Map</div>
             </NavLink>
             <NavLink 
               to="/about" 
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => 
-                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth border border-gray-200' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
+                `block px-3 py-2 rounded-lg text-sm font-medium ${isActive ? 'text-brand-hover border-b-2 border-brand-hover' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
               }
             >
               <div className="flex items-center gap-2"><Info className="w-5 h-5" /> About Us</div>

@@ -472,7 +472,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
       <div className="flex max-h-[min(92vh,900px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl border border-[#97a5a8]/30 bg-[#eff3f4] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-gray-200 bg-[#fffdf8] px-5 py-4">
-          <h2 className="text-lg font-bold text-[#3e3024]">Add a Mender</h2>
+          <h2 className="text-lg font-bold text-[#3e3024] mymenders-heading-font">Add a Mender</h2>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-[#5b4635] transition-colors hover:bg-brand-hover/70 hover:text-[#3e3024]"
@@ -723,13 +723,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 rounded-xl border border-gray-300 bg-white py-2.5 text-sm font-bold text-[#222222] transition-colors hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-gray-300 bg-white py-2.5 text-sm font-medium text-[#222222] transition-colors hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-[#2f3e39] transition-colors hover:bg-brand-hover"
+                  className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-medium text-[#2f3e39] transition-colors hover:bg-brand-hover"
                 >
                   Publish to Map
                 </button>

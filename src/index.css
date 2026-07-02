@@ -1,9 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Zalando+Sans:wght@300;400;500;600;700;800&display=swap");
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --heading-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --field-label-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --logo-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --heading-font-weight: 700;
+  --body-font-weight: 400;
+  --field-label-font-weight: 500;
+  --logo-font-weight: 600;
+  --heading-font-stretch: 100%;
+  --body-font-stretch: 99%;
+  --field-label-font-stretch: 100%;
+  --logo-font-stretch: 110%;
+  --font-sans: var(--body-font);
   --color-backdrop: #eff3f4;
   --color-cloth: #fbf7ef;
   --color-stitch: #c46a3d;
@@ -15,6 +27,20 @@
 
 body {
   background: var(--color-backdrop);
+  font-family: var(--body-font);
+  font-weight: var(--body-font-weight);
+  font-stretch: var(--body-font-stretch);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-font);
+  font-weight: var(--heading-font-weight);
+  font-stretch: var(--heading-font-stretch);
 }
 
 .mymenders-textile-surface {
@@ -139,8 +165,34 @@ body {
 }
 
 .mymenders-map-card-label {
-  font-family: 'IBM Plex Mono', monospace !important;
+  font-family: var(--field-label-font) !important;
+  font-weight: var(--field-label-font-weight);
+  font-stretch: var(--field-label-font-stretch);
   font-size: 0.7rem;
+}
+
+.mymenders-heading-font {
+  font-family: var(--heading-font);
+  font-weight: var(--heading-font-weight);
+  font-stretch: var(--heading-font-stretch);
+}
+
+.mymenders-body-font {
+  font-family: var(--body-font);
+  font-weight: var(--body-font-weight);
+  font-stretch: var(--body-font-stretch);
+}
+
+.mymenders-field-label-font {
+  font-family: var(--field-label-font);
+  font-weight: var(--field-label-font-weight);
+  font-stretch: var(--field-label-font-stretch);
+}
+
+.mymenders-logo-font {
+  font-family: var(--logo-font);
+  font-weight: var(--logo-font-weight);
+  font-stretch: var(--logo-font-stretch);
 }
 
 .mymenders-phone-input {
@@ -158,8 +210,9 @@ body {
 }
 
 .add-mender-modal-label {
-  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace !important;
+  font-family: var(--field-label-font) !important;
+  font-weight: var(--field-label-font-weight);
+  font-stretch: var(--field-label-font-stretch);
   color: #222222;
 }
 

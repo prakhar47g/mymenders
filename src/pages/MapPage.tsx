@@ -195,7 +195,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   tags.className = 'flex flex-wrap gap-1.5';
   items.forEach((tag) => {
     const chip = document.createElement('span');
-    chip.className = 'mymenders-cloth-chip inline-flex items-center gap-1 px-2 py-0.5 text-xs';
+    chip.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs';
     chip.textContent = tag;
     tags.append(chip);
   });
@@ -229,7 +229,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'mymenders-cloth-label mb-3 inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-normal uppercase tracking-[0.08em]';
+  entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2 py-0.5 text-[10px] font-normal uppercase tracking-[0.08em] text-slate-800';
   entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
@@ -250,7 +250,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
 
   if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
-    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-md border border-[#e7cda8] bg-[#fff4df] px-3 py-1 text-xs font-medium text-amber-800';
+    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800';
     rating.innerHTML = `
       <span class="inline-flex h-5 w-5 items-center justify-center text-amber-600">
         ${RATING_ICON}
@@ -677,29 +677,33 @@ export function MapPage() {
 
       {/* Map controls */}
       <div className="absolute right-6 top-6 z-10 flex flex-col gap-2">
-        <button
-          onClick={() => {
-            const map = mapInstanceRef.current;
-            if (!map) return;
-            map.zoomIn();
-          }}
-          className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border shadow-sm flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
-          aria-label="Zoom in"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
+        <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3e3024]">
+          <button
+            onClick={() => {
+              const map = mapInstanceRef.current;
+              if (!map) return;
+              map.zoomIn();
+            }}
+            className="flex h-11 w-11 items-center justify-center hover:bg-[#fffaf1]"
+            aria-label="Zoom in"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
 
-        <button
-          onClick={() => {
-            const map = mapInstanceRef.current;
-            if (!map) return;
-            map.zoomOut();
-          }}
-          className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border shadow-sm flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
-          aria-label="Zoom out"
-        >
-          <Minus className="w-5 h-5" />
-        </button>
+          <div className="h-px bg-gray-200" />
+
+          <button
+            onClick={() => {
+              const map = mapInstanceRef.current;
+              if (!map) return;
+              map.zoomOut();
+            }}
+            className="flex h-11 w-11 items-center justify-center hover:bg-[#fffaf1]"
+            aria-label="Zoom out"
+          >
+            <Minus className="w-5 h-5" />
+          </button>
+        </div>
 
         <button
           onClick={() => {
@@ -713,16 +717,16 @@ export function MapPage() {
               duration: 700,
             });
           }}
-          className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border shadow-sm flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
+          className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
           aria-label="Reset to globe view"
         >
           <Globe className="w-5 h-5" />
         </button>
 
-        <div className="mymenders-cloth-panel mt-1 overflow-hidden rounded-2xl border bg-cloth/95 shadow-sm backdrop-blur-sm">
+        <div className="mymenders-cloth-panel mt-1 overflow-hidden rounded-2xl border bg-cloth/95 backdrop-blur-sm">
           <label
             htmlFor="map-style-select"
-            className="flex items-center gap-2 border-b border-[#e2d3be] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#75604b]"
+            className="flex items-center gap-2 border-b border-gray-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#75604b]"
           >
             <Layers3 className="h-3.5 w-3.5 text-stitch" />
             Style
@@ -749,7 +753,7 @@ export function MapPage() {
         <button
           onClick={locateUser}
           disabled={findingLocation}
-          className="mymenders-cloth-panel bg-cloth border rounded-lg text-sm font-semibold hover:bg-[#fffaf1] shadow-sm flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-[#3e3024]"
+          className="mymenders-cloth-panel bg-cloth border rounded-lg text-sm font-semibold hover:bg-[#fffaf1] flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-[#3e3024]"
         >
           <Navigation className={`w-4 h-4 ${findingLocation ? 'animate-pulse text-[#aa9276]' : 'text-[#3e3024]'}`} />
           {findingLocation ? 'Locating...' : 'Near Me'}
@@ -757,7 +761,7 @@ export function MapPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-brand text-[#2f3e39] px-5 py-2.5 rounded-lg shadow-lg shadow-brand-light text-sm font-bold flex items-center gap-2 hover:bg-brand-hover transition-colors"
+          className="bg-brand text-[#2f3e39] px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-brand-hover transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Mender

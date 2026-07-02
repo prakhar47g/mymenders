@@ -8,9 +8,9 @@
   --color-cloth: #fbf7ef;
   --color-stitch: #c46a3d;
   --color-pin: #6eb7b0;
-  --color-brand: #a9c9bd;
-  --color-brand-hover: #8fafa3;
-  --color-brand-light: #e2ede8;
+  --color-brand: #99c4cb;
+  --color-brand-hover: #82b3bb;
+  --color-brand-light: #d7e8eb;
 }
 
 body {
@@ -20,15 +20,17 @@ body {
 .mymenders-textile-surface {
   background-color: var(--color-backdrop);
   background-image:
-    repeating-linear-gradient(0deg, rgba(80, 60, 42, 0.035) 0 1px, transparent 1px 18px),
-    repeating-linear-gradient(90deg, rgba(80, 60, 42, 0.028) 0 1px, transparent 1px 18px),
-    linear-gradient(135deg, rgba(196, 106, 61, 0.05), rgba(110, 183, 176, 0.055));
-  background-size: 18px 18px, 18px 18px, auto;
+    radial-gradient(circle at 1px 1px, rgba(17, 24, 39, 0.09) 0 0.75px, transparent 0.95px),
+    radial-gradient(circle at 8px 12px, rgba(17, 24, 39, 0.055) 0 0.85px, transparent 1.05px),
+    radial-gradient(circle at 21px 16px, rgba(17, 24, 39, 0.035) 0 0.65px, transparent 0.9px),
+    radial-gradient(circle at 17px 7px, rgba(255, 255, 255, 0.68) 0 0.9px, transparent 1.15px);
+  background-position: 0 0, 3px 5px, 9px 11px, 11px 2px;
+  background-size: 19px 23px, 31px 29px, 43px 37px, 37px 41px;
 }
 
 .mymenders-cloth-panel {
   background-color: rgba(251, 247, 239, 0.96);
-  border-color: rgba(151, 119, 86, 0.28);
+  border-color: #d1d5db;
   box-shadow: 0 16px 36px rgba(72, 55, 38, 0.12);
 }
 
@@ -106,13 +108,13 @@ body {
   border-radius: 18px;
   padding: 0;
   overflow: hidden;
-  background: rgba(251, 247, 239, 0.98);
+  background: #fffdf8;
   box-shadow: 0 18px 45px rgba(72, 55, 38, 0.16);
 }
 
 .maplibregl-popup-tip {
-  border-top-color: #fbf7ef;
-  border-bottom-color: #fbf7ef;
+  border-top-color: #fffdf8;
+  border-bottom-color: #fffdf8;
   box-shadow: 0 8px 18px rgba(72, 55, 38, 0.08);
 }
 
@@ -124,7 +126,7 @@ body {
   padding: 0;
   border-radius: 9999px;
   color: #64748b;
-  background: #fffaf1;
+  background: #fffdf8;
   display: inline-flex;
   align-items: center;
   justify-content: center;

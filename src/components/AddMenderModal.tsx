@@ -79,14 +79,14 @@ const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
     iconSrc: MENDER_ICON_URL,
     title: 'I am a Mender',
     description: 'Create a service profile with your details, specialties and map location.',
-    activePanelClasses: 'border-[#8fafa3] bg-[#b5d2d0]',
+    activePanelClasses: 'border-brand-hover bg-brand',
     activeTitleClasses: 'text-[#222222]',
   },
   'Member of the public': {
     iconSrc: CONTRIBUTOR_ICON_URL,
     title: 'I am a contributor',
     description: 'Share a recommendation, review or local tip from the community.',
-    activePanelClasses: 'border-[#8fafa3] bg-[#b5d2d0]',
+    activePanelClasses: 'border-brand-hover bg-brand',
     activeTitleClasses: 'text-[#222222]',
   },
 };
@@ -471,7 +471,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
     <div className="fixed inset-0 z-[3200] flex items-center justify-center p-3 bg-gray-900/40 backdrop-blur-sm sm:p-4">
       <div className="flex max-h-[min(92vh,900px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-2xl border border-[#97a5a8]/30 bg-[#eff3f4] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#e2d3be] bg-[#fffdf8] px-5 py-4">
+        <div className="flex items-start justify-between border-b border-gray-200 bg-[#fffdf8] px-5 py-4">
           <h2 className="text-lg font-bold text-[#3e3024]">Add a Mender</h2>
           <button
             onClick={onClose}
@@ -506,7 +506,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                           className={`flex min-h-[88px] items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
                             isSelected
                               ? meta.activePanelClasses
-                              : 'border-gray-300 bg-white grayscale hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm'
+                              : 'border-gray-300 bg-white grayscale hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50'
                           }`}
                         >
                           <img
@@ -614,7 +614,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                     >
                       Review
                     </span>
-                    <div className="rounded-xl border border-[#e2d3be] bg-[#fffaf1] px-3 py-3">
+                    <div>
                       <ReactRating
                         id="review-stars"
                         style={{ maxWidth: 180 }}
@@ -725,13 +725,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 rounded-xl border border-gray-300 bg-white py-2.5 text-sm font-bold text-[#222222] shadow-sm transition-colors hover:bg-gray-50"
+                  className="flex-1 rounded-xl border border-gray-300 bg-white py-2.5 text-sm font-bold text-[#222222] transition-colors hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-[#2f3e39] shadow-lg shadow-brand-light transition-colors hover:bg-brand-hover"
+                  className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-bold text-[#2f3e39] transition-colors hover:bg-brand-hover"
                 >
                   Publish to Map
                 </button>

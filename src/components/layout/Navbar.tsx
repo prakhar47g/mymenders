@@ -6,7 +6,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-[#fffdf8] border-b border-[#eadfce]">
+    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-[#fffdf8] border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -51,13 +51,13 @@ export function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-[#fffdf8] border-b border-[#eadfce] absolute w-full pb-4">
+        <div className="md:hidden bg-[#fffdf8] border-b border-gray-200 absolute w-full pb-4">
           <div className="px-2 pt-2 space-y-1 flex flex-col">
             <NavLink 
               to="/" 
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => 
-                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth shadow-sm border border-[#d9cbb8]' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
+                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth border border-gray-200' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
               }
             >
               <div className="flex items-center gap-2"><MapIcon className="w-5 h-5" /> Explore Map</div>
@@ -66,7 +66,7 @@ export function Navbar() {
               to="/about" 
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => 
-                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth shadow-sm border border-[#d9cbb8]' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
+                `block px-3 py-2 rounded-lg text-sm font-bold ${isActive ? 'text-brand-hover bg-cloth border border-gray-200' : 'text-[#75604b] hover:bg-[#fffaf1]'}`
               }
             >
               <div className="flex items-center gap-2"><Info className="w-5 h-5" /> About Us</div>

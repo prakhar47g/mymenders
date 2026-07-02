@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Globe, Globe2, Layers3, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
+import { Globe, Globe2, House, Layers3, MapPin, MessageSquareQuote, Minus, Navigation, Phone, Plus, Signpost, Star } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
@@ -76,6 +76,7 @@ const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true
 const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
 const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
 const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
+const HOUSE_ICON = renderIconMarkup(<House className="w-4 h-4" aria-hidden="true" />);
 
 const toDisplayName = (name?: string) => (name || '').trim();
 
@@ -186,7 +187,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   wrapper.className = 'mb-3';
 
   const title = document.createElement('div');
-  title.className = 'text-xs font-semibold uppercase tracking-tighter text-slate-500 mb-1';
+  title.className = 'text-xs font-semibold uppercase text-slate-500 mb-1';
   title.textContent = label;
   wrapper.append(title);
 
@@ -232,8 +233,9 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
-  if (vendor.types?.length) {
-    buildTagRow(container, 'Type', vendor.types);
+  const primaryType = vendor.types?.[0]?.trim();
+  if (primaryType) {
+    appendTextRow(container, HOUSE_ICON, primaryType);
   }
 
   if (vendor.phone) appendTextRow(container, PHONE_ICON, vendor.phone);

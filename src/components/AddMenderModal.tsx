@@ -554,12 +554,12 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               {/* Type + Phone */}
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="add-mender-modal-label block text-xs font-normal uppercase mb-1">Workspace Type</label>
+                  <label className="add-mender-modal-label block text-xs font-normal uppercase mb-1">Studio Type</label>
                   <Select
                     options={typeOptions}
                     value={typeOptions.find((o) => types.includes(o.value)) ?? null}
                     onChange={(opt) => setTypes(toSingleValue(opt))}
-                    placeholder="Select shop type..."
+                    placeholder="Select studio type..."
                     isClearable
                     menuPortalTarget={selectMenuPortalTarget}
                     menuPosition="fixed"
@@ -604,41 +604,39 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 />
               </div>
 
-              {/* Review (Member of the public only) */}
-              {entryLevel === 'Member of the public' && (
-                <>
-                  <div>
-                    <span
-                      id="review-stars-label"
-                      className="add-mender-modal-label mb-1 block text-xs font-normal uppercase"
-                    >
-                      Review
-                    </span>
-                    <div>
-                      <ReactRating
-                        id="review-stars"
-                        style={{ maxWidth: 180 }}
-                        value={reviewStars}
-                        onChange={setReviewStars}
-                        transition="colors"
-                        spaceBetween="small"
-                        itemStyles={reviewRatingStyles}
-                        visibleLabelId="review-stars-label"
-                        invisibleItemLabels={reviewItemLabels}
-                      />
-                      <textarea
-                        id="review-text"
-                        aria-label="Written review"
-                        value={reviewText}
-                        onChange={(e) => setReviewText(e.target.value)}
-                        placeholder="Leave your feedback"
-                        rows={2}
-                        className="mymenders-field mt-3 w-full border rounded-lg p-2.5 text-sm outline-none"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Categories */}
+              <div>
+                <p className="add-mender-modal-label block text-xs font-normal uppercase mb-2">Categories</p>
+                <Select
+                  isMulti
+                  options={categoryOptions}
+                  value={categoryOptions
+                    .flatMap((group) => group.options)
+                    .filter((option) => categories.includes(option.value))}
+                  onChange={(opts) => setCategories(toValues(opts))}
+                  placeholder="Select categories..."
+                  menuPortalTarget={selectMenuPortalTarget}
+                  menuPosition="fixed"
+                  styles={selectStyles}
+                />
+              </div>
+
+              {/* Regional Techniques */}
+              <div>
+                <label className="add-mender-modal-label block text-xs font-normal uppercase mb-1">
+                  Regional techniques
+                </label>
+                <Select
+                  isMulti
+                  options={techniqueOptions}
+                  value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
+                  onChange={(opts) => setRegionalTechniques(toValues(opts))}
+                  placeholder="Select techniques..."
+                  menuPortalTarget={selectMenuPortalTarget}
+                  menuPosition="fixed"
+                  styles={selectStyles}
+                />
+              </div>
 
               </div>
 
@@ -677,47 +675,47 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 <label className="add-mender-modal-label block text-xs font-normal uppercase mb-1">
                   Location
                 </label>
-                <p className="text-xs text-[#222222] mb-2">
-                  Drag the pin or click the map to set a precise location.
-                </p>
-                <div className="h-32 rounded-lg overflow-hidden border border-[#e2d3be] relative z-0 lg:h-36">
+                <div className="h-48 rounded-lg overflow-hidden border border-gray-300 relative z-0 lg:h-56">
                   <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
                 </div>
               </div>
 
-              {/* Categories */}
-              <div>
-                <p className="add-mender-modal-label block text-xs font-normal uppercase mb-2">Categories</p>
-                <Select
-                  isMulti
-                  options={categoryOptions}
-                  value={categoryOptions
-                    .flatMap((group) => group.options)
-                    .filter((option) => categories.includes(option.value))}
-                  onChange={(opts) => setCategories(toValues(opts))}
-                  placeholder="Select categories..."
-                  menuPortalTarget={selectMenuPortalTarget}
-                  menuPosition="fixed"
-                  styles={selectStyles}
-                />
-              </div>
+              {/* Review (Member of the public only) */}
+              {entryLevel === 'Member of the public' && (
+                <>
+                  <div>
+                    <span
+                      id="review-stars-label"
+                      className="add-mender-modal-label mb-1 block text-xs font-normal uppercase"
+                    >
+                      Review
+                    </span>
+                    <div>
+                      <ReactRating
+                        id="review-stars"
+                        style={{ maxWidth: 180 }}
+                        value={reviewStars}
+                        onChange={setReviewStars}
+                        transition="colors"
+                        spaceBetween="small"
+                        itemStyles={reviewRatingStyles}
+                        visibleLabelId="review-stars-label"
+                        invisibleItemLabels={reviewItemLabels}
+                      />
+                      <textarea
+                        id="review-text"
+                        aria-label="Written review"
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        placeholder="Leave your feedback"
+                        rows={2}
+                        className="mymenders-field mt-3 w-full border rounded-lg p-2.5 text-sm outline-none"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
-              {/* Regional Techniques */}
-              <div>
-                <label className="add-mender-modal-label block text-xs font-normal uppercase mb-1">
-                  Regional techniques
-                </label>
-                <Select
-                  isMulti
-                  options={techniqueOptions}
-                  value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
-                  onChange={(opts) => setRegionalTechniques(toValues(opts))}
-                  placeholder="Select techniques..."
-                  menuPortalTarget={selectMenuPortalTarget}
-                  menuPosition="fixed"
-                  styles={selectStyles}
-                />
-              </div>
             </div>
             </div>
             <div className="border-t border-[#cfdadd] bg-[#eff3f4] px-5 py-4">

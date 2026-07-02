@@ -16,7 +16,7 @@ export function Navbar() {
                 <rect x="40" y="10" width="20" height="80" fill="#131C18" />
                 <rect x="70" y="10" width="20" height="80" fill="#131C18" />
               </svg>
-              <span className="text-2xl font-black tracking-tight text-slate-900 mymenders-logo-font">My Mender</span>
+              <span className="text-2xl tracking-tight text-slate-900 mymenders-logo-font">My Mender</span>
             </NavLink>
           </div>
           

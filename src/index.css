@@ -6,7 +6,7 @@
   --heading-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --body-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --field-label-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --logo-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --logo-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --heading-font-weight: 700;
   --body-font-weight: 400;
   --field-label-font-weight: 500;
@@ -14,7 +14,7 @@
   --heading-font-stretch: 100%;
   --body-font-stretch: 99%;
   --field-label-font-stretch: 100%;
-  --logo-font-stretch: 110%;
+  --logo-font-stretch: 220%;
   --font-sans: var(--body-font);
   --color-backdrop: #eff3f4;
   --color-cloth: #fbf7ef;
@@ -193,6 +193,8 @@ h6 {
   font-family: var(--logo-font);
   font-weight: var(--logo-font-weight);
   font-stretch: var(--logo-font-stretch);
+  font-variation-settings: "wdth" 125;
+  letter-spacing: -0.02em;
 }
 
 .mymenders-phone-input {

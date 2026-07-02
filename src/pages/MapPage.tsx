@@ -187,7 +187,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   wrapper.className = 'mb-3';
 
   const title = document.createElement('div');
-  title.className = 'text-xs font-semibold uppercase text-slate-500 mb-1';
+  title.className = 'text-xs font-semibold uppercase text-slate-500 mb-1 mymenders-map-card-label';
   title.textContent = label;
   wrapper.append(title);
 

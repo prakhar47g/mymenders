@@ -84,6 +84,11 @@
   background: #e2e8f0;
 }
 
+.mymenders-map-card-label {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 0.7rem;
+}
+
 .mymenders-phone-input {
   --react-international-phone-height: 42px;
   --react-international-phone-border-radius: 0.5rem;

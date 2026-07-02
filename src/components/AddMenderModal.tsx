@@ -118,9 +118,9 @@ const selectStyles = {
     ...base,
     backgroundColor: '#ffffff',
     borderColor: '#e6e0d6',
-    borderRadius: '0.75rem',
-    minHeight: '2.75rem',
-    fontSize: '0.875rem',
+    borderRadius: '0.625rem',
+    minHeight: '2.5rem',
+    fontSize: '0.8125rem',
     boxShadow: 'none',
     color: '#171b17',
     '&:hover': { borderColor: '#d5cdc0' },
@@ -128,7 +128,7 @@ const selectStyles = {
   menu: (base: any) => ({
     ...base,
     backgroundColor: '#ffffff',
-    borderRadius: '0.875rem',
+    borderRadius: '0.75rem',
     boxShadow: '0 12px 28px rgba(54, 45, 35, 0.1)',
     fontSize: '0.875rem',
     overflow: 'hidden',
@@ -477,13 +477,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
   const modalContent = (
     <div className="fixed inset-0 z-[3200] flex items-center justify-center bg-[#171b17]/36 p-3 backdrop-blur-sm sm:p-4">
-      <div className="flex max-h-[min(92vh,900px)] w-[min(95vw,1080px)] flex-col overflow-hidden rounded-[1.25rem] border border-[#e6e0d6] bg-[#f1f3f1] shadow-[0_18px_40px_rgba(54,45,35,0.12)] animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] border border-[#e6e0d6] bg-[#f1f3f1] shadow-[0_14px_32px_rgba(54,45,35,0.11)] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#e6e0d6] bg-[#fffdf8] px-6 py-4">
-          <h2 className="text-lg font-semibold text-[#171b17] mymenders-heading-font">Add a Mender</h2>
+        <div className="flex items-start justify-between border-b border-[#e6e0d6] bg-[#fffdf8] px-5 py-3">
+          <h2 className="text-base font-semibold text-[#171b17] mymenders-heading-font">Add a Mender</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-[#68665f] transition-colors hover:bg-[#f7f4ed] hover:text-[#171b17]"
+            className="rounded-full p-1 text-[#68665f] transition-colors hover:bg-[#f7f4ed] hover:text-[#171b17]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -491,9 +491,9 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="grid gap-4 px-6 py-5 md:grid-cols-2">
+            <div className="grid gap-5 px-5 py-4 md:grid-cols-2">
               {/* ==================== LEFT COLUMN ==================== */}
-              <div className="space-y-4">
+              <div className="space-y-3">
               <fieldset>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {ENTRY_LEVEL_OPTIONS.map((level) => {
@@ -511,7 +511,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                           className="peer sr-only"
                         />
                         <span
-                          className={`flex min-h-[96px] items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
+                          className={`flex min-h-[72px] items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
                             isSelected
                               ? meta.activePanelClasses
                               : 'border-[#e6e0d6] bg-white grayscale hover:border-[#d5cdc0] hover:bg-[#f7f4ed]'
@@ -521,19 +521,19 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                             src={meta.iconSrc}
                             alt=""
                             aria-hidden="true"
-                              className={`mt-0.5 h-[43px] w-[43px] shrink-0 object-contain object-top transition-all duration-150 ${
+                              className={`mt-0.5 h-8 w-8 shrink-0 object-contain object-top transition-all duration-150 ${
                                 isSelected ? 'opacity-100' : 'opacity-55'
                               }`}
                             />
                           <span className="min-w-0 flex-1">
                             <span
-                              className={`block text-sm font-normal ${
+                              className={`block text-[13px] font-medium leading-tight ${
                                 isSelected ? meta.activeTitleClasses : 'text-[#171b17]'
                               }`}
                             >
                               {meta.title}
                             </span>
-                            <span className={`mt-1 block text-xs leading-[1.45] ${isSelected ? 'text-[#2f3e39]' : 'text-[#68665f]'}`}>
+                            <span className={`mt-0.5 block text-[11px] leading-[1.3] ${isSelected ? 'text-[#2f3e39]' : 'text-[#68665f]'}`}>
                               {meta.description}
                             </span>
                           </span>
@@ -544,6 +544,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </div>
               </fieldset>
 
+              <div>
               {/* Shop Name */}
               <div>
                 <label htmlFor="name" className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
@@ -560,7 +561,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               </div>
 
               {/* Type + Phone */}
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">Studio Type</label>
                   <Select
@@ -598,7 +599,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               </div>
 
               {/* Social */}
-              <div>
+              <div className="mt-3">
                 <label htmlFor="online" className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
                   Social
                 </label>
@@ -611,7 +612,9 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
                 />
               </div>
+              </div>
 
+              <div>
               {/* Categories */}
               <div>
                 <p className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">Categories</p>
@@ -630,7 +633,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               </div>
 
               {/* Regional Techniques */}
-              <div>
+              <div className="mt-3">
                 <label className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
                   Regional techniques
                 </label>
@@ -645,11 +648,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   styles={selectStyles}
                 />
               </div>
+              </div>
 
               </div>
 
               {/* ==================== RIGHT COLUMN ==================== */}
-              <div className="space-y-4">
+              <div className="space-y-3">
+              <div>
               {/* Address */}
               <div>
                 <label className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
@@ -679,13 +684,17 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
               </div>
 
               {/* Mini Map */}
-              <div>
+              <div className="mt-3">
                 <label className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
                   Location
                 </label>
-                <div className="relative z-0 h-48 overflow-hidden rounded-2xl border border-[#e6e0d6] lg:h-56">
+                <div className="relative z-0 h-40 overflow-hidden rounded-xl border border-[#e6e0d6] lg:h-44">
                   <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
                 </div>
+                <p className="mt-1.5 text-[11px] leading-[1.35] text-[#68665f]">
+                  Search the address first, then click the map or drag the pin to fine-tune.
+                </p>
+              </div>
               </div>
 
               {/* Review (Member of the public only) */}
@@ -694,7 +703,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   <div>
                     <span
                       id="review-stars-label"
-                      className="add-mender-modal-label mb-2 block text-[11px] font-medium uppercase"
+                      className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase"
                     >
                       Review
                     </span>
@@ -717,7 +726,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                         onChange={(e) => setReviewText(e.target.value)}
                         placeholder="Leave your feedback"
                         rows={2}
-                        className="mymenders-field mt-3 w-full border px-3 py-2 text-sm outline-none"
+                        className="mymenders-field mt-2 w-full border px-3 py-2 text-sm outline-none"
                       />
                     </div>
                   </div>
@@ -726,18 +735,18 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
             </div>
             </div>
-            <div className="border-t border-[#e6e0d6] bg-[#f1f3f1] px-6 py-4">
+            <div className="border-t border-[#e6e0d6] bg-[#f1f3f1] px-5 py-3">
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="h-11 flex-1 rounded-full border border-[#e6e0d6] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
+                  className="h-10 flex-1 rounded-full border border-[#e6e0d6] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-11 flex-1 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
+                  className="h-10 flex-1 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
                 >
                   Publish to Map
                 </button>

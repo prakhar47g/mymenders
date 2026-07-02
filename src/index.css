@@ -102,8 +102,8 @@ h6 {
   background-color: #ffffff;
   border-color: var(--mm-border);
   color: var(--mm-text);
-  border-radius: 0.75rem;
-  min-height: 2.75rem;
+  border-radius: 0.625rem;
+  min-height: 2.5rem;
   line-height: 1.45;
 }
 
@@ -224,8 +224,8 @@ h6 {
 }
 
 .mymenders-phone-input {
-  --react-international-phone-height: 42px;
-  --react-international-phone-border-radius: 0.75rem;
+  --react-international-phone-height: 40px;
+  --react-international-phone-border-radius: 0.625rem;
   --react-international-phone-border-color: var(--mm-border);
   --react-international-phone-background-color: #ffffff;
   --react-international-phone-text-color: var(--mm-text);

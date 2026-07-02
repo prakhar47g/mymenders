@@ -197,10 +197,10 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   if (!items.length) return;
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'mb-3';
+  wrapper.className = 'mb-2 last:mb-0';
 
   const title = document.createElement('div');
-  title.className = 'mb-2 text-[11px] font-medium text-[#68665f] mymenders-map-card-label';
+  title.className = 'mb-1 text-[10px] font-medium text-[#68665f] mymenders-map-card-label';
   title.textContent = label;
   wrapper.append(title);
 
@@ -208,7 +208,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   tags.className = 'flex flex-wrap gap-1.5';
   items.forEach((tag) => {
     const chip = document.createElement('span');
-    chip.className = 'inline-flex items-center gap-1 rounded-full border border-[#e6e0d6] bg-[#f7f4ed] px-2 py-0.5 text-xs text-[#4f4a43]';
+    chip.className = 'inline-flex items-center gap-1 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[11px] text-[#5f6368]';
     chip.textContent = tag;
     tags.append(chip);
   });
@@ -218,14 +218,14 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
 
 const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
   const row = document.createElement('div');
-  row.className = 'mb-2 flex items-start gap-2 text-sm text-[#4f4a43]';
+  row.className = 'mb-1.5 flex items-start gap-1.5 text-xs text-[#4f4a43]';
 
   const icon = document.createElement('div');
-  icon.className = 'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[#7b7166]';
+  icon.className = 'mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[#7b7166]';
   icon.innerHTML = iconMarkup;
 
   const text = document.createElement('span');
-  text.className = 'min-w-0 flex-1 break-words leading-[1.45]';
+  text.className = 'min-w-0 flex-1 break-words leading-[1.35]';
   text.textContent = value;
 
   row.append(icon, text);
@@ -234,36 +234,55 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
 
 const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
-  container.className = 'min-w-[264px] p-4 pr-5';
+  container.className = 'min-w-[244px] p-3 pr-4';
 
   const title = document.createElement('h3');
-  title.className = 'mb-2 pr-8 text-[17px] font-medium leading-[1.1] tracking-[-0.01em] text-[#171b17] capitalize';
+  title.className = 'mb-1 pr-8 text-base font-semibold leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'mb-4 inline-flex items-center gap-1 rounded-full border border-[#e6e0d6] bg-[#f7f4ed] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] text-[#3d403b]';
+  entry.className = 'mt-[-1px] mb-3 text-[10px] font-medium uppercase tracking-[0.05em] text-[#7b8087]';
   entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
+  const contactSection = document.createElement('div');
+  contactSection.className = 'space-y-0.5';
   const primaryType = vendor.types?.[0]?.trim();
-  if (primaryType) {
-    appendTextRow(container, HOUSE_ICON, primaryType);
+  if (primaryType) appendTextRow(contactSection, HOUSE_ICON, primaryType);
+  if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
+  if (vendor.address) appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
+  if (vendor.online_presence) appendTextRow(contactSection, ONLINE_ICON, vendor.online_presence);
+  if (contactSection.children.length) {
+    container.append(contactSection);
   }
 
-  if (vendor.phone) appendTextRow(container, PHONE_ICON, vendor.phone);
-  if (vendor.address) appendTextRow(container, ADDRESS_ICON, vendor.address);
-  if (vendor.online_presence) appendTextRow(container, ONLINE_ICON, vendor.online_presence);
-  buildTagRow(container, 'Categories', vendor.categories || []);
-  buildTagRow(container, 'Regional techniques', vendor.regional_techniques || []);
+  const expertiseSection = document.createElement('div');
+  expertiseSection.className = 'mt-3';
+  buildTagRow(expertiseSection, 'Categories', vendor.categories || []);
+  buildTagRow(expertiseSection, 'Regional techniques', vendor.regional_techniques || []);
+  if (expertiseSection.children.length) {
+    container.append(expertiseSection);
+  }
 
   if (vendor.review_text) {
-    appendTextRow(container, REVIEW_ICON, vendor.review_text);
+    const review = document.createElement('div');
+    review.className = 'mt-3 text-xs leading-[1.4] text-[#4f4a43]';
+    review.innerHTML = `
+      <div class="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.04em] text-[#68665f]">
+        <span class="inline-flex h-4 w-4 items-center justify-center">${REVIEW_ICON}</span>
+        Review
+      </div>
+    `;
+    const reviewText = document.createElement('div');
+    reviewText.textContent = vendor.review_text;
+    review.append(reviewText);
+    container.append(review);
   }
 
   if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
-    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-3 py-1 text-xs font-medium text-[#785531]';
+    rating.className = 'mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-2.5 py-0.5 text-[11px] font-medium text-[#785531]';
     rating.innerHTML = `
       <span class="inline-flex h-5 w-5 items-center justify-center text-[#c9782f]">
         ${RATING_ICON}
@@ -276,7 +295,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   const directionsButton = document.createElement('button');
   directionsButton.type = 'button';
   directionsButton.className =
-    'mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#1f241f] px-4 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
+    'mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-[#1f241f] px-4 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
   directionsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -545,7 +564,7 @@ export function MapPage() {
 
       const [longitude, latitude] = (vendorFeature.geometry as GeoJSON.Point).coordinates;
       popupRef.current?.remove();
-      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 304 })
+      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 264 })
         .setLngLat([longitude, latitude])
         .setDOMContent(
           buildPopoverContent(resolvedVendor, (selectedVendor) => {

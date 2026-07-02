@@ -12,7 +12,7 @@ const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
 const GLOBAL_ZOOM = 2.5;
 const LOCAL_ZOOM = 15;
 const AUTO_CENTER_TO_FIRST_VENDOR = false;
-const DEFAULT_ENTRY_LEVEL = 'Menders';
+const DEFAULT_ENTRY_LEVEL = 'Verified Mender';
 const VENDOR_SOURCE_ID = 'vendors';
 const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
@@ -27,8 +27,8 @@ const BASEMAP_STYLES = [
 ] as const;
 const DEFAULT_BASEMAP_STYLE_ID = 'bright';
 const PIN_COLOR_MAP: Record<string, string> = {
-  Menders: '#2A9D8F',
-  'Member of the public': '#F4A261',
+  'Verified Mender': '#2A9D8F',
+  'Community Contribution': '#F4A261',
   default: '#99C4CB',
 };
 
@@ -54,6 +54,13 @@ const parseListFromSource = (value: unknown): string[] => {
       .filter(Boolean);
   }
   return [];
+};
+
+const normalizeEntryLevel = (entryLevel?: string) => {
+  if (!entryLevel) return DEFAULT_ENTRY_LEVEL;
+  if (entryLevel === 'Menders') return 'Verified Mender';
+  if (entryLevel === 'Member of the public') return 'Community Contribution';
+  return entryLevel;
 };
 
 const getPinColor = (entryLevel?: string) => {
@@ -96,7 +103,7 @@ const buildVendorFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollect
         },
         properties: {
           vendorId: vendor.id,
-          pinColor: getPinColor(vendor.entry_level || vendor.category || DEFAULT_ENTRY_LEVEL),
+          pinColor: getPinColor(normalizeEntryLevel(vendor.entry_level || vendor.category)),
         },
       },
     ];
@@ -168,7 +175,7 @@ const normalizeVendor = (raw: any): Vendor => {
     regional_techniques: parseListFromSource(raw.regional_techniques || (metadata as any)?.regional_techniques),
     online_presence: raw.online_presence || raw.website || (metadata as any)?.online_presence || (metadata as any)?.website,
     review_text: raw.review_text || (metadata as any)?.review_text,
-    entry_level: raw.entry_level || (metadata as any)?.entry_level || DEFAULT_ENTRY_LEVEL,
+    entry_level: normalizeEntryLevel(raw.entry_level || (metadata as any)?.entry_level),
   };
 };
 
@@ -222,7 +229,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
 
   const entry = document.createElement('div');
   entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2 py-0.5 text-[10px] font-normal uppercase tracking-[0.08em] text-slate-800';
-  entry.textContent = vendor.entry_level || vendor.category || 'Menders';
+  entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
   if (vendor.types?.length) {

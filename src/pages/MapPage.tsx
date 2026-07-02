@@ -200,7 +200,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   wrapper.className = 'mb-3';
 
   const title = document.createElement('div');
-  title.className = 'text-xs font-semibold uppercase text-slate-500 mb-1 mymenders-map-card-label';
+  title.className = 'mb-2 text-[11px] font-medium text-[#68665f] mymenders-map-card-label';
   title.textContent = label;
   wrapper.append(title);
 
@@ -208,7 +208,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   tags.className = 'flex flex-wrap gap-1.5';
   items.forEach((tag) => {
     const chip = document.createElement('span');
-    chip.className = 'inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs';
+    chip.className = 'inline-flex items-center gap-1 rounded-full border border-[#e6e0d6] bg-[#f7f4ed] px-2 py-0.5 text-xs text-[#4f4a43]';
     chip.textContent = tag;
     tags.append(chip);
   });
@@ -218,14 +218,14 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
 
 const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
   const row = document.createElement('div');
-  row.className = 'mb-2 flex items-start gap-2 text-sm text-slate-700';
+  row.className = 'mb-2 flex items-start gap-2 text-sm text-[#4f4a43]';
 
   const icon = document.createElement('div');
-  icon.className = 'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-slate-500';
+  icon.className = 'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[#7b7166]';
   icon.innerHTML = iconMarkup;
 
   const text = document.createElement('span');
-  text.className = 'min-w-0 flex-1 break-words leading-relaxed';
+  text.className = 'min-w-0 flex-1 break-words leading-[1.45]';
   text.textContent = value;
 
   row.append(icon, text);
@@ -234,15 +234,15 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
 
 const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
-  container.className = 'min-w-[252px] p-3 pr-4';
+  container.className = 'min-w-[264px] p-4 pr-5';
 
   const title = document.createElement('h3');
-  title.className = 'mb-2 pr-8 text-base font-medium leading-tight tracking-[-0.01em] text-slate-900 capitalize';
+  title.className = 'mb-2 pr-8 text-[17px] font-medium leading-[1.1] tracking-[-0.01em] text-[#171b17] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'mb-3 inline-flex items-center gap-1 rounded-full bg-brand/12 px-2 py-0.5 text-[10px] font-normal uppercase tracking-[0.08em] text-slate-800';
+  entry.className = 'mb-4 inline-flex items-center gap-1 rounded-full border border-[#e6e0d6] bg-[#f7f4ed] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.04em] text-[#3d403b]';
   entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
@@ -263,9 +263,9 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
 
   if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
-    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800';
+    rating.className = 'mt-2 inline-flex items-center gap-2 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-3 py-1 text-xs font-medium text-[#785531]';
     rating.innerHTML = `
-      <span class="inline-flex h-5 w-5 items-center justify-center text-amber-600">
+      <span class="inline-flex h-5 w-5 items-center justify-center text-[#c9782f]">
         ${RATING_ICON}
       </span>
       <span>${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})</span>
@@ -276,7 +276,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   const directionsButton = document.createElement('button');
   directionsButton.type = 'button';
   directionsButton.className =
-    'mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#3e3024] text-white text-xs font-semibold hover:bg-[#5b4635] transition-colors';
+    'mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#1f241f] px-4 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
   directionsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -545,7 +545,7 @@ export function MapPage() {
 
       const [longitude, latitude] = (vendorFeature.geometry as GeoJSON.Point).coordinates;
       popupRef.current?.remove();
-      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 280 })
+      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 304 })
         .setLngLat([longitude, latitude])
         .setDOMContent(
           buildPopoverContent(resolvedVendor, (selectedVendor) => {
@@ -705,20 +705,20 @@ export function MapPage() {
 
       {/* Map controls */}
       <div className="absolute right-6 top-6 z-10 flex flex-col gap-2">
-        <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3e3024]">
+        <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3d403b]">
           <button
             onClick={() => {
               const map = mapInstanceRef.current;
               if (!map) return;
               map.zoomIn();
             }}
-            className="flex h-11 w-11 items-center justify-center hover:bg-[#fffaf1]"
+            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f7f4ed]"
             aria-label="Zoom in"
           >
             <Plus className="w-5 h-5" />
           </button>
 
-          <div className="h-px bg-gray-200" />
+          <div className="h-px bg-[#e6e0d6]" />
 
           <button
             onClick={() => {
@@ -726,7 +726,7 @@ export function MapPage() {
               if (!map) return;
               map.zoomOut();
             }}
-            className="flex h-11 w-11 items-center justify-center hover:bg-[#fffaf1]"
+            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f7f4ed]"
             aria-label="Zoom out"
           >
             <Minus className="w-5 h-5" />
@@ -745,7 +745,7 @@ export function MapPage() {
               duration: 700,
             });
           }}
-          className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
+          className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
           aria-label="Reset to globe view"
         >
           <Globe className="w-5 h-5" />
@@ -755,7 +755,7 @@ export function MapPage() {
           <div ref={styleMenuRef}>
           <button
             onClick={() => setIsStyleMenuOpen((value) => !value)}
-            className="mymenders-cloth-panel w-11 h-11 rounded-full bg-cloth border flex items-center justify-center text-[#3e3024] hover:bg-[#fffaf1]"
+            className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
             aria-label="Map style"
             aria-expanded={isStyleMenuOpen}
           >
@@ -763,7 +763,7 @@ export function MapPage() {
           </button>
 
           {isStyleMenuOpen && (
-            <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-lg border bg-cloth/95 p-1 backdrop-blur-sm">
+            <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
               {BASEMAP_STYLES.map((style) => (
                 <button
                   key={style.id}
@@ -771,10 +771,10 @@ export function MapPage() {
                     setSelectedBasemapStyleId(style.id);
                     setIsStyleMenuOpen(false);
                   }}
-                  className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                  className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
                     selectedBasemapStyleId === style.id
                       ? 'bg-brand/20 text-[#2f3e39] font-medium'
-                      : 'text-[#3e3024] hover:bg-[#fff1e6]'
+                      : 'text-[#3d403b] hover:bg-[#f7f4ed]'
                   }`}
                 >
                   {style.label}
@@ -791,15 +791,15 @@ export function MapPage() {
         <button
           onClick={locateUser}
           disabled={findingLocation}
-          className="mymenders-cloth-panel bg-cloth border rounded-lg text-sm font-medium hover:bg-[#fffaf1] flex items-center gap-2 px-5 py-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-[#3e3024]"
+          className="mymenders-cloth-panel flex h-11 items-center gap-2 rounded-full border bg-cloth px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f7f4ed] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          <Navigation className={`w-4 h-4 ${findingLocation ? 'animate-pulse text-[#aa9276]' : 'text-[#3e3024]'}`} />
+          <Navigation className={`w-4 h-4 ${findingLocation ? 'animate-pulse text-[#8a877d]' : 'text-[#3d403b]'}`} />
           {findingLocation ? 'Locating...' : 'Near Me'}
         </button>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-brand text-[#2f3e39] px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-brand-hover transition-colors"
+          className="flex h-11 items-center gap-2 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
         >
           <Plus className="w-5 h-5" />
           Add Mender

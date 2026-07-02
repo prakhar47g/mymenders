@@ -16,8 +16,8 @@
   --field-label-font-stretch: 100%;
   --logo-font-stretch: 220%;
   --font-sans: var(--body-font);
-  --color-backdrop: #eff3f4;
-  --color-cloth: #fbf7ef;
+  --color-backdrop: #f1f3f1;
+  --color-cloth: #fffdf8;
   --color-stitch: #c46a3d;
   --color-pin: #6eb7b0;
   --color-brand: #99c4cb;
@@ -25,11 +25,30 @@
   --color-brand-light: #d7e8eb;
 }
 
+:root {
+  --mm-text: #171b17;
+  --mm-text-soft: #3d403b;
+  --mm-muted: #68665f;
+  --mm-faint: #8a877d;
+  --mm-border: #e6e0d6;
+  --mm-border-strong: #d5cdc0;
+  --mm-panel: #fffdf8;
+  --mm-panel-muted: #f7f4ed;
+  --mm-surface: #f1f3f1;
+  --mm-accent: #99c4cb;
+  --mm-accent-hover: #82b3bb;
+  --mm-focus: rgba(23, 27, 23, 0.09);
+  --mm-shadow-subtle: 0 1px 3px rgba(54, 45, 35, 0.06);
+  --mm-shadow-panel: 0 12px 28px rgba(54, 45, 35, 0.1);
+}
+
 body {
   background: var(--color-backdrop);
   font-family: var(--body-font);
   font-weight: var(--body-font-weight);
   font-stretch: var(--body-font-stretch);
+  color: var(--mm-text);
+  line-height: 1.45;
 }
 
 h1,
@@ -41,6 +60,8 @@ h6 {
   font-family: var(--heading-font);
   font-weight: var(--heading-font-weight);
   font-stretch: var(--heading-font-stretch);
+  color: var(--mm-text);
+  line-height: 1.05;
 }
 
 .mymenders-textile-surface {
@@ -55,9 +76,9 @@ h6 {
 }
 
 .mymenders-cloth-panel {
-  background-color: rgba(251, 247, 239, 0.96);
-  border-color: #d1d5db;
-  box-shadow: 0 16px 36px rgba(72, 55, 38, 0.12);
+  background-color: rgba(255, 253, 248, 0.96);
+  border-color: var(--mm-border);
+  box-shadow: var(--mm-shadow-subtle);
 }
 
 .mymenders-cloth-label {
@@ -79,13 +100,16 @@ h6 {
 
 .mymenders-field {
   background-color: #ffffff;
-  border-color: #d1d5db;
-  color: #111827;
+  border-color: var(--mm-border);
+  color: var(--mm-text);
+  border-radius: 0.75rem;
+  min-height: 2.75rem;
+  line-height: 1.45;
 }
 
 .mymenders-field:focus {
-  border-color: #111827;
-  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+  border-color: var(--mm-text);
+  box-shadow: 0 0 0 3px var(--mm-focus);
 }
 
 /* Leaflet map default height */
@@ -131,17 +155,17 @@ h6 {
 }
 
 .maplibregl-popup-content {
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 0;
   overflow: hidden;
-  background: #fffdf8;
-  box-shadow: 0 18px 45px rgba(72, 55, 38, 0.16);
+  background: var(--mm-panel);
+  box-shadow: var(--mm-shadow-panel);
 }
 
 .maplibregl-popup-tip {
-  border-top-color: #fffdf8;
-  border-bottom-color: #fffdf8;
-  box-shadow: 0 8px 18px rgba(72, 55, 38, 0.08);
+  border-top-color: var(--mm-panel);
+  border-bottom-color: var(--mm-panel);
+  box-shadow: var(--mm-shadow-subtle);
 }
 
 .maplibregl-popup-close-button {
@@ -151,8 +175,8 @@ h6 {
   height: 28px;
   padding: 0;
   border-radius: 9999px;
-  color: #64748b;
-  background: #fffdf8;
+  color: var(--mm-muted);
+  background: var(--mm-panel);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -160,8 +184,8 @@ h6 {
 }
 
 .maplibregl-popup-close-button:hover {
-  color: #3e3024;
-  background: #f1e3d0;
+  color: var(--mm-text);
+  background: var(--mm-panel-muted);
 }
 
 .mymenders-map-card-label {
@@ -169,6 +193,8 @@ h6 {
   font-weight: var(--field-label-font-weight);
   font-stretch: var(--field-label-font-stretch);
   font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mymenders-heading-font {
@@ -199,15 +225,15 @@ h6 {
 
 .mymenders-phone-input {
   --react-international-phone-height: 42px;
-  --react-international-phone-border-radius: 0.5rem;
-  --react-international-phone-border-color: #d1d5db;
+  --react-international-phone-border-radius: 0.75rem;
+  --react-international-phone-border-color: var(--mm-border);
   --react-international-phone-background-color: #ffffff;
-  --react-international-phone-text-color: #111827;
+  --react-international-phone-text-color: var(--mm-text);
   --react-international-phone-country-selector-background-color: #ffffff;
-  --react-international-phone-country-selector-background-color-hover: #f9fafb;
-  --react-international-phone-selected-dropdown-item-background-color: #f3f4f6;
-  --react-international-phone-dropdown-item-text-color: #111827;
-  --react-international-phone-dropdown-item-dial-code-color: #6b7280;
+  --react-international-phone-country-selector-background-color-hover: var(--mm-panel-muted);
+  --react-international-phone-selected-dropdown-item-background-color: var(--mm-panel-muted);
+  --react-international-phone-dropdown-item-text-color: var(--mm-text);
+  --react-international-phone-dropdown-item-dial-code-color: var(--mm-muted);
   width: 100%;
 }
 
@@ -215,7 +241,8 @@ h6 {
   font-family: var(--field-label-font) !important;
   font-weight: var(--field-label-font-weight);
   font-stretch: var(--field-label-font-stretch);
-  color: #222222;
+  color: var(--mm-text-soft);
+  letter-spacing: 0.04em;
 }
 
 .mymenders-phone-input .react-international-phone-country-selector-button,
@@ -236,8 +263,8 @@ h6 {
 
 .mymenders-phone-input:focus-within .react-international-phone-country-selector-button,
 .mymenders-phone-input:focus-within .react-international-phone-input {
-  border-color: #111827;
-  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
+  border-color: var(--mm-text);
+  box-shadow: 0 0 0 3px var(--mm-focus);
 }
 
 .mymenders-phone-input__country-button:focus-visible,

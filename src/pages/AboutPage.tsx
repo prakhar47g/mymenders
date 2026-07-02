@@ -12,13 +12,13 @@ export function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen pt-16 bg-transparent text-slate-900 font-sans">
-      <main className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent pt-16 font-sans text-[#171b17]">
+      <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
         
         {/* Mission Section */}
         <section className="mb-24 text-center">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Our Mission</h3>
-          <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-3xl mx-auto font-light">
+          <h3 className="mb-4 text-[11px] font-medium uppercase tracking-[0.04em] text-[#8a877d]">Our Mission</h3>
+          <p className="mx-auto max-w-3xl text-2xl font-light leading-[1.35] text-[#3d403b] md:text-[28px]">
             My Mender is a map-based, subscription-driven platform designed to extend the life of garments by reconnecting people with menders, repair knowledge, and the cultures of care that already exist - but remain fragmented and undervalued
           </p>
         </section>
@@ -27,7 +27,7 @@ export function AboutPage() {
         <section className="flex flex-col md:flex-row justify-center items-center md:items-start gap-16 md:gap-24">
           {/* Initiative Of */}
           <div className="flex flex-col items-center">
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Initiative Of</h3>
+            <h3 className="mb-8 text-[11px] font-medium uppercase tracking-[0.04em] text-[#8a877d]">Initiative Of</h3>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 hover:opacity-100 transition-opacity">
               {initiatives.map((sponsor) => (
                 <div key={sponsor.name} className="flex flex-col items-center gap-2">
@@ -39,7 +39,7 @@ export function AboutPage() {
 
           {/* Supported By */}
           <div className="flex flex-col items-center">
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Supported By</h3>
+            <h3 className="mb-8 text-[11px] font-medium uppercase tracking-[0.04em] text-[#8a877d]">Supported By</h3>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-70 hover:opacity-100 transition-opacity">
               {supporters.map((sponsor) => (
                 <div key={sponsor.name} className="flex flex-col items-center gap-2">

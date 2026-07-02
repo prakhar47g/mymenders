@@ -102,25 +102,25 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
         onFocus={() => { if (suggestions.length > 0) setOpen(true); }}
         placeholder={placeholder}
         autoComplete="off"
-        className="mymenders-field w-full border rounded-lg p-2.5 text-sm text-slate-900 outline-none"
+        className="mymenders-field w-full border px-3 py-2 text-sm text-[#171b17] outline-none"
       />
       {open && suggestions.length > 0 && (
         <ul
           ref={listRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[2100] max-h-48 overflow-y-auto"
+          className="absolute left-0 right-0 top-full z-[2100] mt-2 max-h-48 overflow-y-auto rounded-2xl border border-[#e6e0d6] bg-white shadow-[0_12px_28px_rgba(54,45,35,0.1)]"
         >
           {suggestions.map((s, i) => (
             <li
               key={`${s.lat}-${s.lng}-${i}`}
-              className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                i === activeIndex ? 'bg-gray-100 text-slate-900' : 'text-slate-700 hover:bg-gray-50'
+              className={`cursor-pointer border-b border-[#f0ebe2] px-3 py-2 text-sm last:border-b-0 ${
+                i === activeIndex ? 'bg-[#f7f4ed] text-[#171b17]' : 'text-[#4f4a43] hover:bg-[#fbf8f1]'
               }`}
               onMouseDown={() => pickSuggestion(s)}
               onMouseEnter={() => setActiveIndex(i)}
             >
               <span className="font-medium">{s.formatted}</span>
               {s.city && (
-                <span className="text-xs text-slate-400 ml-2">
+                <span className="ml-2 text-xs text-[#8a877d]">
                   {[s.city, s.country].filter(Boolean).join(', ')}
                 </span>
               )}

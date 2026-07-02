@@ -107,13 +107,13 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
       {open && suggestions.length > 0 && (
         <ul
           ref={listRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-cloth border border-[#e2d3be] rounded-lg shadow-lg z-[2100] max-h-48 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[2100] max-h-48 overflow-y-auto"
         >
           {suggestions.map((s, i) => (
             <li
               key={`${s.lat}-${s.lng}-${i}`}
-              className={`px-3 py-2 text-sm cursor-pointer border-b border-[#eadfce] last:border-b-0 ${
-                i === activeIndex ? 'bg-brand/20 text-slate-900' : 'text-slate-700 hover:bg-[#fffaf1]'
+              className={`px-3 py-2 text-sm cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                i === activeIndex ? 'bg-gray-100 text-slate-900' : 'text-slate-700 hover:bg-gray-50'
               }`}
               onMouseDown={() => pickSuggestion(s)}
               onMouseEnter={() => setActiveIndex(i)}

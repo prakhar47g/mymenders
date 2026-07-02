@@ -4,7 +4,7 @@
 
 @theme {
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --color-backdrop: #f7f2ea;
+  --color-backdrop: #eff3f4;
   --color-cloth: #fbf7ef;
   --color-stitch: #c46a3d;
   --color-pin: #6eb7b0;
@@ -50,13 +50,14 @@ body {
 }
 
 .mymenders-field {
-  background-color: rgba(255, 250, 241, 0.86);
-  border-color: rgba(143, 111, 78, 0.24);
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
 }
 
 .mymenders-field:focus {
-  border-color: var(--color-brand-hover);
-  box-shadow: 0 0 0 2px var(--color-brand-light);
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
 }
 
 /* Leaflet map default height */
@@ -143,20 +144,21 @@ body {
 .mymenders-phone-input {
   --react-international-phone-height: 42px;
   --react-international-phone-border-radius: 0.5rem;
-  --react-international-phone-border-color: rgba(143, 111, 78, 0.24);
-  --react-international-phone-background-color: rgba(255, 250, 241, 0.86);
-  --react-international-phone-text-color: rgb(15 23 42);
-  --react-international-phone-country-selector-background-color: rgba(255, 250, 241, 0.86);
-  --react-international-phone-country-selector-background-color-hover: rgb(247 242 234);
-  --react-international-phone-selected-dropdown-item-background-color: rgb(214 229 228);
-  --react-international-phone-dropdown-item-text-color: rgb(15 23 42);
-  --react-international-phone-dropdown-item-dial-code-color: rgb(100 116 139);
+  --react-international-phone-border-color: #d1d5db;
+  --react-international-phone-background-color: #ffffff;
+  --react-international-phone-text-color: #111827;
+  --react-international-phone-country-selector-background-color: #ffffff;
+  --react-international-phone-country-selector-background-color-hover: #f9fafb;
+  --react-international-phone-selected-dropdown-item-background-color: #f3f4f6;
+  --react-international-phone-dropdown-item-text-color: #111827;
+  --react-international-phone-dropdown-item-dial-code-color: #6b7280;
   width: 100%;
 }
 
 .add-mender-modal-label {
   font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace !important;
+  color: #222222;
 }
 
 .mymenders-phone-input .react-international-phone-country-selector-button,
@@ -177,8 +179,8 @@ body {
 
 .mymenders-phone-input:focus-within .react-international-phone-country-selector-button,
 .mymenders-phone-input:focus-within .react-international-phone-input {
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 2px var(--color-brand-light);
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.08);
 }
 
 .mymenders-phone-input__country-button:focus-visible,

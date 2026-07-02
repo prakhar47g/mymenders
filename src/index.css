@@ -1,14 +1,62 @@
-@import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+@import "leaflet/dist/leaflet.css";
+@import "tailwindcss";
 
 @theme {
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --color-backdrop: #EFF3F4;
-  --color-pin: #99C4CB;
-  --color-brand: #B5D2D0;
-  --color-brand-hover: #9bbab8; /* Darker shade of brand for hovers */
-  --color-brand-light: #d6e5e4;
+  --color-backdrop: #f7f2ea;
+  --color-cloth: #fbf7ef;
+  --color-stitch: #c46a3d;
+  --color-pin: #6eb7b0;
+  --color-brand: #a9c9bd;
+  --color-brand-hover: #8fafa3;
+  --color-brand-light: #e2ede8;
+}
+
+body {
+  background: var(--color-backdrop);
+}
+
+.mymenders-textile-surface {
+  background-color: var(--color-backdrop);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(80, 60, 42, 0.035) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(90deg, rgba(80, 60, 42, 0.028) 0 1px, transparent 1px 18px),
+    linear-gradient(135deg, rgba(196, 106, 61, 0.05), rgba(110, 183, 176, 0.055));
+  background-size: 18px 18px, 18px 18px, auto;
+}
+
+.mymenders-cloth-panel {
+  background-color: rgba(251, 247, 239, 0.96);
+  border-color: rgba(151, 119, 86, 0.28);
+  box-shadow: 0 16px 36px rgba(72, 55, 38, 0.12);
+}
+
+.mymenders-cloth-label {
+  border: 1px solid rgba(196, 106, 61, 0.28);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(196, 106, 61, 0.16) 0 2px, transparent 2px calc(100% - 2px), rgba(196, 106, 61, 0.16) calc(100% - 2px)),
+    rgba(255, 250, 241, 0.92);
+  color: #5b4635;
+}
+
+.mymenders-cloth-chip {
+  border: 1px solid rgba(143, 111, 78, 0.26);
+  border-radius: 6px;
+  background-color: rgba(255, 250, 241, 0.88);
+  color: #5f4b3a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.mymenders-field {
+  background-color: rgba(255, 250, 241, 0.86);
+  border-color: rgba(143, 111, 78, 0.24);
+}
+
+.mymenders-field:focus {
+  border-color: var(--color-brand-hover);
+  box-shadow: 0 0 0 2px var(--color-brand-light);
 }
 
 /* Leaflet map default height */
@@ -56,13 +104,15 @@
 .maplibregl-popup-content {
   border-radius: 18px;
   padding: 0;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+  background: rgba(251, 247, 239, 0.98);
+  box-shadow: 0 18px 45px rgba(72, 55, 38, 0.16);
 }
 
 .maplibregl-popup-tip {
-  border-top-color: white;
-  border-bottom-color: white;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  border-top-color: #fbf7ef;
+  border-bottom-color: #fbf7ef;
+  box-shadow: 0 8px 18px rgba(72, 55, 38, 0.08);
 }
 
 .maplibregl-popup-close-button {
@@ -73,7 +123,7 @@
   padding: 0;
   border-radius: 9999px;
   color: #64748b;
-  background: #f8fafc;
+  background: #fffaf1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -81,8 +131,8 @@
 }
 
 .maplibregl-popup-close-button:hover {
-  color: #0f172a;
-  background: #e2e8f0;
+  color: #3e3024;
+  background: #f1e3d0;
 }
 
 .mymenders-map-card-label {
@@ -93,11 +143,11 @@
 .mymenders-phone-input {
   --react-international-phone-height: 42px;
   --react-international-phone-border-radius: 0.5rem;
-  --react-international-phone-border-color: rgb(226 232 240);
-  --react-international-phone-background-color: rgb(248 250 252);
+  --react-international-phone-border-color: rgba(143, 111, 78, 0.24);
+  --react-international-phone-background-color: rgba(255, 250, 241, 0.86);
   --react-international-phone-text-color: rgb(15 23 42);
-  --react-international-phone-country-selector-background-color: rgb(248 250 252);
-  --react-international-phone-country-selector-background-color-hover: rgb(241 245 249);
+  --react-international-phone-country-selector-background-color: rgba(255, 250, 241, 0.86);
+  --react-international-phone-country-selector-background-color-hover: rgb(247 242 234);
   --react-international-phone-selected-dropdown-item-background-color: rgb(214 229 228);
   --react-international-phone-dropdown-item-text-color: rgb(15 23 42);
   --react-international-phone-dropdown-item-dial-code-color: rgb(100 116 139);

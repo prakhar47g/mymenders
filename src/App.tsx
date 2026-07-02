@@ -6,7 +6,7 @@ import { AboutPage } from './pages/AboutPage';
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-backdrop flex flex-col font-sans">
+      <div className="mymenders-textile-surface min-h-screen bg-backdrop flex flex-col font-sans">
         <Navbar />
         <Routes>
           <Route path="/" element={<MapPage />} />

@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
+  Cog,
   Globe,
   Globe2,
   House,
@@ -13,7 +14,6 @@ import {
   Phone,
   Loader2,
   Plus,
-  Settings2,
   Signpost,
   SlidersHorizontal,
   Star,
@@ -927,44 +927,35 @@ export function MapPage() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] mt-16 z-0">
-      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[25%_75%]">
+      <div className="grid h-full min-h-0 overflow-visible grid-cols-1 md:grid-cols-[25%_75%]">
         <aside
-          className="hidden md:flex md:flex-col min-h-0 overflow-hidden bg-[#fafafa] border-r border-[#e5e7eb]"
+          className="relative z-20 hidden md:flex md:flex-col min-h-0 overflow-visible bg-[#fafafa] border-r border-[#e5e7eb]"
           onWheel={(event) => {
             event.stopPropagation();
           }}
         >
-          <div
-            className="shrink-0 border-b border-[#e5e7eb] p-2 bg-[#fafafa]"
-            onWheel={(event) => {
-              event.stopPropagation();
+          <button
+            ref={filterButtonRef}
+            type="button"
+            onClick={() => {
+              setIsFilterDrawerOpen((value) => !value);
             }}
+            className={`mymenders-cloth-panel absolute right-[-22px] top-2 z-50 flex h-11 w-11 items-center justify-center rounded-full border bg-cloth transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#99c4cb] focus-visible:ring-offset-2 ${
+              isFilterDrawerOpen || hasActiveFilters
+                ? 'text-[#171b17]'
+                : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+            }`}
+            aria-label="Filter menders"
+            aria-expanded={isFilterDrawerOpen}
+            aria-controls="vendor-filter-drawer"
           >
-            <button
-              ref={filterButtonRef}
-              type="button"
-              onClick={() => {
-                setIsFilterDrawerOpen((value) => !value);
-              }}
-              className={`mymenders-field flex h-10 w-full items-center justify-between border px-3 text-sm font-medium transition-colors focus:outline-none ${
-                isFilterDrawerOpen || hasActiveFilters
-                  ? 'border-[#1f241f] bg-white text-[#171b17]'
-                  : 'text-[#3d403b] hover:bg-[#f3f4f6]'
-              }`}
-              aria-expanded={isFilterDrawerOpen}
-              aria-controls="vendor-filter-drawer"
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>Filter</span>
+            <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+            {hasActiveFilters ? (
+              <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
+                {activeFilterCount}
               </span>
-              {hasActiveFilters ? (
-                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1f241f] px-1.5 text-[11px] font-semibold leading-none text-white">
-                  {activeFilterCount}
-                </span>
-              ) : null}
-            </button>
-          </div>
+            ) : null}
+          </button>
 
           <div
             className="flex-1 min-h-0 overflow-y-auto p-2"
@@ -990,7 +981,7 @@ export function MapPage() {
                       openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
                     }}
                     disabled={!isClickable}
-                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 px-3 py-2.5 text-left transition ${
+                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 py-2.5 pl-3 pr-12 text-left transition ${
                       isActive
                         ? 'bg-[#e5e7eb]'
                         : isClickable
@@ -1043,14 +1034,14 @@ export function MapPage() {
                 );
               })
             ) : (
-              <div className="rounded-xl border border-[#e5e7eb] bg-white px-3 py-4 text-sm text-[#64748b]">
+              <div className="rounded-xl border border-[#e5e7eb] bg-white py-4 pl-3 pr-12 text-sm text-[#64748b]">
                 No menders match these filters.
               </div>
             )}
           </div>
         </aside>
 
-        <div className="relative">
+        <div className="relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
 
           {isFilterDrawerOpen && (
@@ -1173,38 +1164,36 @@ export function MapPage() {
               <Globe className="w-5 h-5" />
             </button>
 
-            <div className="relative">
-              <div ref={styleMenuRef}>
-                <button
-                  onClick={() => setIsStyleMenuOpen((value) => !value)}
-                  className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
-                  aria-label="Map style"
-                  aria-expanded={isStyleMenuOpen}
-                >
-                  <Settings2 className="w-5 h-5" />
-                </button>
+            <div className="relative" ref={styleMenuRef}>
+              <button
+                onClick={() => setIsStyleMenuOpen((value) => !value)}
+                className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+                aria-label="Map style"
+                aria-expanded={isStyleMenuOpen}
+              >
+                <Cog className="w-5 h-5" />
+              </button>
 
-                {isStyleMenuOpen && (
-                  <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
-                    {BASEMAP_STYLES.map((style) => (
-                      <button
-                        key={style.id}
-                        onClick={() => {
-                          setSelectedBasemapStyleId(style.id);
-                          setIsStyleMenuOpen(false);
-                        }}
-                        className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
-                          selectedBasemapStyleId === style.id
-                            ? 'bg-brand/20 text-[#2f3e39] font-medium'
-                            : 'text-[#3d403b] hover:bg-[#f3f4f6]'
-                        }`}
-                      >
-                        {style.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {isStyleMenuOpen && (
+                <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
+                  {BASEMAP_STYLES.map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => {
+                        setSelectedBasemapStyleId(style.id);
+                        setIsStyleMenuOpen(false);
+                      }}
+                      className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                        selectedBasemapStyleId === style.id
+                          ? 'bg-brand/20 text-[#2f3e39] font-medium'
+                          : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button

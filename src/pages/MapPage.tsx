@@ -288,7 +288,8 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
 
 const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
-  container.className = 'min-w-[244px] p-3 pr-4';
+  container.className = 'box-border min-w-[244px] max-w-[calc(100vw-40px)] p-3 pr-4';
+  container.style.maxWidth = 'min(504px, calc(100vw - 40px))';
 
   const title = document.createElement('h3');
   title.className = 'mb-1 pr-8 text-base font-semibold leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
@@ -593,7 +594,7 @@ export function MapPage() {
     }
 
     popupRef.current?.remove();
-    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 264 })
+    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: '504px' })
       .setLngLat(coordinates)
       .setDOMContent(
         buildPopoverContent(resolvedVendor, (selectedVendor) => {

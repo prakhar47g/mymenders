@@ -461,8 +461,8 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
     <div className="fixed inset-0 z-[3200] flex items-center justify-center bg-[#171b17]/36 p-3 backdrop-blur-sm sm:p-4">
       <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] border border-[#e5e7eb] bg-[#f5f6f8] shadow-[0_14px_32px_rgba(15,23,42,0.12)] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#e5e7eb] bg-[#fafafa] px-5 py-3">
-          <h2 className="text-base font-semibold text-[#171b17] mymenders-heading-font">Add a Mender</h2>
+        <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-[#fafafa] px-5 py-3">
+          <h2 className="text-base font-semibold leading-none text-[#171b17] mymenders-heading-font">Add a Mender</h2>
           <button
             onClick={onClose}
             className="rounded-full p-1 text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
@@ -678,12 +678,9 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 <label className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">
                   Location
                 </label>
-                <div className="relative z-0 h-40 overflow-hidden rounded-xl border border-[#e6e0d6] lg:h-44">
+                <div className="relative z-0 h-48 overflow-hidden rounded-xl border border-[#e6e0d6]">
                   <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
                 </div>
-                <p className="mt-1.5 text-[11px] leading-[1.35] text-[#68665f]">
-                  Search the address first, then click the map or drag the pin to fine-tune.
-                </p>
               </div>
               </div>
 

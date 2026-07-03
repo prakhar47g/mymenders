@@ -1199,20 +1199,26 @@ export function MapPage() {
             <button
               onClick={locateUser}
               disabled={findingLocation}
-              className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-70"
+              className="group mymenders-cloth-panel flex h-11 w-11 items-center justify-center overflow-hidden whitespace-nowrap rounded-full border bg-cloth px-0 text-[#3d403b] transition-[width,padding,background-color] duration-200 hover:w-[116px] hover:px-4 hover:bg-[#f3f4f6] focus-visible:w-[116px] focus-visible:px-4 disabled:cursor-not-allowed disabled:opacity-70"
               title="Near me"
               aria-label="Find nearby menders"
             >
-              {findingLocation ? <Loader2 className="w-4 h-4 animate-spin text-[#8a877d]" /> : <Navigation className="w-4 h-4" />}
+              {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
+              <span className="ml-0 max-w-0 overflow-hidden text-xs font-medium opacity-0 transition-[margin,max-width,opacity] duration-200 group-hover:ml-2 group-hover:max-w-20 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-20 group-focus-visible:opacity-100">
+                Near me
+              </span>
             </button>
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1f241f] text-white transition-colors hover:bg-[#343a33]"
+              className="group flex h-11 w-11 items-center justify-center overflow-hidden whitespace-nowrap rounded-full bg-[#1f241f] px-0 text-white transition-[width,padding,background-color] duration-200 hover:w-[128px] hover:px-4 hover:bg-[#343a33] focus-visible:w-[128px] focus-visible:px-4"
               title="Add Mender"
               aria-label="Add mender"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="h-5 w-5 shrink-0" />
+              <span className="ml-0 max-w-0 overflow-hidden text-xs font-medium opacity-0 transition-[margin,max-width,opacity] duration-200 group-hover:ml-2 group-hover:max-w-24 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-24 group-focus-visible:opacity-100">
+                Add Mender
+              </span>
             </button>
           </div>
         </div>

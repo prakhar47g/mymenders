@@ -753,7 +753,7 @@ export function MapPage() {
           }}
         >
           <div
-            className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2"
+            className="flex-1 min-h-0 overflow-y-auto p-2"
             onWheel={(event) => {
               event.stopPropagation();
             }}
@@ -763,39 +763,65 @@ export function MapPage() {
               const isActive = selectedVendorId === vendor.id;
               const isClickable = Boolean(coordinates);
               const types = vendor.types?.filter(Boolean) ?? [];
-              const entryLevel = normalizeEntryLevel(vendor.entry_level || vendor.category);
+              const techniques = vendor.regional_techniques?.filter(Boolean) ?? [];
               const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
 
-              return (
-                <button
-                  type="button"
-                  key={vendor.id}
-                  onClick={() => {
+                return (
+                  <button
+                    type="button"
+                    key={vendor.id}
+                    onClick={() => {
                     if (!isClickable) return;
                     openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
-                  }}
-                  disabled={!isClickable}
-                  className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
-                    isActive
-                      ? 'border-[#6eb7b0] bg-[#e5e7eb]'
+                    }}
+                    disabled={!isClickable}
+                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 px-3 py-2.5 text-left transition ${
+                      isActive
+                      ? 'bg-[#e5e7eb]'
                       : isClickable
-                        ? 'border-[#e5e7eb] bg-white/70 hover:bg-[#f3f4f6]'
-                        : 'border-[#e5e7eb]/60 bg-white/30 opacity-65'
-                  }`}
-                  title={isClickable ? `Fly to ${vendorName}` : 'Location unavailable'}
-                >
-                  <div className="text-sm font-medium text-[#171b17]">{vendorName}</div>
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#68665f]">
-                    <MapPin className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{vendor.address || 'Address unavailable'}</span>
-                  </div>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.05em] text-[#7b7166]">
-                    <span>{entryLevel}</span>
-                    {types[0] ? <span className="truncate text-[#5f6368]">{types[0]}</span> : null}
-                  </div>
-                </button>
-              );
-            })}
+                        ? 'hover:bg-[#f3f4f6]'
+                        : 'bg-white/30 opacity-65'
+                    }`}
+                    title={isClickable ? `Fly to ${vendorName}` : 'Location unavailable'}
+                  >
+                    <span
+                      aria-hidden="true"
+                    className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
+                    />
+                    <div className="min-w-0 pl-1">
+                      <p className="truncate text-sm font-semibold text-[#171b17]">{vendorName}</p>
+                      <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#64748b]">
+                        <MapPin className="w-3 h-3 shrink-0" />
+                        <span className="truncate">{vendor.address || 'Address unavailable'}</span>
+                      </p>
+                      {!!types.length ? (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {types.map((category) => (
+                            <span
+                              key={`${vendor.id}-category-${category}`}
+                              className="rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
+                            >
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      {!!techniques.length ? (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {techniques.map((technique) => (
+                            <span
+                              key={`${vendor.id}-technique-${technique}`}
+                              className="rounded-full border border-[#e5e7eb] bg-white px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
+                            >
+                              {technique}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </aside>
 

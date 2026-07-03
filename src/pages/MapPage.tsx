@@ -14,6 +14,7 @@ import {
   Phone,
   Loader2,
   Plus,
+  Route,
   Signpost,
   SlidersHorizontal,
   Star,
@@ -91,7 +92,8 @@ const getPinColor = (entryLevel?: string) => {
 
 const renderIconMarkup = (icon: React.ReactElement) => renderToStaticMarkup(icon);
 
-const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
+const DETAILS_BUTTON_ICON = renderIconMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
+const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Route className="w-4 h-4" aria-hidden="true" />);
 const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="true" />);
 const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);
 const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
@@ -137,6 +139,17 @@ const formatDistance = (distanceKm?: number) => {
 
 const shouldResolveVendorAddress = (address?: string) =>
   (address || '').trim().toLowerCase() === ADDRESS_PLACEHOLDER;
+
+const buildGoogleMapsDirectionsUrl = (vendor: Vendor) => {
+  const latitude = parseCoordinate(vendor.latitude);
+  const longitude = parseCoordinate(vendor.longitude);
+  const destination =
+    latitude !== undefined && longitude !== undefined
+      ? `${latitude},${longitude}`
+      : [toDisplayName(vendor.name), vendor.address].filter(Boolean).join(' ');
+
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+};
 
 const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
   type: 'FeatureCollection',
@@ -286,7 +299,7 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
   container.append(row);
 };
 
-const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => void) => {
+const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
   container.className = 'box-border min-w-[244px] max-w-[calc(100vw-40px)] p-3 pr-4';
   container.style.maxWidth = 'min(504px, calc(100vw - 40px))';
@@ -347,20 +360,39 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
     container.append(rating);
   }
 
-  const directionsButton = document.createElement('button');
-  directionsButton.type = 'button';
-  directionsButton.className =
-    'mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full bg-[#1f241f] px-4 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
-  directionsButton.innerHTML = `
+  const actionRow = document.createElement('div');
+  actionRow.className = 'mt-3 grid grid-cols-2 gap-2';
+
+  const detailsButton = document.createElement('button');
+  detailsButton.type = 'button';
+  detailsButton.className =
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[#d9ddd5] bg-white px-3 text-xs font-medium text-[#2c302b] transition-colors hover:bg-[#f5f7f2]';
+  detailsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
-      ${DIRECTIONS_BUTTON_ICON}
+      ${DETAILS_BUTTON_ICON}
     </span>
     Details
   `;
-  directionsButton.addEventListener('click', () => {
-    onDirections(vendor);
+  detailsButton.addEventListener('click', () => {
+    onDetails(vendor);
   });
-  container.append(directionsButton);
+  actionRow.append(detailsButton);
+
+  const directionsLink = document.createElement('a');
+  directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
+  directionsLink.target = '_blank';
+  directionsLink.rel = 'noopener noreferrer';
+  directionsLink.className =
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[#1f241f] px-3 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
+  directionsLink.innerHTML = `
+    <span class="inline-flex items-center justify-center w-4 h-4">
+      ${DIRECTIONS_BUTTON_ICON}
+    </span>
+    Directions
+  `;
+  actionRow.append(directionsLink);
+
+  container.append(actionRow);
 
   return container;
 };
@@ -737,6 +769,7 @@ export function MapPage() {
       style: selectedBasemapStyle.styleUrl,
       center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
       zoom: GLOBAL_ZOOM,
+      minZoom: GLOBAL_ZOOM,
       attributionControl: true,
       logoPosition: 'bottom-left',
     });

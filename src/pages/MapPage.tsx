@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -15,12 +15,19 @@ import {
   Plus,
   Settings2,
   Signpost,
+  SlidersHorizontal,
   Star,
+  X,
 } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
 import { AddMenderModal } from '../components/AddMenderModal';
 import { reverseGeocode } from '../utils/geoapify';
+import {
+  getTaxonomyLabel,
+  getTaxonomyOptions,
+  normalizeTaxonomyValues,
+} from '../../shared/vendorTaxonomy.js';
 
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
 const GLOBAL_ZOOM = 2.5;
@@ -93,6 +100,40 @@ const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria
 const HOUSE_ICON = renderIconMarkup(<House className="w-4 h-4" aria-hidden="true" />);
 
 const toDisplayName = (name?: string) => (name || '').trim();
+const EARTH_RADIUS_KM = 6371;
+const MAX_LIST_DISTANCE_KM = 100;
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const getDistanceFromUser = (
+  userLocation: { lat: number; lng: number } | null,
+  vendor: Vendor,
+): number | undefined => {
+  if (!userLocation) return undefined;
+
+  const vendorLat = parseCoordinate(vendor.latitude);
+  const vendorLng = parseCoordinate(vendor.longitude);
+  if (vendorLat === undefined || vendorLng === undefined) return undefined;
+
+  const deltaLat = toRadians(vendorLat - userLocation.lat);
+  const deltaLng = toRadians(vendorLng - userLocation.lng);
+  const lat1 = toRadians(userLocation.lat);
+  const lat2 = toRadians(vendorLat);
+
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+
+  return EARTH_RADIUS_KM * c;
+};
+
+const formatDistance = (distanceKm?: number) => {
+  if (distanceKm === undefined) return null;
+  if (distanceKm >= MAX_LIST_DISTANCE_KM) return null;
+  if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
+  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
+  return `${Math.round(distanceKm)} km`;
+};
 
 const shouldResolveVendorAddress = (address?: string) =>
   (address || '').trim().toLowerCase() === ADDRESS_PLACEHOLDER;
@@ -164,6 +205,13 @@ const persistVendorAddress = async (vendor: Vendor) => {
   }
 };
 
+type FilterGroupKey = 'types' | 'categories' | 'regional_techniques';
+type TaxonomyOption = { id: string; label: string };
+type VendorFilterState = Record<FilterGroupKey, string[]>;
+
+const normalizeVendorTaxonomyValues = (group: FilterGroupKey, value: unknown) =>
+  normalizeTaxonomyValues(group, parseListFromSource(value), { allowUnknown: true });
+
 const normalizeVendor = (raw: any): Vendor => {
   let metadata: Record<string, any> = {};
   try {
@@ -185,16 +233,21 @@ const normalizeVendor = (raw: any): Vendor => {
     longitude: parseCoordinate(raw.longitude) ?? Number.NaN,
     rating: typeof raw.rating === 'number' ? raw.rating : Number(raw.rating) || 0,
     rating_count: Number(raw.rating_count) || Number((metadata as any)?.rating_count) || 0,
-    types: parseListFromSource(raw.types || (metadata as any)?.types || (raw as any).type || (metadata as any)?.type),
-    categories: parseListFromSource(raw.categories || (metadata as any)?.categories),
-    regional_techniques: parseListFromSource(raw.regional_techniques || (metadata as any)?.regional_techniques),
+    types: normalizeVendorTaxonomyValues('types', raw.types || (metadata as any)?.types || (raw as any).type || (metadata as any)?.type),
+    categories: normalizeVendorTaxonomyValues('categories', raw.categories || (metadata as any)?.categories),
+    regional_techniques: normalizeVendorTaxonomyValues('regional_techniques', raw.regional_techniques || (metadata as any)?.regional_techniques),
     online_presence: raw.online_presence || raw.website || (metadata as any)?.online_presence || (metadata as any)?.website,
     review_text: raw.review_text || (metadata as any)?.review_text,
     entry_level: normalizeEntryLevel(raw.entry_level || (metadata as any)?.entry_level),
   };
 };
 
-const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) => {
+const buildTagRow = (
+  container: HTMLDivElement,
+  label: string,
+  group: FilterGroupKey,
+  items: string[],
+) => {
   if (!items.length) return;
 
   const wrapper = document.createElement('div');
@@ -210,7 +263,7 @@ const buildTagRow = (container: HTMLDivElement, label: string, items: string[]) 
   items.forEach((tag) => {
     const chip = document.createElement('span');
     chip.className = 'inline-flex items-center gap-1 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[11px] text-[#5f6368]';
-    chip.textContent = tag;
+    chip.textContent = getTaxonomyLabel(group, tag);
     tags.append(chip);
   });
   wrapper.append(tags);
@@ -250,7 +303,7 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
   const contactSection = document.createElement('div');
   contactSection.className = 'space-y-0.5';
   const primaryType = vendor.types?.[0]?.trim();
-  if (primaryType) appendTextRow(contactSection, HOUSE_ICON, primaryType);
+  if (primaryType) appendTextRow(contactSection, HOUSE_ICON, getTaxonomyLabel('types', primaryType));
   if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
   if (vendor.address) appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
   if (vendor.online_presence) appendTextRow(contactSection, ONLINE_ICON, vendor.online_presence);
@@ -260,8 +313,8 @@ const buildPopoverContent = (vendor: Vendor, onDirections: (vendor: Vendor) => v
 
   const expertiseSection = document.createElement('div');
   expertiseSection.className = 'mt-3';
-  buildTagRow(expertiseSection, 'Categories', vendor.categories || []);
-  buildTagRow(expertiseSection, 'Regional techniques', vendor.regional_techniques || []);
+  buildTagRow(expertiseSection, 'Categories', 'categories', vendor.categories || []);
+  buildTagRow(expertiseSection, 'Regional techniques', 'regional_techniques', vendor.regional_techniques || []);
   if (expertiseSection.children.length) {
     container.append(expertiseSection);
   }
@@ -445,21 +498,45 @@ const getVendorCoordinates = (vendor: Vendor): [number, number] | null => {
 const DIRECTION_ZOOM = 14.5;
 const DIRECTION_FLY_DURATION_MS = Math.round(800 * 1.3);
 
+const FILTER_GROUPS: Array<{ key: FilterGroupKey; label: string; options: TaxonomyOption[] }> = [
+  { key: 'types', label: 'Workplace Type', options: getTaxonomyOptions('types') as TaxonomyOption[] },
+  { key: 'categories', label: 'Categories', options: getTaxonomyOptions('categories') as TaxonomyOption[] },
+  {
+    key: 'regional_techniques',
+    label: 'Techniques',
+    options: getTaxonomyOptions('regional_techniques') as TaxonomyOption[],
+  },
+];
+
+const createEmptyFilterState = (): VendorFilterState => ({
+  types: [],
+  categories: [],
+  regional_techniques: [],
+});
+
+const getVendorFilterValues = (vendor: Vendor, key: FilterGroupKey) =>
+  normalizeTaxonomyValues(key, vendor[key] || [], { allowUnknown: true });
+
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [selectedBasemapStyleId, setSelectedBasemapStyleId] =
     useState<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const styleMenuRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const filterDrawerRef = useRef<HTMLDivElement>(null);
   const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
   const activeBasemapStyleIdRef = useRef<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
@@ -532,6 +609,84 @@ export function MapPage() {
       .addTo(map);
   };
 
+  const vendorsWithDistance = useMemo(
+    () => {
+      const enriched = vendors.map((vendor, sortIndex) => ({
+        vendor,
+        sortIndex,
+        distanceKm: getDistanceFromUser(userLocation, vendor),
+      }));
+
+      if (!userLocation) return enriched;
+
+      return enriched.sort((first, second) => {
+        if (first.distanceKm === undefined && second.distanceKm === undefined) {
+          return first.sortIndex - second.sortIndex;
+        }
+        if (first.distanceKm === undefined) return 1;
+        if (second.distanceKm === undefined) return -1;
+        return first.distanceKm - second.distanceKm;
+      });
+    },
+    [vendors, userLocation],
+  );
+
+  const displayedVendorsWithDistance = useMemo(() => {
+    const filtered = vendorsWithDistance.filter(({ vendor }) => {
+      return FILTER_GROUPS.every(({ key }) => {
+        const selectedValues = selectedFilters[key];
+        if (!selectedValues.length) return true;
+
+        const vendorValueSet = new Set(getVendorFilterValues(vendor, key));
+        return selectedValues.some((selectedValue) => vendorValueSet.has(selectedValue));
+      });
+    });
+
+    return [...filtered].sort((left, right) => {
+      if (userLocation) {
+        if (left.distanceKm === undefined && right.distanceKm === undefined) {
+          return left.sortIndex - right.sortIndex;
+        }
+        if (left.distanceKm === undefined) return 1;
+        if (right.distanceKm === undefined) return -1;
+        return left.distanceKm - right.distanceKm;
+      }
+
+      return left.sortIndex - right.sortIndex;
+    });
+  }, [selectedFilters, userLocation, vendorsWithDistance]);
+
+  const visibleMapVendors = useMemo(
+    () =>
+      displayedVendorsWithDistance
+        .map(({ vendor }) => vendor)
+        .filter((vendor) => Boolean(getVendorCoordinates(vendor))),
+    [displayedVendorsWithDistance],
+  );
+
+  const activeFilterCount = FILTER_GROUPS.reduce(
+    (count, { key }) => count + selectedFilters[key].length,
+    0,
+  );
+  const hasActiveFilters = activeFilterCount > 0;
+
+  const clearAllFilters = () => {
+    setSelectedFilters(createEmptyFilterState());
+  };
+
+  const toggleFilterOption = (groupKey: FilterGroupKey, value: string) => {
+    setSelectedFilters((currentFilters) => {
+      const currentGroupValues = currentFilters[groupKey];
+      const isSelected = currentGroupValues.includes(value);
+      return {
+        ...currentFilters,
+        [groupKey]: isSelected
+          ? currentGroupValues.filter((selectedValue) => selectedValue !== value)
+          : [...currentGroupValues, value],
+      };
+    });
+  };
+
   useEffect(() => {
     if (!isStyleMenuOpen) return;
 
@@ -544,6 +699,31 @@ export function MapPage() {
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isStyleMenuOpen]);
+
+  useEffect(() => {
+    if (!isFilterDrawerOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (filterDrawerRef.current?.contains(target) || filterButtonRef.current?.contains(target)) {
+        return;
+      }
+      setIsFilterDrawerOpen(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsFilterDrawerOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isFilterDrawerOpen]);
 
   const selectedBasemapStyle =
     BASEMAP_STYLES.find((style) => style.id === selectedBasemapStyleId) ?? BASEMAP_STYLES[0];
@@ -647,8 +827,8 @@ export function MapPage() {
 
     const source = map.getSource(VENDOR_SOURCE_ID) as GeoJSONSource | undefined;
     if (!source) return;
-    source.setData(buildVendorFeatureCollection(vendors));
-  }, [vendors, isMapReady]);
+    source.setData(buildVendorFeatureCollection(visibleMapVendors));
+  }, [isMapReady, visibleMapVendors]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -702,9 +882,11 @@ export function MapPage() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const nextLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+          setUserLocation(nextLocation);
           setCenterMapTo({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
+            lat: nextLocation.lat,
+            lng: nextLocation.lng,
             zoom: LOCAL_ZOOM,
           });
           setFindingLocation(false);
@@ -753,40 +935,73 @@ export function MapPage() {
           }}
         >
           <div
+            className="shrink-0 border-b border-[#e5e7eb] p-2 bg-[#fafafa]"
+            onWheel={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <button
+              ref={filterButtonRef}
+              type="button"
+              onClick={() => {
+                setIsFilterDrawerOpen((value) => !value);
+              }}
+              className={`mymenders-field flex h-10 w-full items-center justify-between border px-3 text-sm font-medium transition-colors focus:outline-none ${
+                isFilterDrawerOpen || hasActiveFilters
+                  ? 'border-[#1f241f] bg-white text-[#171b17]'
+                  : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+              }`}
+              aria-expanded={isFilterDrawerOpen}
+              aria-controls="vendor-filter-drawer"
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Filter</span>
+              </span>
+              {hasActiveFilters ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1f241f] px-1.5 text-[11px] font-semibold leading-none text-white">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </button>
+          </div>
+
+          <div
             className="flex-1 min-h-0 overflow-y-auto p-2"
             onWheel={(event) => {
               event.stopPropagation();
             }}
           >
-            {vendors.map((vendor) => {
-              const coordinates = getVendorCoordinates(vendor);
-              const isActive = selectedVendorId === vendor.id;
-              const isClickable = Boolean(coordinates);
-              const types = vendor.types?.filter(Boolean) ?? [];
-              const techniques = vendor.regional_techniques?.filter(Boolean) ?? [];
-              const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
+            {displayedVendorsWithDistance.length ? (
+              displayedVendorsWithDistance.map(({ vendor, distanceKm }) => {
+                const coordinates = getVendorCoordinates(vendor);
+                const isActive = selectedVendorId === vendor.id;
+                const isClickable = Boolean(coordinates);
+                const types = getVendorFilterValues(vendor, 'types');
+                const techniques = getVendorFilterValues(vendor, 'regional_techniques');
+                const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
 
                 return (
                   <button
                     type="button"
                     key={vendor.id}
                     onClick={() => {
-                    if (!isClickable) return;
-                    openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
+                      if (!isClickable) return;
+                      openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
                     }}
                     disabled={!isClickable}
                     className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 px-3 py-2.5 text-left transition ${
                       isActive
-                      ? 'bg-[#e5e7eb]'
-                      : isClickable
-                        ? 'hover:bg-[#f3f4f6]'
-                        : 'bg-white/30 opacity-65'
+                        ? 'bg-[#e5e7eb]'
+                        : isClickable
+                          ? 'hover:bg-[#f3f4f6]'
+                          : 'bg-white/30 opacity-65'
                     }`}
                     title={isClickable ? `Fly to ${vendorName}` : 'Location unavailable'}
                   >
                     <span
                       aria-hidden="true"
-                    className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
+                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
                       <p className="truncate text-sm font-semibold text-[#171b17]">{vendorName}</p>
@@ -794,14 +1009,19 @@ export function MapPage() {
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{vendor.address || 'Address unavailable'}</span>
                       </p>
+                      {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
+                        <p className="mt-1 text-[10px] font-medium text-[#94a3b8]">
+                          {formatDistance(distanceKm)}
+                        </p>
+                      ) : null}
                       {!!types.length ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
-                          {types.map((category) => (
+                          {types.map((type) => (
                             <span
-                              key={`${vendor.id}-category-${category}`}
+                              key={`${vendor.id}-type-${type}`}
                               className="rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
                             >
-                              {category}
+                              {getTaxonomyLabel('types', type)}
                             </span>
                           ))}
                         </div>
@@ -813,7 +1033,7 @@ export function MapPage() {
                               key={`${vendor.id}-technique-${technique}`}
                               className="rounded-full border border-[#e5e7eb] bg-white px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
                             >
-                              {technique}
+                              {getTaxonomyLabel('regional_techniques', technique)}
                             </span>
                           ))}
                         </div>
@@ -821,12 +1041,90 @@ export function MapPage() {
                     </div>
                   </button>
                 );
-              })}
+              })
+            ) : (
+              <div className="rounded-xl border border-[#e5e7eb] bg-white px-3 py-4 text-sm text-[#64748b]">
+                No menders match these filters.
+              </div>
+            )}
           </div>
         </aside>
 
         <div className="relative">
           <div ref={mapContainerRef} className="w-full h-full" />
+
+          {isFilterDrawerOpen && (
+            <div
+              id="vendor-filter-drawer"
+              ref={filterDrawerRef}
+              className="absolute bottom-0 left-0 top-0 z-20 hidden w-[min(340px,calc(100vw-25vw))] flex-col border-r border-[#e5e7eb] bg-[#fafafa]/98 shadow-[18px_0_34px_rgba(15,23,42,0.12)] backdrop-blur-sm md:flex"
+              onWheel={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <div className="flex shrink-0 items-center justify-end border-b border-[#e5e7eb] px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
+                  aria-label="Close filters"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+                {FILTER_GROUPS.map(({ key, label, options }) => {
+                  return (
+                    <section key={key} className="border-b border-[#e5e7eb] py-3 first:pt-0 last:border-b-0">
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#68665f]">
+                          {label}
+                        </h3>
+                        {selectedFilters[key].length ? (
+                          <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[11px] font-medium text-[#4b5563]">
+                            {selectedFilters[key].length}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {options.map((option) => {
+                          const checked = selectedFilters[key].includes(option.id);
+                          return (
+                            <button
+                              key={`${key}-${option.id}`}
+                              type="button"
+                              onClick={() => toggleFilterOption(key, option.id)}
+                              aria-pressed={checked}
+                              className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs font-medium leading-tight transition-colors ${
+                                checked
+                                  ? 'border-[#1f241f] bg-[#1f241f] text-white'
+                                  : 'border-dashed border-[#cbd5e1] bg-white text-[#3d403b] hover:border-[#94a3b8] hover:bg-[#f3f4f6]'
+                              }`}
+                            >
+                              <span className="min-w-0 truncate">{option.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+
+              <div className="shrink-0 border-t border-[#e5e7eb] p-3">
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  disabled={!hasActiveFilters}
+                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="absolute right-6 top-6 z-10 flex flex-col items-end gap-2">
             <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3d403b]">
@@ -855,61 +1153,57 @@ export function MapPage() {
               >
                 <Minus className="w-5 h-5" />
               </button>
+            </div>
 
-              <div className="h-px bg-[#e5e7eb]" />
+            <button
+              onClick={() => {
+                const map = mapInstanceRef.current;
+                if (!map) return;
+                map.flyTo({
+                  center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
+                  zoom: GLOBAL_ZOOM,
+                  pitch: 0,
+                  bearing: 0,
+                  duration: 700,
+                });
+              }}
+              className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+              aria-label="Reset to globe view"
+            >
+              <Globe className="w-5 h-5" />
+            </button>
 
-              <button
-                onClick={() => {
-                  const map = mapInstanceRef.current;
-                  if (!map) return;
-                  map.flyTo({
-                    center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
-                    zoom: GLOBAL_ZOOM,
-                    pitch: 0,
-                    bearing: 0,
-                    duration: 700,
-                  });
-                }}
-              className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
-                aria-label="Reset to globe view"
-              >
-                <Globe className="w-5 h-5" />
-              </button>
+            <div className="relative">
+              <div ref={styleMenuRef}>
+                <button
+                  onClick={() => setIsStyleMenuOpen((value) => !value)}
+                  className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                  aria-label="Map style"
+                  aria-expanded={isStyleMenuOpen}
+                >
+                  <Settings2 className="w-5 h-5" />
+                </button>
 
-              <div className="h-px bg-[#e5e7eb]" />
-
-              <div className="relative">
-                <div ref={styleMenuRef}>
-                  <button
-                    onClick={() => setIsStyleMenuOpen((value) => !value)}
-                    className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
-                    aria-label="Map style"
-                    aria-expanded={isStyleMenuOpen}
-                  >
-                    <Settings2 className="w-5 h-5" />
-                  </button>
-
-                  {isStyleMenuOpen && (
-                    <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
-                      {BASEMAP_STYLES.map((style) => (
-                        <button
-                          key={style.id}
-                          onClick={() => {
-                            setSelectedBasemapStyleId(style.id);
-                            setIsStyleMenuOpen(false);
-                          }}
-                          className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
-                            selectedBasemapStyleId === style.id
-                              ? 'bg-brand/20 text-[#2f3e39] font-medium'
-                              : 'text-[#3d403b] hover:bg-[#f3f4f6]'
-                          }`}
-                        >
-                          {style.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {isStyleMenuOpen && (
+                  <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
+                    {BASEMAP_STYLES.map((style) => (
+                      <button
+                        key={style.id}
+                        onClick={() => {
+                          setSelectedBasemapStyleId(style.id);
+                          setIsStyleMenuOpen(false);
+                        }}
+                        className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                          selectedBasemapStyleId === style.id
+                            ? 'bg-brand/20 text-[#2f3e39] font-medium'
+                            : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+                        }`}
+                      >
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

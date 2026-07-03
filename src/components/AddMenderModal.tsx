@@ -9,6 +9,7 @@ import { X } from 'lucide-react';
 import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
 import { reverseGeocode as geoReverse } from '../utils/geoapify';
 import { GeoAutocomplete } from './GeoAutocomplete';
+import { getGroupedTaxonomyOptions, getTaxonomyOptions } from '../../shared/vendorTaxonomy.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -19,47 +20,6 @@ type EntryLevelOption = (typeof ENTRY_LEVEL_OPTIONS)[number];
 const MENDER_ICON_URL =
   'https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/external-sewing-sewing-kmg-design-outline-color-kmg-design-3.png';
 const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
-
-const TYPE_OPTIONS = ['Home', 'Itinerant', 'Shop', 'Workshop', 'Chain', 'Dry-clean'];
-
-const CATEGORY_OPTIONS = [
-  {
-    label: 'CLOTHING',
-    items: [
-      'Alterations and Customising',
-      'Bridal & Occasion Wear Alterations',
-      'Darning',
-      'Denim Repairs',
-      'Embroidery & Decorative Repairs',
-      'Machine & Hand Mending basics',
-      'Patching',
-      'Re-dyeing & Surface Treatments',
-      'Reinforcing',
-      'Seam Repairs / Stitching',
-      'Tailoring Repairs',
-      'Upcycling & Reconstruction',
-    ],
-  },
-  {
-    label: 'ACCESSORIES',
-    items: ['Bags and Luggage', 'Shoes'],
-  },
-];
-
-const TECHNIQUE_OPTIONS = [
-  'Applique Repair',
-  'Boro',
-  'Darning',
-  'Kantha Repair',
-  'Kintsugi-inspired Textile Repair',
-  'Kogin Stitch',
-  'Needle Weaving',
-  'Patchwork Mending',
-  'Rafu',
-  'Reweaving',
-  'Sashiko',
-  'Swiss Darning',
-];
 
 const PIN_COLORS: Record<string, string> = {
   Menders: '#2A9D8F',
@@ -102,12 +62,20 @@ const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London
 type Option = { value: string; label: string };
 type CategoryGroup = GroupBase<Option>;
 
-const typeOptions: Option[] = TYPE_OPTIONS.map((t) => ({ value: t, label: t }));
-const categoryOptions: CategoryGroup[] = CATEGORY_OPTIONS.map((group) => ({
+const toSelectOption = (option: { id: string; label: string }): Option => ({
+  value: option.id,
+  label: option.label,
+});
+
+const typeOptions: Option[] = getTaxonomyOptions('types').map(toSelectOption);
+const categoryOptions: CategoryGroup[] = getGroupedTaxonomyOptions('categories').map((group: {
+  label: string;
+  options: Array<{ id: string; label: string }>;
+}) => ({
   label: group.label,
-  options: group.items.map((item) => ({ value: item, label: item })),
+  options: group.options.map(toSelectOption),
 }));
-const techniqueOptions: Option[] = TECHNIQUE_OPTIONS.map((t) => ({ value: t, label: t }));
+const techniqueOptions: Option[] = getTaxonomyOptions('regional_techniques').map(toSelectOption);
 const reviewItemLabels = ['Rate 1 star', 'Rate 2 stars', 'Rate 3 stars', 'Rate 4 stars', 'Rate 5 stars'];
 
 const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);

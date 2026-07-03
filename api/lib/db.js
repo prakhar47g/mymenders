@@ -1,3 +1,5 @@
+import { normalizeTaxonomyValues } from '../../shared/vendorTaxonomy.js';
+
 export const normalizeStringArray = (value) => {
   if (!value) return [];
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
@@ -38,6 +40,23 @@ export const safeParseMetadata = (value) => {
   }
 };
 
+const TAXONOMY_LABELS = {
+  types: 'type',
+  categories: 'category',
+  regional_techniques: 'regional technique',
+};
+
+const canonicalizeTaxonomyArray = (group, value) => {
+  const values = normalizeStringArray(value);
+
+  try {
+    return normalizeTaxonomyValues(group, values, { allowUnknown: false });
+  } catch (error) {
+    const unknownValue = error?.unknownValues?.[0] || 'unknown';
+    throw new ValidationError(`Unknown ${TAXONOMY_LABELS[group]} value: ${unknownValue}`);
+  }
+};
+
 export async function insertVendor(pool, data) {
   const {
     name,
@@ -64,12 +83,17 @@ export async function insertVendor(pool, data) {
     throw new ValidationError('Name, latitude, and longitude are required');
   }
 
+  const incomingPhotos = safeParseMetadata(photos);
+
   const parsedPhotos = {
-    ...safeParseMetadata(photos),
+    ...incomingPhotos,
     entry_level: entry_level || category || 'Menders',
-    types: normalizeStringArray(types),
-    categories: normalizeStringArray(categories),
-    regional_techniques: normalizeStringArray(regional_techniques),
+    types: canonicalizeTaxonomyArray('types', types ?? incomingPhotos.types),
+    categories: canonicalizeTaxonomyArray('categories', categories ?? incomingPhotos.categories),
+    regional_techniques: canonicalizeTaxonomyArray(
+      'regional_techniques',
+      regional_techniques ?? incomingPhotos.regional_techniques,
+    ),
     online_presence: online_presence || website || undefined,
     review_text: review_text || undefined,
     rating: normalizeRating(rating),

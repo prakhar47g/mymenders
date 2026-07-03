@@ -11,6 +11,7 @@ import {
   Minus,
   Navigation,
   Phone,
+  Loader2,
   Plus,
   Settings2,
   Signpost,
@@ -435,6 +436,12 @@ const applyGlobeProjectionIfSupported = (map: maplibregl.Map) => {
 };
 
 const toLngLat = (latitude: number, longitude: number) => [longitude, latitude] as [number, number];
+const getVendorCoordinates = (vendor: Vendor): [number, number] | null => {
+  const latitude = parseCoordinate(vendor.latitude);
+  const longitude = parseCoordinate(vendor.longitude);
+  if (latitude === undefined || longitude === undefined) return null;
+  return toLngLat(latitude, longitude);
+};
 const DIRECTION_ZOOM = 14.5;
 const DIRECTION_FLY_DURATION_MS = Math.round(800 * 1.3);
 
@@ -447,6 +454,7 @@ export function MapPage() {
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [selectedBasemapStyleId, setSelectedBasemapStyleId] =
     useState<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
+  const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
@@ -481,6 +489,48 @@ export function MapPage() {
   useEffect(() => {
     vendorsRef.current = vendors;
   }, [vendors]);
+
+  const openVendorPopup = async (vendor: Vendor, options: { focus?: boolean; zoom?: number } = {}) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const coordinates = getVendorCoordinates(vendor);
+    if (!coordinates) return;
+
+    if (options.focus !== false) {
+      map.flyTo({
+        center: coordinates,
+        zoom: options.zoom ?? DIRECTION_ZOOM,
+        duration: DIRECTION_FLY_DURATION_MS,
+      });
+    }
+
+    setSelectedVendorId(vendor.id);
+
+    const resolvedVendor = await hydrateVendorAddress(vendor);
+    if (resolvedVendor.address !== vendor.address) {
+      setVendors((prev) => prev.map((item) => (item.id === resolvedVendor.id ? resolvedVendor : item)));
+      persistVendorAddress(resolvedVendor).catch((error) => {
+        console.error('Failed to persist resolved vendor address:', error);
+      });
+    }
+
+    popupRef.current?.remove();
+    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 264 })
+      .setLngLat(coordinates)
+      .setDOMContent(
+        buildPopoverContent(resolvedVendor, (selectedVendor) => {
+          const targetCoordinates = getVendorCoordinates(selectedVendor);
+          if (!targetCoordinates) return;
+          map.flyTo({
+            center: targetCoordinates,
+            zoom: DIRECTION_ZOOM,
+            duration: DIRECTION_FLY_DURATION_MS,
+          });
+        }),
+      )
+      .addTo(map);
+  };
 
   useEffect(() => {
     if (!isStyleMenuOpen) return;
@@ -553,32 +603,7 @@ export function MapPage() {
       const vendorId = Number(vendorFeature.properties?.vendorId);
       const vendor = vendorsRef.current.find((item) => item.id === vendorId);
       if (!vendor) return;
-
-      const resolvedVendor = await hydrateVendorAddress(vendor);
-      if (resolvedVendor.address !== vendor.address) {
-        setVendors((prev) => prev.map((item) => (item.id === resolvedVendor.id ? resolvedVendor : item)));
-        persistVendorAddress(resolvedVendor).catch((error) => {
-          console.error('Failed to persist resolved vendor address:', error);
-        });
-      }
-
-      const [longitude, latitude] = (vendorFeature.geometry as GeoJSON.Point).coordinates;
-      popupRef.current?.remove();
-      popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: 264 })
-        .setLngLat([longitude, latitude])
-        .setDOMContent(
-          buildPopoverContent(resolvedVendor, (selectedVendor) => {
-            const targetLatitude = parseCoordinate(selectedVendor.latitude);
-            const targetLongitude = parseCoordinate(selectedVendor.longitude);
-            if (targetLatitude === undefined || targetLongitude === undefined) return;
-            map.flyTo({
-              center: toLngLat(targetLatitude, targetLongitude),
-              zoom: DIRECTION_ZOOM,
-              duration: DIRECTION_FLY_DURATION_MS,
-            });
-          }),
-        )
-        .addTo(map);
+      await openVendorPopup(vendor, { focus: false });
     };
 
     const handlePointerMove = (event: maplibregl.MapMouseEvent) => {
@@ -720,109 +745,168 @@ export function MapPage() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] mt-16 z-0">
-      <div ref={mapContainerRef} className="w-full h-full" />
-
-      {/* Map controls */}
-      <div className="absolute right-6 top-6 z-10 flex flex-col gap-2">
-        <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3d403b]">
-          <button
-            onClick={() => {
-              const map = mapInstanceRef.current;
-              if (!map) return;
-              map.zoomIn();
-            }}
-            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f7f4ed]"
-            aria-label="Zoom in"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-
-          <div className="h-px bg-[#e6e0d6]" />
-
-          <button
-            onClick={() => {
-              const map = mapInstanceRef.current;
-              if (!map) return;
-              map.zoomOut();
-            }}
-            className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f7f4ed]"
-            aria-label="Zoom out"
-          >
-            <Minus className="w-5 h-5" />
-          </button>
-        </div>
-
-        <button
-          onClick={() => {
-            const map = mapInstanceRef.current;
-            if (!map) return;
-            map.flyTo({
-              center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
-              zoom: GLOBAL_ZOOM,
-              pitch: 0,
-              bearing: 0,
-              duration: 700,
-            });
+      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[25%_75%]">
+        <aside
+          className="hidden md:flex md:flex-col min-h-0 overflow-hidden bg-[#fafafa] border-r border-[#e5e7eb]"
+          onWheel={(event) => {
+            event.stopPropagation();
           }}
-          className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
-          aria-label="Reset to globe view"
         >
-          <Globe className="w-5 h-5" />
-        </button>
+          <div
+            className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2"
+            onWheel={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            {vendors.map((vendor) => {
+              const coordinates = getVendorCoordinates(vendor);
+              const isActive = selectedVendorId === vendor.id;
+              const isClickable = Boolean(coordinates);
+              const types = vendor.types?.filter(Boolean) ?? [];
+              const entryLevel = normalizeEntryLevel(vendor.entry_level || vendor.category);
+              const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
+
+              return (
+                <button
+                  type="button"
+                  key={vendor.id}
+                  onClick={() => {
+                    if (!isClickable) return;
+                    openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
+                  }}
+                  disabled={!isClickable}
+                  className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
+                    isActive
+                      ? 'border-[#6eb7b0] bg-[#e5e7eb]'
+                      : isClickable
+                        ? 'border-[#e5e7eb] bg-white/70 hover:bg-[#f3f4f6]'
+                        : 'border-[#e5e7eb]/60 bg-white/30 opacity-65'
+                  }`}
+                  title={isClickable ? `Fly to ${vendorName}` : 'Location unavailable'}
+                >
+                  <div className="text-sm font-medium text-[#171b17]">{vendorName}</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#68665f]">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{vendor.address || 'Address unavailable'}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.05em] text-[#7b7166]">
+                    <span>{entryLevel}</span>
+                    {types[0] ? <span className="truncate text-[#5f6368]">{types[0]}</span> : null}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
 
         <div className="relative">
-          <div ref={styleMenuRef}>
-          <button
-            onClick={() => setIsStyleMenuOpen((value) => !value)}
-            className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
-            aria-label="Map style"
-            aria-expanded={isStyleMenuOpen}
-          >
-            <Settings2 className="w-5 h-5" />
-          </button>
+          <div ref={mapContainerRef} className="w-full h-full" />
 
-          {isStyleMenuOpen && (
-            <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
-              {BASEMAP_STYLES.map((style) => (
-                <button
-                  key={style.id}
-                  onClick={() => {
-                    setSelectedBasemapStyleId(style.id);
-                    setIsStyleMenuOpen(false);
-                  }}
-                  className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
-                    selectedBasemapStyleId === style.id
-                      ? 'bg-brand/20 text-[#2f3e39] font-medium'
-                      : 'text-[#3d403b] hover:bg-[#f7f4ed]'
-                  }`}
-                >
-                  {style.label}
-                </button>
-              ))}
+          <div className="absolute right-6 top-6 z-10 flex flex-col items-end gap-2">
+            <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3d403b]">
+              <button
+                onClick={() => {
+                  const map = mapInstanceRef.current;
+                  if (!map) return;
+                  map.zoomIn();
+                }}
+                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                aria-label="Zoom in"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+
+              <div className="h-px bg-[#e5e7eb]" />
+
+              <button
+                onClick={() => {
+                  const map = mapInstanceRef.current;
+                  if (!map) return;
+                  map.zoomOut();
+                }}
+                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                aria-label="Zoom out"
+              >
+                <Minus className="w-5 h-5" />
+              </button>
+
+              <div className="h-px bg-[#e5e7eb]" />
+
+              <button
+                onClick={() => {
+                  const map = mapInstanceRef.current;
+                  if (!map) return;
+                  map.flyTo({
+                    center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
+                    zoom: GLOBAL_ZOOM,
+                    pitch: 0,
+                    bearing: 0,
+                    duration: 700,
+                  });
+                }}
+              className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                aria-label="Reset to globe view"
+              >
+                <Globe className="w-5 h-5" />
+              </button>
+
+              <div className="h-px bg-[#e5e7eb]" />
+
+              <div className="relative">
+                <div ref={styleMenuRef}>
+                  <button
+                    onClick={() => setIsStyleMenuOpen((value) => !value)}
+                    className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                    aria-label="Map style"
+                    aria-expanded={isStyleMenuOpen}
+                  >
+                    <Settings2 className="w-5 h-5" />
+                  </button>
+
+                  {isStyleMenuOpen && (
+                    <div className="mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
+                      {BASEMAP_STYLES.map((style) => (
+                        <button
+                          key={style.id}
+                          onClick={() => {
+                            setSelectedBasemapStyleId(style.id);
+                            setIsStyleMenuOpen(false);
+                          }}
+                          className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                            selectedBasemapStyleId === style.id
+                              ? 'bg-brand/20 text-[#2f3e39] font-medium'
+                              : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+                          }`}
+                        >
+                          {style.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
+
+            <button
+              onClick={locateUser}
+              disabled={findingLocation}
+              className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-70"
+              title="Near me"
+              aria-label="Find nearby menders"
+            >
+              {findingLocation ? <Loader2 className="w-4 h-4 animate-spin text-[#8a877d]" /> : <Navigation className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1f241f] text-white transition-colors hover:bg-[#343a33]"
+              title="Add Mender"
+              aria-label="Add mender"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Floating Action Buttons */}
-      <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
-        <button
-          onClick={locateUser}
-          disabled={findingLocation}
-          className="mymenders-cloth-panel flex h-11 items-center gap-2 rounded-full border bg-cloth px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f7f4ed] disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          <Navigation className={`w-4 h-4 ${findingLocation ? 'animate-pulse text-[#8a877d]' : 'text-[#3d403b]'}`} />
-          {findingLocation ? 'Locating...' : 'Near Me'}
-        </button>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex h-11 items-center gap-2 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
-        >
-          <Plus className="w-5 h-5" />
-          Add Mender
-        </button>
       </div>
 
       {showAddModal && (

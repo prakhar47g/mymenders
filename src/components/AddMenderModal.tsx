@@ -117,19 +117,19 @@ const selectStyles = {
   control: (base: any) => ({
     ...base,
     backgroundColor: '#ffffff',
-    borderColor: '#e6e0d6',
+    borderColor: '#e5e7eb',
     borderRadius: '0.625rem',
     minHeight: '2.5rem',
     fontSize: '0.8125rem',
     boxShadow: 'none',
     color: '#171b17',
-    '&:hover': { borderColor: '#d5cdc0' },
+    '&:hover': { borderColor: '#d1d5db' },
   }),
   menu: (base: any) => ({
     ...base,
     backgroundColor: '#ffffff',
     borderRadius: '0.75rem',
-    boxShadow: '0 12px 28px rgba(54, 45, 35, 0.1)',
+    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
     fontSize: '0.875rem',
     overflow: 'hidden',
     zIndex: 50,
@@ -137,8 +137,8 @@ const selectStyles = {
   menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
   multiValue: (base: any) => ({
     ...base,
-    backgroundColor: '#f7f4ed',
-    border: '1px solid #e6e0d6',
+    backgroundColor: '#f3f4f6',
+    border: '1px solid #e5e7eb',
     borderRadius: '999px',
   }),
   multiValueLabel: (base: any) => ({
@@ -156,9 +156,9 @@ const selectStyles = {
   singleValue: (base: any) => ({ ...base, color: '#171b17' }),
   option: (base: any, state: any) => ({
     ...base,
-    backgroundColor: state.isFocused || state.isSelected ? '#f7f4ed' : '#ffffff',
+    backgroundColor: state.isFocused || state.isSelected ? '#f3f4f6' : '#ffffff',
     color: '#171b17',
-    '&:active': { backgroundColor: '#ebe4d8' },
+    '&:active': { backgroundColor: '#e5e7eb' },
   }),
 };
 
@@ -477,13 +477,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
   const modalContent = (
     <div className="fixed inset-0 z-[3200] flex items-center justify-center bg-[#171b17]/36 p-3 backdrop-blur-sm sm:p-4">
-      <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] border border-[#e6e0d6] bg-[#f1f3f1] shadow-[0_14px_32px_rgba(54,45,35,0.11)] animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] border border-[#e5e7eb] bg-[#f5f6f8] shadow-[0_14px_32px_rgba(15,23,42,0.12)] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#e6e0d6] bg-[#fffdf8] px-5 py-3">
+        <div className="flex items-start justify-between border-b border-[#e5e7eb] bg-[#fafafa] px-5 py-3">
           <h2 className="text-base font-semibold text-[#171b17] mymenders-heading-font">Add a Mender</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#68665f] transition-colors hover:bg-[#f7f4ed] hover:text-[#171b17]"
+            className="rounded-full p-1 text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -514,7 +514,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                           className={`flex min-h-[72px] items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
                             isSelected
                               ? meta.activePanelClasses
-                              : 'border-[#e6e0d6] bg-white grayscale hover:border-[#d5cdc0] hover:bg-[#f7f4ed]'
+                              : 'border-[#e5e7eb] bg-white grayscale hover:border-[#d1d5db] hover:bg-[#f3f4f6]'
                           }`}
                         >
                           <img
@@ -735,12 +735,12 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
             </div>
             </div>
-            <div className="border-t border-[#e6e0d6] bg-[#f1f3f1] px-5 py-3">
+            <div className="border-t border-[#e5e7eb] bg-[#f5f6f8] px-5 py-3">
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="h-10 flex-1 rounded-full border border-[#e6e0d6] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f7f4ed]"
+                  className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
                 >
                   Cancel
                 </button>

@@ -16,8 +16,8 @@
   --field-label-font-stretch: 100%;
   --logo-font-stretch: 220%;
   --font-sans: var(--body-font);
-  --color-backdrop: #f1f3f1;
-  --color-cloth: #fffdf8;
+  --color-backdrop: #f5f6f8;
+  --color-cloth: #fafafa;
   --color-stitch: #c46a3d;
   --color-pin: #6eb7b0;
   --color-brand: #99c4cb;
@@ -30,16 +30,16 @@
   --mm-text-soft: #3d403b;
   --mm-muted: #68665f;
   --mm-faint: #8a877d;
-  --mm-border: #e6e0d6;
-  --mm-border-strong: #d5cdc0;
-  --mm-panel: #fffdf8;
-  --mm-panel-muted: #f7f4ed;
-  --mm-surface: #f1f3f1;
+  --mm-border: #e5e7eb;
+  --mm-border-strong: #d1d5db;
+  --mm-panel: #ffffff;
+  --mm-panel-muted: #f3f4f6;
+  --mm-surface: #f5f6f8;
   --mm-accent: #99c4cb;
   --mm-accent-hover: #82b3bb;
   --mm-focus: rgba(23, 27, 23, 0.09);
-  --mm-shadow-subtle: 0 1px 3px rgba(54, 45, 35, 0.06);
-  --mm-shadow-panel: 0 12px 28px rgba(54, 45, 35, 0.1);
+  --mm-shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --mm-shadow-panel: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 
 body {
@@ -76,25 +76,25 @@ h6 {
 }
 
 .mymenders-cloth-panel {
-  background-color: rgba(255, 253, 248, 0.96);
+  background-color: rgba(250, 250, 250, 0.96);
   border-color: var(--mm-border);
   box-shadow: var(--mm-shadow-subtle);
 }
 
 .mymenders-cloth-label {
-  border: 1px solid rgba(196, 106, 61, 0.28);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 6px;
   background:
-    linear-gradient(90deg, rgba(196, 106, 61, 0.16) 0 2px, transparent 2px calc(100% - 2px), rgba(196, 106, 61, 0.16) calc(100% - 2px)),
-    rgba(255, 250, 241, 0.92);
-  color: #5b4635;
+    linear-gradient(90deg, rgba(148, 163, 184, 0.16) 0 2px, transparent 2px calc(100% - 2px), rgba(148, 163, 184, 0.16) calc(100% - 2px)),
+    rgba(248, 250, 252, 0.92);
+  color: #4b5563;
 }
 
 .mymenders-cloth-chip {
-  border: 1px solid rgba(143, 111, 78, 0.26);
+  border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 6px;
-  background-color: rgba(255, 250, 241, 0.88);
-  color: #5f4b3a;
+  background-color: rgba(248, 250, 252, 0.88);
+  color: #4b5563;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
 }
 

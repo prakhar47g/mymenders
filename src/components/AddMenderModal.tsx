@@ -171,6 +171,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
   const [mapError, setMapError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState('');
   const [placesReady, setPlacesReady] = useState(false);
+  const [addressSuggestionsEnabled, setAddressSuggestionsEnabled] = useState(false);
   const selectMenuPortalTarget = typeof document !== 'undefined' ? document.body : undefined;
 
   // ---- refs to survive effect closures ----
@@ -195,8 +196,19 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
     map.setZoom(16);
   }, []);
 
+  const enableAddressSuggestions = useCallback(() => {
+    setAddressSuggestionsEnabled(true);
+  }, []);
+
+  const disableAddressSuggestions = useCallback(() => {
+    setAddressSuggestionsEnabled(false);
+    addressInputRef.current?.blur();
+  }, []);
+
   const reverseGeocode = useCallback(
     (lat: number, lng: number) => {
+      disableAddressSuggestions();
+
       // Try Google first
       if ((window as any).google?.maps) {
         const geocoder = new (window as any).google.maps.Geocoder();
@@ -213,12 +225,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
         geoReverse(lat, lng).then((addr) => { if (addr) setAddress(addr); });
       }
     },
-    [],
+    [disableAddressSuggestions],
   );
 
   // Central "go here" action used by autocomplete, click, and drag
   const goToLocation = useCallback(
     (lat: number, lng: number, addr?: string) => {
+      disableAddressSuggestions();
       setPosition([lat, lng]);
       if (addr) {
         setAddress(addr);
@@ -227,7 +240,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
       }
       panMapTo(lat, lng);
     },
-    [panMapTo, reverseGeocode],
+    [disableAddressSuggestions, panMapTo, reverseGeocode],
   );
 
   // ------------------------------------------------------------------
@@ -297,6 +310,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
             const lat = location.lat();
             const lng = location.lng();
             const addr = place.formatted_address || place.name || addressInputRef.current?.value || '';
+            disableAddressSuggestions();
             setAddress(addr);
             setPosition([lat, lng]);
             panMapTo(lat, lng);
@@ -634,7 +648,11 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                     ref={addressInputRef}
                     type="text"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onFocus={enableAddressSuggestions}
+                    onChange={(e) => {
+                      enableAddressSuggestions();
+                      setAddress(e.target.value);
+                    }}
                     placeholder="Street address"
                     autoComplete="off"
                     className="mymenders-field w-full border px-3 py-2 text-sm text-[#171b17] outline-none"
@@ -644,6 +662,10 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                     value={address}
                     onChange={(val) => setAddress(val)}
                     onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
+                    suggestionsEnabled={addressSuggestionsEnabled}
+                    onManualInputFocus={enableAddressSuggestions}
+                    onManualInputChange={enableAddressSuggestions}
+                    onSuggestionsClose={disableAddressSuggestions}
                     placeholder="Street address"
                   />
                 )}

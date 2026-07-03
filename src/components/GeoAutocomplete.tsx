@@ -5,22 +5,35 @@ interface GeoAutocompleteProps {
   value: string;
   onChange: (address: string) => void;
   onSelect: (suggestion: GeoapifySuggestion) => void;
+  suggestionsEnabled?: boolean;
+  onManualInputFocus?: () => void;
+  onManualInputChange?: () => void;
+  onSuggestionsClose?: () => void;
   placeholder?: string;
 }
 
-export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Street address' }: GeoAutocompleteProps) {
+export function GeoAutocomplete({
+  value,
+  onChange,
+  onSelect,
+  suggestionsEnabled = true,
+  onManualInputFocus,
+  onManualInputChange,
+  onSuggestionsClose,
+  placeholder = 'Street address',
+}: GeoAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<GeoapifySuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch suggestions when value changes (debounced)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (value.trim().length < 3) {
+    if (!suggestionsEnabled || value.trim().length < 3) {
       setSuggestions([]);
       setOpen(false);
       setActiveIndex(-1);
@@ -37,7 +50,7 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [value]);
+  }, [suggestionsEnabled, value]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -46,17 +59,29 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
       if (inputRef.current && !inputRef.current.parentElement?.contains(e.target as Node)) {
         setOpen(false);
         setActiveIndex(-1);
+        onSuggestionsClose?.();
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  }, [onSuggestionsClose, open]);
 
   const pickSuggestion = (s: GeoapifySuggestion) => {
     onChange(s.formatted);
     onSelect(s);
     setOpen(false);
     setActiveIndex(-1);
+    inputRef.current?.blur();
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onManualInputChange?.();
+    onChange(e.target.value);
+  };
+
+  const handleFocus = () => {
+    onManualInputFocus?.();
+    if (suggestionsEnabled && suggestions.length > 0) setOpen(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -80,6 +105,7 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
       case 'Escape':
         setOpen(false);
         setActiveIndex(-1);
+        onSuggestionsClose?.();
         break;
     }
   };
@@ -97,9 +123,9 @@ export function GeoAutocomplete({ value, onChange, onSelect, placeholder = 'Stre
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => { if (suggestions.length > 0) setOpen(true); }}
+        onFocus={handleFocus}
         placeholder={placeholder}
         autoComplete="off"
         className="mymenders-field w-full border px-3 py-2 text-sm text-[#171b17] outline-none"

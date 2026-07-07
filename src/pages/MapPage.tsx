@@ -305,7 +305,8 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   container.style.maxWidth = 'min(504px, calc(100vw - 40px))';
 
   const title = document.createElement('h3');
-  title.className = 'mb-1 pr-8 text-base font-semibold leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
+  title.className =
+    'mymenders-card-title-light mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
@@ -1029,7 +1030,7 @@ export function MapPage() {
                       className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
-                      <p className="truncate text-sm font-semibold text-[#171b17]">{vendorName}</p>
+                      <p className="mymenders-card-title-light truncate text-sm text-[#171b17]">{vendorName}</p>
                       <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#64748b]">
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{vendor.address || 'Address unavailable'}</span>

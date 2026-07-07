@@ -197,6 +197,11 @@ h6 {
   text-transform: uppercase;
 }
 
+.mymenders-card-title-light {
+  font-weight: var(--font-weight-light, 300) !important;
+  font-variation-settings: "wght" var(--font-weight-light, 300);
+}
+
 .mymenders-heading-font {
   font-family: var(--heading-font);
   font-weight: var(--heading-font-weight);

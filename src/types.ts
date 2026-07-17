@@ -1,5 +1,6 @@
 export interface Vendor {
   id: number;
+  status?: 'draft' | 'active';
   name: string;
   address?: string;
   latitude: number;

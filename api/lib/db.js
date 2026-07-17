@@ -101,8 +101,8 @@ export async function insertVendor(pool, data) {
   };
 
   const result = await pool.query(
-    `INSERT INTO vendors (name, address, latitude, longitude, category, phone, website, hours, photo_url, photos)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `INSERT INTO vendors (name, address, latitude, longitude, category, phone, website, hours, photo_url, photos, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft')
      RETURNING *`,
     [
       name,
@@ -118,6 +118,46 @@ export async function insertVendor(pool, data) {
     ],
   );
 
+  return result.rows[0];
+}
+
+export async function updateVendor(pool, id, data) {
+  const vendorId = Number(id);
+  if (!Number.isInteger(vendorId) || vendorId <= 0) throw new ValidationError('Valid vendor id is required');
+  const name = String(data.name || '').trim();
+  const latitude = Number(data.latitude);
+  const longitude = Number(data.longitude);
+  if (!name || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw new ValidationError('Name, latitude, and longitude are required');
+  }
+  const photos = safeParseMetadata(data.photos);
+  const nextPhotos = {
+    ...photos,
+    entry_level: data.entry_level || data.category || 'Menders',
+    types: canonicalizeTaxonomyArray('types', data.types),
+    categories: canonicalizeTaxonomyArray('categories', data.categories),
+    regional_techniques: canonicalizeTaxonomyArray('regional_techniques', data.regional_techniques),
+    online_presence: data.online_presence || data.website || undefined,
+    review_text: data.review_text || undefined,
+    rating: normalizeRating(data.rating),
+    rating_count: normalizeRatingCount(data.rating_count),
+  };
+  const status = data.status === 'draft' || data.status === 'active' ? data.status : null;
+  const result = await pool.query(
+    `UPDATE vendors SET name=$2, address=$3, latitude=$4, longitude=$5, category=$6,
+      phone=$7, website=$8, hours=$9, photo_url=$10, photos=$11, status=COALESCE($12, status)
+     WHERE id=$1 RETURNING *`,
+    [vendorId, name, data.address || null, latitude, longitude, data.entry_level || data.category || 'Menders',
+      data.phone || null, data.online_presence || data.website || null, data.hours || null,
+      data.photo_url || null, JSON.stringify(nextPhotos), status],
+  );
+  if (!result.rows[0]) throw new ValidationError('Vendor not found');
+  return result.rows[0];
+}
+
+export async function activateVendor(pool, id) {
+  const result = await pool.query(`UPDATE vendors SET status='active' WHERE id=$1 RETURNING *`, [Number(id)]);
+  if (!result.rows[0]) throw new ValidationError('Vendor not found');
   return result.rows[0];
 }
 

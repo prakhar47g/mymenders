@@ -64,6 +64,11 @@ h6 {
   line-height: 1.05;
 }
 
+.mymenders-admin-row-title {
+  font-weight: 400 !important;
+  font-variation-settings: "wght" 400;
+}
+
 .mymenders-textile-surface {
   background-color: var(--color-backdrop);
   background-image:

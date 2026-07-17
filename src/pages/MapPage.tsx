@@ -53,6 +53,8 @@ const PIN_COLOR_MAP: Record<string, string> = {
   'Community Contribution': '#F4A261',
   default: '#99C4CB',
 };
+const VENDOR_PIN_IMAGE_ID = 'vendor-pin-2';
+const VENDOR_PIN_IMAGE_URL = '/map-pin2.svg';
 
 const parseCoordinate = (value: unknown): number | undefined => {
   const parsed = Number(value);
@@ -433,7 +435,35 @@ const applyEnglishLabelOverrides = (map: maplibregl.Map) => {
   });
 };
 
-const ensureVendorLayers = (map: maplibregl.Map) => {
+const ensureVendorPinImage = async (map: maplibregl.Map) => {
+  if (map.hasImage(VENDOR_PIN_IMAGE_ID)) return;
+
+  // MapLibre's built-in loadImage intentionally does not support SVG files.
+  // Rasterize our source SVG in-browser, then register the resulting pixels.
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error(`Failed to load ${VENDOR_PIN_IMAGE_URL}`));
+    element.src = VENDOR_PIN_IMAGE_URL;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth || 64;
+  canvas.height = image.naturalHeight || 64;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Unable to create a canvas for the vendor map pin');
+
+  context.drawImage(image, 0, 0);
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+  if (!map.hasImage(VENDOR_PIN_IMAGE_ID)) {
+    map.addImage(VENDOR_PIN_IMAGE_ID, imageData, { pixelRatio: 2, sdf: true });
+  }
+};
+
+const ensureVendorLayers = async (map: maplibregl.Map) => {
+  await ensureVendorPinImage(map);
+
   if (!map.getSource(VENDOR_SOURCE_ID)) {
     map.addSource(VENDOR_SOURCE_ID, {
       type: 'geojson',
@@ -496,15 +526,21 @@ const ensureVendorLayers = (map: maplibregl.Map) => {
   if (!map.getLayer(UNCLUSTERED_LAYER_ID)) {
     map.addLayer({
       id: UNCLUSTERED_LAYER_ID,
-      type: 'circle',
+      type: 'symbol',
       source: VENDOR_SOURCE_ID,
       filter: ['!', ['has', 'point_count']],
+      layout: {
+        'icon-image': VENDOR_PIN_IMAGE_ID,
+        'icon-size': 0.75,
+        'icon-anchor': 'bottom',
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
       paint: {
-        'circle-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
-        'circle-radius': 7,
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 2,
-        'circle-opacity': 0.98,
+        'icon-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
+        'icon-halo-color': '#ffffff',
+        'icon-halo-width': 1,
+        'icon-halo-blur': 0,
       },
     });
   }
@@ -775,11 +811,15 @@ export function MapPage() {
       logoPosition: 'bottom-left',
     });
 
-    const handleStyleLoad = () => {
+    const handleStyleLoad = async () => {
       applyGlobeProjectionIfSupported(map);
       applyEnglishLabelOverrides(map);
-      ensureVendorLayers(map);
-      setIsMapReady(true);
+      try {
+        await ensureVendorLayers(map);
+        setIsMapReady(true);
+      } catch (error) {
+        console.error('Unable to load the vendor map pin:', error);
+      }
     };
 
     map.on('style.load', handleStyleLoad);
@@ -947,14 +987,7 @@ export function MapPage() {
       });
       const newVendor = await res.json();
       const normalizedVendor = normalizeVendor(newVendor);
-      setVendors((prev) => [...prev, normalizedVendor]);
       setShowAddModal(false);
-      setCenterMapTo({
-        lat: normalizedVendor.latitude,
-        lng: normalizedVendor.longitude,
-        zoom: LOCAL_ZOOM,
-      });
-      hasAutoCentered.current = true;
     } catch (err) {
       console.error('Failed to add vendor:', err);
     }

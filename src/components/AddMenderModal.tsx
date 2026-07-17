@@ -735,7 +735,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                   type="submit"
                   className="h-10 flex-1 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
                 >
-                  Publish to Map
+                  Submit for review
                 </button>
               </div>
               {submitError && <p className="mt-3 text-xs text-[#8b4e16]">{submitError}</p>}

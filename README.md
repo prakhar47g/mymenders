@@ -18,3 +18,18 @@ View your app in AI Studio: https://ai.studio/apps/ef30ec6a-431d-4861-8050-7a9ef
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Admin review workspace
+
+Apply the Atlas migrations before starting the review workflow:
+
+`atlas migrate apply --env local`
+
+Provision the first account from environment variables (the password is stored
+as a salted scrypt hash):
+
+`npm run seed:admin`
+
+Set `ADMIN_INITIAL_USERNAME`, `ADMIN_INITIAL_PASSWORD`, and
+`ADMIN_JWT_SECRET` in the deployment environment. Open `/admin` directly; it
+is intentionally not linked from the public navigation.

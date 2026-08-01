@@ -309,7 +309,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   const title = document.createElement('h3');
   title.className =
-    'mymenders-card-title-light mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
+    'mymenders-card-title-light font-normal! mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
@@ -1135,7 +1135,7 @@ export function MapPage() {
                     />
                     <div className="min-w-0 pl-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="mymenders-card-title-light truncate text-sm text-[#171b17]">{vendorName}</p>
+                        <p className="mymenders-card-title-light font-normal! truncate text-sm text-[#171b17]">{vendorName}</p>
                         {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
                           <span className="shrink-0 text-[10px] font-medium tabular-nums text-[#94a3b8]">
                             {formatDistance(distanceKm)}

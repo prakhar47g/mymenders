@@ -69,7 +69,7 @@ export function HomePage() {
             playsInline
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-white/15" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/60 to-white/5" />
         </div>
 
         <div className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
@@ -110,7 +110,7 @@ export function HomePage() {
               <div className="mymenders-cloth-panel flex h-14 w-14 items-center justify-center rounded-full border bg-cloth text-[#2f3e39]">
                 <Icon className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3 className="mymenders-card-title-light mt-5 text-xl text-[#171b17]">{title}</h3>
+              <h3 className="mymenders-card-title-light font-normal! mt-5 text-xl text-[#171b17]">{title}</h3>
               <p className="mt-2 text-sm leading-[1.5] text-[#68665f]">{body}</p>
             </div>
           ))}

@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 @theme {
-  --heading-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --heading-font: "Unbounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --body-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --field-label-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --logo-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -203,8 +203,8 @@ h6 {
 }
 
 .mymenders-card-title-light {
-  font-weight: var(--font-weight-light, 300) !important;
-  font-variation-settings: "wght" var(--font-weight-light, 300);
+  font-weight: 200 !important;
+  font-variation-settings: "wght" 200;
 }
 
 .mymenders-heading-font {

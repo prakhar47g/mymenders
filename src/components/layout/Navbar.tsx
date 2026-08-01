@@ -6,7 +6,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] border-b border-[#e5e7eb] bg-[#fafafa]/95 backdrop-blur-sm">
+    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-[#fafafa]/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -24,7 +24,7 @@ export function Navbar() {
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `relative inline-flex w-32 items-center justify-center border-b-2 text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17] border-[#171b17]' : 'text-[#68665f] border-transparent'}`
+                `relative inline-flex w-32 items-center justify-center text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17]' : 'text-[#68665f]'}`
               }
             >
               Home
@@ -32,7 +32,7 @@ export function Navbar() {
             <NavLink
               to="/map"
               className={({ isActive }) =>
-                `relative inline-flex w-32 items-center justify-center border-b-2 text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17] border-[#171b17]' : 'text-[#68665f] border-transparent'}`
+                `relative inline-flex w-32 items-center justify-center text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17]' : 'text-[#68665f]'}`
               }
             >
               Map
@@ -40,7 +40,7 @@ export function Navbar() {
             <NavLink
               to="/about"
               className={({ isActive }) => 
-                `relative inline-flex w-32 items-center justify-center border-b-2 text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17] border-[#171b17]' : 'text-[#68665f] border-transparent'}`
+                `relative inline-flex w-32 items-center justify-center text-sm font-medium transition-colors hover:text-[#171b17] ${isActive ? 'text-[#171b17]' : 'text-[#68665f]'}`
               }
             >
               About Us
@@ -59,7 +59,7 @@ export function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="absolute w-full border-b border-[#e5e7eb] bg-[#fafafa] pb-4 md:hidden">
+        <div className="absolute w-full bg-[#fafafa] pb-4 md:hidden">
           <div className="px-2 pt-2 space-y-1 flex flex-col">
             <NavLink
               to="/"

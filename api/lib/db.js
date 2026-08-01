@@ -190,6 +190,27 @@ export async function updateVendorAddress(pool, data) {
   return result.rows[0];
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function insertEmailSub(pool, email) {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!EMAIL_PATTERN.test(normalizedEmail)) {
+    throw new ValidationError('A valid email address is required');
+  }
+
+  const result = await pool.query(
+    `INSERT INTO email_subs (email) VALUES ($1)
+     ON CONFLICT (email) DO NOTHING
+     RETURNING *`,
+    [normalizedEmail],
+  );
+
+  if (result.rows[0]) return result.rows[0];
+
+  const existing = await pool.query(`SELECT * FROM email_subs WHERE email = $1`, [normalizedEmail]);
+  return existing.rows[0];
+}
+
 export class ValidationError extends Error {
   constructor(message) {
     super(message);

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { Pool } from 'pg';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
-import { insertVendor, ValidationError } from './api/lib/db.js';
+import { insertEmailSub, insertVendor, ValidationError } from './api/lib/db.js';
 import { handleAdminRequest } from './api/lib/admin.js';
 
 export default defineConfig(({ mode }) => {
@@ -19,6 +19,49 @@ export default defineConfig(({ mode }) => {
       {
         name: 'local-vendors-api',
         configureServer(server) {
+          server.middlewares.use('/api/subscribe', async (req, res) => {
+            if (!pool) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'DATABASE_URL is not configured' }));
+              return;
+            }
+
+            try {
+              if (req.method === 'POST') {
+                const body = await new Promise<string>((resolve, reject) => {
+                  let data = '';
+                  req.on('data', (chunk) => {
+                    data += chunk;
+                  });
+                  req.on('end', () => resolve(data));
+                  req.on('error', reject);
+                });
+
+                const subscription = await insertEmailSub(pool, JSON.parse(body || '{}').email);
+
+                res.statusCode = 201;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(subscription));
+                return;
+              }
+
+              res.statusCode = 405;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Method not allowed' }));
+            } catch (error) {
+              if (error instanceof ValidationError) {
+                res.statusCode = 400;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ error: error.message }));
+                return;
+              }
+              console.error('Local /api/subscribe error:', error);
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Failed to handle subscribe request' }));
+            }
+          });
           server.middlewares.use('/api/admin', async (req, res) => {
             try {
               const body = await new Promise<string>((resolve, reject) => {

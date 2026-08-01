@@ -602,6 +602,7 @@ export function MapPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mapBounds, setMapBounds] = useState<maplibregl.LngLatBounds | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
@@ -712,6 +713,11 @@ export function MapPage() {
         if (!name.includes(query) && !address.includes(query)) return false;
       }
 
+      if (mapBounds) {
+        const coords = getVendorCoordinates(vendor);
+        if (!coords || !mapBounds.contains(coords)) return false;
+      }
+
       return FILTER_GROUPS.every(({ key }) => {
         const selectedValues = selectedFilters[key];
         if (!selectedValues.length) return true;
@@ -733,7 +739,7 @@ export function MapPage() {
 
       return left.sortIndex - right.sortIndex;
     });
-  }, [selectedFilters, userLocation, vendorsWithDistance, searchQuery]);
+  }, [selectedFilters, userLocation, vendorsWithDistance, searchQuery, mapBounds]);
 
   const visibleMapVendors = useMemo(
     () =>
@@ -826,7 +832,7 @@ export function MapPage() {
       center: [DEFAULT_CENTER[1], DEFAULT_CENTER[0]],
       zoom: GLOBAL_ZOOM,
       minZoom: GLOBAL_ZOOM,
-      attributionControl: true,
+      attributionControl: {},
       logoPosition: 'bottom-left',
     });
 
@@ -893,9 +899,14 @@ export function MapPage() {
       map.getCanvas().style.cursor = '';
     };
 
+    const handleMoveEnd = () => {
+      setMapBounds(map.getBounds());
+    };
+
     map.on('click', handleMapClick);
     map.on('mousemove', handlePointerMove);
     map.on('mouseout', clearPointerCursor);
+    map.on('moveend', handleMoveEnd);
 
     mapInstanceRef.current = map;
 
@@ -906,6 +917,7 @@ export function MapPage() {
       map.off('click', handleMapClick);
       map.off('mousemove', handlePointerMove);
       map.off('mouseout', clearPointerCursor);
+      map.off('moveend', handleMoveEnd);
       map.remove();
       mapInstanceRef.current = null;
       setIsMapReady(false);

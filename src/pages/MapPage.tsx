@@ -1108,7 +1108,7 @@ export function MapPage() {
                       openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
                     }}
                     disabled={!isClickable}
-                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 py-2.5 pl-3 pr-12 text-left transition ${
+                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 py-3 pl-3 pr-3 text-left transition ${
                       isActive
                         ? 'bg-[#e5e7eb]'
                         : isClickable
@@ -1122,16 +1122,18 @@ export function MapPage() {
                       className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
-                      <p className="mymenders-card-title-light truncate text-sm text-[#171b17]">{vendorName}</p>
-                      <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#64748b]">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="mymenders-card-title-light truncate text-sm text-[#171b17]">{vendorName}</p>
+                        {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
+                          <span className="shrink-0 text-[10px] font-medium tabular-nums text-[#94a3b8]">
+                            {formatDistance(distanceKm)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[#64748b]">
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{vendor.address || 'Address unavailable'}</span>
                       </p>
-                      {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
-                        <p className="mt-1 text-[10px] font-medium text-[#94a3b8]">
-                          {formatDistance(distanceKm)}
-                        </p>
-                      ) : null}
                       {!!types.length ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {types.map((type) => (

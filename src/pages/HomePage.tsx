@@ -69,16 +69,16 @@ export function HomePage() {
             playsInline
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/60 to-white/5" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
 
         <div className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
-          <h1 className="mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-[#171b17] md:text-7xl">
+          <h1 className="mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-white md:text-7xl">
             We love your clothes
             <br />
             like you do.
           </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-[1.45] text-[#3d403b]">
+          <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-[1.45] text-white">
             My Mender is a map of the people who repair the things you love — verified menders,
             community contributions, and the craft knowledge that keeps garments alive.
           </p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Map as MapIcon, Navigation, Plus, Search } from 'lucide-react';
+import heroVideo from '@/vid1.mp4';
 
 const steps = [
   {
@@ -58,32 +59,46 @@ export function HomePage() {
   return (
     <div className="min-h-screen pt-16">
       {/* Hero */}
-      <section className="mx-auto flex max-w-4xl flex-col items-center px-4 pb-24 pt-24 text-center sm:px-6 md:pt-32">
-        <h1 className="mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-[#171b17] md:text-7xl">
-          We love your clothes
-          <br />
-          like you do.
-        </h1>
-        <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-[1.45] text-[#3d403b]">
-          My Mender is a map of the people who repair the things you love — verified menders,
-          community contributions, and the craft knowledge that keeps garments alive.
-        </p>
+      <section className="relative h-screen overflow-hidden">
+        <div className="absolute inset-0 bg-[#171b17]">
+          <video
+            src={heroVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-white/15" />
+        </div>
 
-        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
-            to="/map"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1f241f] px-7 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
-          >
-            <MapIcon className="h-4 w-4" aria-hidden="true" />
-            Explore the map
-          </Link>
-          <Link
-            to="/about"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#d9ddd5] bg-white px-7 text-sm font-medium text-[#2c302b] transition-colors hover:bg-[#f5f7f2]"
-          >
-            About us
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+        <div className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
+          <h1 className="mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-[#171b17] md:text-7xl">
+            We love your clothes
+            <br />
+            like you do.
+          </h1>
+          <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-[1.45] text-[#3d403b]">
+            My Mender is a map of the people who repair the things you love — verified menders,
+            community contributions, and the craft knowledge that keeps garments alive.
+          </p>
+
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+            <Link
+              to="/map"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1f241f] px-7 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
+            >
+              <MapIcon className="h-4 w-4" aria-hidden="true" />
+              Explore the map
+            </Link>
+            <Link
+              to="/about"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#d9ddd5] bg-white px-7 text-sm font-medium text-[#2c302b] transition-colors hover:bg-[#f5f7f2]"
+            >
+              About us
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -15,6 +15,7 @@ import {
   Loader2,
   Plus,
   Route,
+  Search,
   Signpost,
   SlidersHorizontal,
   Star,
@@ -600,6 +601,7 @@ export function MapPage() {
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
@@ -703,6 +705,13 @@ export function MapPage() {
 
   const displayedVendorsWithDistance = useMemo(() => {
     const filtered = vendorsWithDistance.filter(({ vendor }) => {
+      const query = searchQuery.trim().toLowerCase();
+      if (query) {
+        const name = (vendor.name || '').toLowerCase();
+        const address = (vendor.address || '').toLowerCase();
+        if (!name.includes(query) && !address.includes(query)) return false;
+      }
+
       return FILTER_GROUPS.every(({ key }) => {
         const selectedValues = selectedFilters[key];
         if (!selectedValues.length) return true;
@@ -724,7 +733,7 @@ export function MapPage() {
 
       return left.sortIndex - right.sortIndex;
     });
-  }, [selectedFilters, userLocation, vendorsWithDistance]);
+  }, [selectedFilters, userLocation, vendorsWithDistance, searchQuery]);
 
   const visibleMapVendors = useMemo(
     () =>
@@ -742,7 +751,17 @@ export function MapPage() {
 
   const clearAllFilters = () => {
     setSelectedFilters(createEmptyFilterState());
+    setSearchQuery('');
   };
+
+  const activeFilterChips = FILTER_GROUPS.flatMap(({ key, label }) =>
+    selectedFilters[key].map((value) => ({
+      groupKey: key,
+      groupLabel: label,
+      value,
+      displayLabel: getTaxonomyLabel(key, value),
+    })),
+  );
 
   const toggleFilterOption = (groupKey: FilterGroupKey, value: string) => {
     setSelectedFilters((currentFilters) => {
@@ -1002,28 +1021,68 @@ export function MapPage() {
             event.stopPropagation();
           }}
         >
-          <button
-            ref={filterButtonRef}
-            type="button"
-            onClick={() => {
-              setIsFilterDrawerOpen((value) => !value);
-            }}
-            className={`mymenders-cloth-panel absolute right-[-22px] top-2 z-50 flex h-11 w-11 items-center justify-center rounded-full border bg-cloth transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#99c4cb] focus-visible:ring-offset-2 ${
-              isFilterDrawerOpen || hasActiveFilters
-                ? 'text-[#171b17]'
-                : 'text-[#3d403b] hover:bg-[#f3f4f6]'
-            }`}
-            aria-label="Filter menders"
-            aria-expanded={isFilterDrawerOpen}
-            aria-controls="vendor-filter-drawer"
-          >
-            <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
-            {hasActiveFilters ? (
-              <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </button>
+          <div className="shrink-0 border-b border-[#e5e7eb] px-3 py-3">
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search menders..."
+                aria-label="Search menders"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-[#99c4cb] focus:outline-none focus:ring-2 focus:ring-[#99c4cb]/30"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[#8a877d] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              {activeFilterChips.map((chip) => (
+                <button
+                  key={`${chip.groupKey}-${chip.value}`}
+                  type="button"
+                  onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
+                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-[#1f241f] py-1 pl-2.5 pr-1.5 text-xs font-medium text-white transition-colors hover:bg-[#343a33]"
+                  title={`Remove ${chip.displayLabel}`}
+                >
+                  <span className="truncate">{chip.displayLabel}</span>
+                  <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+                </button>
+              ))}
+              <button
+                ref={filterButtonRef}
+                type="button"
+                onClick={() => setIsFilterDrawerOpen((value) => !value)}
+                className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#99c4cb] focus-visible:ring-offset-2 ${
+                  isFilterDrawerOpen || hasActiveFilters
+                    ? 'border-[#1f241f] bg-[#1f241f] text-white'
+                    : 'border-dashed border-[#cbd5e1] bg-white text-[#3d403b] hover:border-[#94a3b8] hover:bg-[#f3f4f6]'
+                }`}
+                aria-label="Filter menders"
+                aria-expanded={isFilterDrawerOpen}
+                aria-controls="vendor-filter-drawer"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                Filters
+                {hasActiveFilters ? (
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
+                    {activeFilterCount}
+                  </span>
+                ) : null}
+              </button>
+            </div>
+          </div>
 
           <div
             className="flex-1 min-h-0 overflow-y-auto"
@@ -1103,7 +1162,7 @@ export function MapPage() {
               })
             ) : (
               <div className="rounded-xl border border-[#e5e7eb] bg-white py-4 pl-3 pr-12 text-sm text-[#64748b]">
-                No menders match these filters.
+                No menders match your search or filters.
               </div>
             )}
           </div>
@@ -1112,11 +1171,44 @@ export function MapPage() {
         <div className="relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
 
+          {/* Mobile search + filters (below md) */}
+          <div className="absolute left-4 right-4 top-20 z-10 flex items-center gap-2 md:hidden">
+            <div className="relative flex-1">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search menders..."
+                aria-label="Search menders"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus:border-[#99c4cb] focus:outline-none focus:ring-2 focus:ring-[#99c4cb]/30"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsFilterDrawerOpen((value) => !value)}
+              className="mymenders-cloth-panel relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+              aria-label="Filter menders"
+              aria-expanded={isFilterDrawerOpen}
+              aria-controls="vendor-filter-drawer"
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              {hasActiveFilters ? (
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </button>
+          </div>
+
           {isFilterDrawerOpen && (
             <div
               id="vendor-filter-drawer"
               ref={filterDrawerRef}
-              className="absolute bottom-0 left-0 top-0 z-20 hidden w-[min(340px,calc(100vw-25vw))] flex-col border-r border-[#e5e7eb] bg-[#fafafa]/98 shadow-[18px_0_34px_rgba(15,23,42,0.12)] backdrop-blur-sm md:flex"
+              className="fixed inset-x-0 bottom-0 z-20 flex max-h-[70vh] flex-col rounded-t-2xl border-t border-[#e5e7eb] bg-[#fafafa] shadow-[0_-8px_32px_rgba(15,23,42,0.12)] backdrop-blur-sm md:absolute md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[min(340px,calc(100vw-25vw))] md:rounded-none md:border-r md:border-t-0 md:shadow-[18px_0_34px_rgba(15,23,42,0.12)]"
               onWheel={(event) => {
                 event.stopPropagation();
               }}

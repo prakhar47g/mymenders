@@ -17,13 +17,21 @@ const config: ImageStitchConfig = textToStitchConfig("MY MENDER", {
   palette: STITCH_PALETTE,
 });
 
-export function StitchedLogo({ className }: { className?: string }) {
+export function StitchedLogo({
+  className,
+  animate = false,
+}: {
+  className?: string;
+  /** Skip the stitch-on reveal and render the settled wordmark instantly. */
+  animate?: boolean;
+}) {
   return (
     <div aria-hidden="true" className={className}>
       <StitchSurface
         image={config}
         physics="cloth"
         interactive
+        animate={animate}
         background={null}
         fit="fill"
         className="block w-full"

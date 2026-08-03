@@ -309,7 +309,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   const title = document.createElement('h3');
   title.className =
-    'mymenders-card-title-light font-normal! mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
+    'mymenders-card-title-semi mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
@@ -1059,7 +1059,7 @@ export function MapPage() {
               ) : null}
             </div>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1.5">
               {activeFilterChips.map((chip) => (
                 <button
                   key={`${chip.groupKey}-${chip.value}`}
@@ -1135,7 +1135,7 @@ export function MapPage() {
                     />
                     <div className="min-w-0 pl-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="mymenders-card-title-light font-normal! truncate text-sm text-[var(--mm-text)]">{vendorName}</p>
+                        <p className="mymenders-card-title-semi truncate text-sm text-[var(--mm-text)]">{vendorName}</p>
                         {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
                           <span className="shrink-0 text-[10px] font-medium tabular-nums text-[var(--mm-muted)]">
                             {formatDistance(distanceKm)}
@@ -1204,7 +1204,7 @@ export function MapPage() {
             <button
               type="button"
               onClick={() => setIsFilterDrawerOpen((value) => !value)}
-              className="mymenders-cloth-panel relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Filter menders"
               aria-expanded={isFilterDrawerOpen}
               aria-controls="vendor-filter-drawer"
@@ -1295,7 +1295,7 @@ export function MapPage() {
             <button
               onClick={locateUser}
               disabled={findingLocation}
-              className="mymenders-cloth-panel flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
               title="Near me"
               aria-label="Find nearby menders"
             >
@@ -1315,20 +1315,20 @@ export function MapPage() {
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-            <div className="mymenders-cloth-panel flex w-11 flex-col overflow-hidden rounded-full border bg-cloth text-[#3d403b]">
+            <div className="flex w-11 flex-col overflow-hidden rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)]">
               <button
                 onClick={() => {
                   const map = mapInstanceRef.current;
                   if (!map) return;
                   map.zoomIn();
                 }}
-                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-brand-hover"
                 aria-label="Zoom in"
               >
                 <Plus className="w-5 h-5" />
               </button>
 
-              <div className="h-px bg-[#e5e7eb]" />
+              <div className="h-px bg-brand-dark/15" />
 
               <button
                 onClick={() => {
@@ -1336,7 +1336,7 @@ export function MapPage() {
                   if (!map) return;
                   map.zoomOut();
                 }}
-                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-[#f3f4f6]"
+                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-brand-hover"
                 aria-label="Zoom out"
               >
                 <Minus className="w-5 h-5" />
@@ -1355,7 +1355,7 @@ export function MapPage() {
                   duration: 700,
                 });
               }}
-              className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Reset to globe view"
             >
               <Globe className="w-5 h-5" />
@@ -1364,7 +1364,7 @@ export function MapPage() {
             <div className="relative" ref={styleMenuRef}>
               <button
                 onClick={() => setIsStyleMenuOpen((value) => !value)}
-                className="mymenders-cloth-panel flex h-11 w-11 items-center justify-center rounded-full border bg-cloth text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
                 aria-label="Map style"
                 aria-expanded={isStyleMenuOpen}
               >

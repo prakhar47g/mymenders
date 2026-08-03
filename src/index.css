@@ -102,7 +102,7 @@ body {
 
 .mymenders-cloth-chip {
   border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 6px;
+  border-radius: 9999px;
   background-color: rgba(248, 250, 252, 0.88);
   color: #4b5563;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
@@ -165,7 +165,7 @@ body {
 }
 
 .maplibregl-popup-content {
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 0;
   overflow: hidden;
   background: var(--mm-panel);
@@ -210,6 +210,12 @@ body {
 .mymenders-card-title-light {
   font-weight: 200 !important;
   font-variation-settings: "wght" 200;
+}
+
+.mymenders-card-title-semi {
+  font-family: "Zalando Sans SemiExpanded", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  font-variation-settings: "wght" 500;
 }
 
 .mymenders-heading-font {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Footer } from '../components/layout/Footer';
 
 export function AboutPage() {
   const initiatives = [
@@ -15,7 +16,7 @@ export function AboutPage() {
 
   return (
     <div className="min-h-screen bg-transparent pt-16 text-[var(--mm-text)]">
-      <main className="mx-auto max-w-4xl px-4 pb-16 pt-20 sm:px-6 lg:px-8">
+      <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-4xl px-4 pb-16 pt-20 sm:px-6 lg:px-8">
 
         {/* Mission Section */}
         <section className="mb-24 text-center">
@@ -55,6 +56,8 @@ export function AboutPage() {
         </section>
 
       </main>
+
+      <Footer />
     </div>
   );
 }

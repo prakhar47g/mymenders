@@ -86,14 +86,14 @@ export function HomePage() {
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             <Link
               to="/map"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1f241f] px-7 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover"
             >
               <MapIcon className="h-4 w-4" aria-hidden="true" />
               Explore the map
             </Link>
             <Link
               to="/about"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#d9ddd5] bg-white px-7 text-sm font-medium text-[#2c302b] transition-colors hover:bg-[#f5f7f2]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
             >
               About us
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -118,7 +118,7 @@ export function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#171b17] text-white">
+      <footer className="bg-brand-dark text-white">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="flex flex-col justify-between gap-10 md:flex-row md:items-start">
             <div>
@@ -148,12 +148,12 @@ export function HomePage() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
                   aria-label="Email address"
-                  className="h-11 min-w-0 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-white/50 focus:outline-none"
+                  className="h-11 min-w-0 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                 />
                 <button
                   type="submit"
                   disabled={status === 'submitting'}
-                  className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-medium text-[#171b17] transition-colors hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-11 shrink-0 rounded-full bg-brand px-5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
                 </button>

@@ -52,7 +52,7 @@ const DEFAULT_BASEMAP_STYLE_ID = 'bright';
 const PIN_COLOR_MAP: Record<string, string> = {
   'Verified Mender': '#2A9D8F',
   'Community Contribution': '#F4A261',
-  default: '#99C4CB',
+  default: '#B8DCEB',
 };
 const VENDOR_PIN_IMAGE_ID = 'vendor-pin-2';
 const VENDOR_PIN_IMAGE_URL = '/map-pin2.svg';
@@ -370,7 +370,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   const detailsButton = document.createElement('button');
   detailsButton.type = 'button';
   detailsButton.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[#d9ddd5] bg-white px-3 text-xs font-medium text-[#2c302b] transition-colors hover:bg-[#f5f7f2]';
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-brand/40 bg-brand px-3 text-xs font-medium text-brand-dark transition-colors hover:bg-brand-hover';
   detailsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DETAILS_BUTTON_ICON}
@@ -387,7 +387,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   directionsLink.target = '_blank';
   directionsLink.rel = 'noopener noreferrer';
   directionsLink.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[#1f241f] px-3 text-xs font-medium text-white transition-colors hover:bg-[#343a33]';
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-white transition-colors hover:bg-brand-dark-hover';
   directionsLink.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -485,7 +485,7 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
         'circle-color': [
           'step',
           ['get', 'point_count'],
-          '#99C4CB',
+          '#B8DCEB',
           10,
           '#6EB7B0',
           25,
@@ -1045,7 +1045,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders..."
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-[#99c4cb] focus:outline-none focus:ring-2 focus:ring-[#99c4cb]/30"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
               {searchQuery ? (
                 <button
@@ -1065,7 +1065,7 @@ export function MapPage() {
                   key={`${chip.groupKey}-${chip.value}`}
                   type="button"
                   onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
-                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-[#1f241f] py-1 pl-2.5 pr-1.5 text-xs font-medium text-white transition-colors hover:bg-[#343a33]"
+                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-dark-hover"
                   title={`Remove ${chip.displayLabel}`}
                 >
                   <span className="truncate">{chip.displayLabel}</span>
@@ -1076,9 +1076,9 @@ export function MapPage() {
                 ref={filterButtonRef}
                 type="button"
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
-                className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#99c4cb] focus-visible:ring-offset-2 ${
+                className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
-                    ? 'border-[#1f241f] bg-[#1f241f] text-white'
+                    ? 'border-brand-dark bg-brand-dark text-white'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                 }`}
                 aria-label="Filter menders"
@@ -1131,7 +1131,7 @@ export function MapPage() {
                   >
                     <span
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[var(--color-pin)]' : 'bg-[var(--mm-border-strong)] opacity-0 group-hover:opacity-30'}`}
+                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-brand-dark' : 'bg-[var(--mm-border-strong)] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
                       <div className="flex items-baseline justify-between gap-2">
@@ -1198,7 +1198,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders..."
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus:border-[#99c4cb] focus:outline-none focus:ring-2 focus:ring-[#99c4cb]/30"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </div>
             <button
@@ -1264,7 +1264,7 @@ export function MapPage() {
                               aria-pressed={checked}
                               className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs font-medium leading-tight transition-colors ${
                                 checked
-                                  ? 'border-[#1f241f] bg-[#1f241f] text-white'
+                                  ? 'border-brand-dark bg-brand-dark text-white'
                                   : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                               }`}
                             >
@@ -1295,7 +1295,7 @@ export function MapPage() {
             <button
               onClick={locateUser}
               disabled={findingLocation}
-              className="mymenders-cloth-panel flex h-11 w-[116px] items-center justify-center rounded-full border bg-cloth px-4 text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-70"
+              className="mymenders-cloth-panel flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
               title="Near me"
               aria-label="Find nearby menders"
             >
@@ -1305,7 +1305,7 @@ export function MapPage() {
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex h-11 w-[148px] items-center justify-center rounded-full bg-[#1f241f] px-4 text-white transition-colors hover:bg-[#343a33]"
+              className="flex h-11 w-[148px] items-center justify-center rounded-full bg-brand-dark px-4 text-white transition-colors hover:bg-brand-dark-hover"
               title="Add Mender"
               aria-label="Add mender"
             >

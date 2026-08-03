@@ -118,7 +118,7 @@ const selectStyles = {
   multiValueRemove: (base: any) => ({
     ...base,
     borderRadius: '0 999px 999px 0',
-    '&:hover': { backgroundColor: '#1f241f', color: '#ffffff' },
+    '&:hover': { backgroundColor: '#1a2e45', color: '#ffffff' },
   }),
   placeholder: (base: any) => ({ ...base, color: '#8a877d' }),
   singleValue: (base: any) => ({ ...base, color: '#171b17' }),
@@ -733,7 +733,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </button>
                 <button
                   type="submit"
-                  className="h-10 flex-1 rounded-full bg-[#1f241f] px-5 text-sm font-medium text-white transition-colors hover:bg-[#343a33]"
+                  className="h-10 flex-1 rounded-full bg-brand-dark px-5 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
                 >
                   Submit for review
                 </button>

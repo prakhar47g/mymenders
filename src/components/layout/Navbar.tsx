@@ -6,7 +6,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-[#fafafa]/95 backdrop-blur-sm">
+    <nav className="fixed top-0 left-0 right-0 z-[1000] border-b border-brand-dark/10 bg-[#fafafa]/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">

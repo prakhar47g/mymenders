@@ -56,21 +56,25 @@ const PIN_COLOR_MAP: Record<string, string> = {
   default: '#4A9FE0',
 };
 const pinImageId = (color: string) => `vendor-pin-${color.replace('#', '').toLowerCase()}`;
-// The 96-unit image body renders at 28px (logical size 48 × pixelRatio), matching the revolution pin exactly.
-const VENDOR_PIN_ICON_SIZE = 28 / 48;
+const VENDOR_PIN_CANVAS_HEIGHT = 64;
+const VENDOR_PIN_TIP_Y = 28 + 14 * Math.SQRT2;
+const VENDOR_PIN_TIP_OFFSET = VENDOR_PIN_CANVAS_HEIGHT - VENDOR_PIN_TIP_Y;
 
-// Pin in the style of the revolution project: a circle with a short rounded
-// point at the bottom (border-radius 50% 50% 50% 4px, rotated -45°), white
-// border + center dot, soft drop shadow under the point. One rasterized image
-// per pin color — white details can't be tinted via SDF `icon-color`, so the
-// color is baked in. Coordinates mirror the revolution shape scaled ×3.43.
+// This is the Revolution marker's 28px square with its asymmetric corner
+// radii rotated -45 degrees. It is rendered at 2x for crisp MapLibre symbols;
+// the white border, center, and shadow require one baked image per pin color.
 const buildVendorPinSvg = (color: string) => `
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="132" viewBox="0 0 96 132">
-  <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6.5"/></filter></defs>
-  <ellipse cx="48" cy="110" rx="19" ry="6" fill="rgba(32,40,36,.3)" filter="url(#s)"/>
-  <path fill="#ffffff" d="M14.06 81.9 L38.4 106.3 C38.4 109.5 44 110.2 48 110.2 C52 110.2 57.6 109.5 57.6 106.3 L81.9 81.9 C90.9 72.9 96 60.7 96 48 C96 21.5 74.5 0 48 0 C21.5 0 0 21.5 0 48 C0 60.7 5.06 72.9 14.06 81.9 Z"/>
-  <path fill="${color}" d="M18.9 77.1 L39.8 98 C39.8 100.7 44 101.3 48 101.3 C52 101.3 56.2 100.7 56.2 98 L77.1 77.1 C84.8 69.4 96 58.9 96 48 C96 25.3 70.7 6.9 48 6.9 C25.3 6.9 0 25.3 0 48 C0 58.9 11.2 69.4 18.9 77.1 Z"/>
-  <circle cx="48" cy="48" r="12" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="128" viewBox="0 0 56 64">
+  <defs>
+    <filter id="shadow" filterUnits="userSpaceOnUse" x="-12" y="-12" width="52" height="56" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#202824" flood-opacity=".32"/>
+    </filter>
+  </defs>
+  <g transform="translate(28 28) rotate(-45) translate(-14 -14)">
+    <path fill="#ffffff" filter="url(#shadow)" d="M14 0 C21.732 0 28 6.268 28 14 C28 21.732 21.732 28 14 28 H4 C1.791 28 0 26.209 0 24 V14 C0 6.268 6.268 0 14 0 Z"/>
+    <path fill="${color}" d="M14 2 C20.627 2 26 7.373 26 14 C26 20.627 20.627 26 14 26 H4 C2.895 26 2 25.105 2 24 V14 C2 7.373 7.373 2 14 2 Z"/>
+    <circle cx="14" cy="14" r="3.5" fill="#ffffff"/>
+  </g>
 </svg>`;
 
 const parseCoordinate = (value: unknown): number | undefined => {
@@ -561,8 +565,12 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
           pinImageId(PIN_COLOR_MAP['Community Contribution']),
           pinImageId(PIN_COLOR_MAP.default),
         ],
-        'icon-size': VENDOR_PIN_ICON_SIZE,
+        'icon-size': 1,
         'icon-anchor': 'bottom',
+        // The bitmap keeps room for the CSS-equivalent shadow below the tip.
+        // Offset that padding so the pointed corner, not the image edge, is
+        // anchored to the vendor's exact coordinate.
+        'icon-offset': [0, VENDOR_PIN_TIP_OFFSET],
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
       },

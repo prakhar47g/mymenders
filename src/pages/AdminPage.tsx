@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, LogOut, MapPin, Pencil, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Check, LogOut, MapPin, Pencil, Search, ShieldCheck } from 'lucide-react';
 import type { Vendor } from '../types';
+import { BrandLogo } from '../components/BrandLogo';
 import { MenderEditor } from '../components/MenderEditor';
 
 const api = async (path: string, init?: RequestInit) => { const response = await fetch(`/api/admin/${path}`, { credentials: 'include', ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } }); if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || 'Request failed'); return response.json(); };
@@ -11,18 +12,19 @@ export function AdminPage() {
   const [checking, setChecking] = useState(true);
   useEffect(() => { api('auth/me').then((me) => setUsername(me.username)).catch(() => setUsername(null)).finally(() => setChecking(false)); }, []);
   if (checking) return <div className="min-h-screen bg-[#f5f6f8] p-8 text-sm text-[#68665f]">Checking admin access…</div>;
-  return username ? <AdminShell username={username} onLogout={async () => { await api('auth/logout', { method: 'POST' }); setUsername(null); }} /> : <Login onLogin={setUsername} />;
+  return username ? <AdminShell onLogout={async () => { await api('auth/logout', { method: 'POST' }); setUsername(null); }} /> : <Login onLogin={setUsername} />;
 }
 
 function Login({ onLogin }: { onLogin: (username: string) => void }) { const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const submit = async (e: React.FormEvent) => { e.preventDefault(); setError(''); try { const me = await api('auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }); onLogin(me.username); } catch (err) { setError(err instanceof Error ? err.message : 'Unable to sign in'); } }; return <div className="flex min-h-screen items-center justify-center bg-brand-dark px-5"><form onSubmit={submit} className="w-full max-w-sm bg-[#fafafa] p-8 shadow-2xl"><div className="mb-8 flex items-center gap-3"><ShieldCheck className="h-8 w-8 shrink-0 text-[#6eb7b0]" aria-hidden="true" /><h1 className="text-3xl">Admin sign in</h1></div><label className="mb-4 block text-sm">Username<input className="mymenders-field mt-1 w-full border px-3 py-2" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" /></label><label className="mb-5 block text-sm">Password<input type="password" className="mymenders-field mt-1 w-full border px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></label>{error && <p className="mb-4 text-sm text-[#a04b35]">{error}</p>}<button className="w-full bg-brand-dark px-4 py-3 text-sm font-medium text-white">Sign in</button></form></div>; }
 
-function AdminShell({ username, onLogout }: { username: string; onLogout: () => void }) { const location = useLocation(); const isEditor = /^\/admin\/menders\/\d+/.test(location.pathname); return <div className="min-h-screen bg-[#f5f6f8] text-[#171b17]"><header className="flex h-16 items-center justify-between border-b border-[#dfe3e4] bg-[#fafafa] px-5 md:px-10"><Link to="/admin" className="text-xl tracking-tight mymenders-logo-font">My Mender <span className="text-[#8a877d]">/ Admin</span></Link><div className="flex items-center gap-4 text-sm"><span className="hidden text-[#68665f] sm:inline">{username}</span><button onClick={onLogout} className="flex items-center gap-2 text-[#68665f] hover:text-[#171b17]"><LogOut size={16} /> Log out</button></div></header>{isEditor ? <AdminEditor /> : <AdminList />}</div>; }
+function AdminShell({ onLogout }: { onLogout: () => void }) { const location = useLocation(); const isEditor = /^\/admin\/menders\/\d+/.test(location.pathname); return <div className="min-h-screen bg-[#f5f6f8] text-[#171b17]"><header className="flex h-16 items-center justify-between border-b border-[#dfe3e4] bg-[#fafafa] px-5 md:px-10"><Link to="/admin" className="flex items-center gap-3 text-xl tracking-tight mymenders-logo-font"><BrandLogo className="h-6 w-6" color="#171b17" />My Mender <span className="font-mono font-light normal-case text-[#8a877d]">admin</span></Link><div className="flex items-center gap-4 text-sm"><button onClick={onLogout} className="flex items-center gap-2 text-[#68665f] hover:text-[#171b17]"><LogOut size={16} /> Log out</button></div></header>{isEditor ? <AdminEditor /> : <AdminList />}</div>; }
 
 function AdminList() {
   const [menders, setMenders] = useState<Vendor[]>([]);
   const [error, setError] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<Array<'draft' | 'active'>>(['draft', 'active']);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const load = () => api('menders').then(setMenders).catch((e) => setError(e.message));
 
   useEffect(() => { void load(); }, []);
@@ -38,9 +40,12 @@ function AdminList() {
       current.includes(status) ? current.filter((item) => item !== status) : [...current, status],
     );
   };
-  const visibleMenders = menders.filter((mender) =>
-    selectedStatuses.includes(mender.status === 'draft' ? 'draft' : 'active'),
-  );
+  const visibleMenders = menders.filter((mender) => {
+    const matchesStatus = selectedStatuses.includes(mender.status === 'draft' ? 'draft' : 'active');
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = !query || [mender.name, mender.address, mender.category].some((field) => field?.toLowerCase().includes(query));
+    return matchesStatus && matchesSearch;
+  });
 
   return <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
     <div className="mb-8 flex items-center justify-between gap-4">
@@ -64,6 +69,17 @@ function AdminList() {
       </div>
     </div>
     {error && <p className="mb-4 text-sm text-[#a04b35]">{error}</p>}
+    <div className="relative mb-4">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]" aria-hidden="true" />
+      <input
+        type="search"
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        placeholder="Search menders by name, location or category…"
+        aria-label="Search menders"
+        className="w-full rounded-full border border-[#dfe3e4] bg-white py-2.5 pl-9 pr-4 text-sm text-[#3d403b] placeholder:text-[#8a877d] focus:border-brand-dark focus:outline-none focus:ring-2 focus:ring-brand/40"
+      />
+    </div>
     <div className="overflow-hidden border border-[#dfe3e4] bg-white">
       {visibleMenders.map((mender) => <Link key={mender.id} to={`/admin/menders/${mender.id}`} className="flex min-h-[86px] items-center justify-between gap-4 border-b border-[#e9ecec] px-4 py-3 transition-colors last:border-0 hover:bg-[#f7faf9]">
         <div className="min-w-0">
@@ -76,7 +92,7 @@ function AdminList() {
         {mender.status === 'draft' && <button type="button" onClick={(e) => activate(e, mender.id)} className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand-dark px-3.5 py-2 text-xs text-white"><Check size={14} /> Activate</button>}
         {mender.status !== 'draft' && <Pencil size={17} className="shrink-0 text-[#8a877d]" />}
       </Link>)}
-      {!visibleMenders.length && <p className="px-4 py-8 text-sm text-[#68665f]">No menders match these statuses.</p>}
+      {!visibleMenders.length && <p className="px-4 py-8 text-sm text-[#68665f]">No menders match your search or statuses.</p>}
     </div>
   </main>;
 }

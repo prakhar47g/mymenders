@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Map as MapIcon, Info, Menu, X } from 'lucide-react';
+import { BrandLogo } from '../BrandLogo';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,11 +12,7 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
-              <svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="10" width="20" height="80" fill="#fafafa" />
-                <rect x="40" y="10" width="20" height="80" fill="#fafafa" />
-                <rect x="70" y="10" width="20" height="80" fill="#fafafa" />
-              </svg>
+              <BrandLogo />
               <span className="text-2xl tracking-tight text-white mymenders-logo-font">My Mender</span>
             </NavLink>
           </div>

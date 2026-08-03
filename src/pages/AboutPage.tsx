@@ -15,7 +15,7 @@ export function AboutPage() {
   const logoClassName = "w-40 h-20 bg-transparent rounded bg-contain bg-no-repeat bg-center mix-blend-multiply grayscale hover:grayscale-0 transition-all duration-200";
 
   return (
-    <div className="min-h-screen bg-transparent pt-16 text-[var(--mm-text)]">
+    <div className="min-h-screen bg-[#f5f6f8] pt-16 text-[var(--mm-text)]">
       <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-4xl px-4 pb-16 pt-20 sm:px-6 lg:px-8">
 
         {/* Mission Section */}

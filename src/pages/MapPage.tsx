@@ -34,7 +34,8 @@ import {
 const DEFAULT_CENTER: [number, number] = [20, 0]; // [lat, lng]
 const GLOBAL_ZOOM = 2.5;
 const LOCAL_ZOOM = 15;
-const AUTO_CENTER_TO_FIRST_VENDOR = false;
+const CITY_ZOOM = 12.5;
+const AUTO_CENTER_TO_FIRST_VENDOR = true;
 const DEFAULT_ENTRY_LEVEL = 'Verified Mender';
 const VENDOR_SOURCE_ID = 'vendors';
 const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
@@ -967,7 +968,7 @@ export function MapPage() {
 
     map.flyTo({
       center: toLngLat(validVendor.latitude, validVendor.longitude),
-      zoom: LOCAL_ZOOM,
+      zoom: CITY_ZOOM,
       duration: 1200,
     });
     hasAutoCentered.current = true;
@@ -982,6 +983,23 @@ export function MapPage() {
       duration: 900,
     });
   }, [centerMapTo, isMapReady]);
+
+  // Default to the user's city instead of the globe; the globe button in the
+  // bottom-right controls is still there for anyone who wants it.
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nextLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+        setUserLocation(nextLocation);
+        setCenterMapTo({ lat: nextLocation.lat, lng: nextLocation.lng, zoom: CITY_ZOOM });
+      },
+      (error) => {
+        // Fall back to the first vendor's city (AUTO_CENTER_TO_FIRST_VENDOR).
+        console.error('Error auto-locating on load:', error);
+      },
+    );
+  }, []);
 
   const locateUser = () => {
     setFindingLocation(true);

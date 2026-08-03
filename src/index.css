@@ -23,8 +23,15 @@
   --color-brand: #b8dceb;
   --color-brand-hover: #9ac8db;
   --color-brand-light: #e6f3f8;
-  --color-brand-dark: #1a2e45;
+  --color-brand-dark: #142538;
   --color-brand-dark-hover: #2b3f58;
+}
+
+body {
+  /* Dark base so the hero video has no white flash behind it when the
+     page bounces at the top (rubber-band overscroll) or scrolls under
+     the navbar. Sections that need a light backdrop set their own bg. */
+  background-color: #171b17;
 }
 
 :root {

@@ -61,6 +61,27 @@ body {
   line-height: 1.45;
 }
 
+/* The footer mark is cut from the same navy as its surface. The dark inner
+   gradient creates depth; opposing edge shadows describe a recessed groove
+   catching a small amount of light from above. */
+.footer-engraved-logo {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  grid-template-columns: repeat(3, 12px);
+  align-items: stretch;
+  gap: 6px;
+}
+
+.footer-engraved-logo > span {
+  background: #0c1d2b;
+  box-shadow:
+    inset 1px 1px 0 rgba(0, 0, 0, 0.5),
+    inset -1px -1px 0 rgba(184, 220, 235, 0.085),
+    -1px -1px 0 rgba(0, 0, 0, 0.22),
+    1px 1px 0 rgba(255, 255, 255, 0.06);
+}
+
 @layer base {
   h1,
   h2,

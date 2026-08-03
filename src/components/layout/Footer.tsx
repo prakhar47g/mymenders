@@ -42,12 +42,10 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-10 md:flex-row md:items-start">
           <div>
-            <div className="flex items-center">
-              <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="10" y="10" width="20" height="80" fill="#fafafa" />
-                <rect x="40" y="10" width="20" height="80" fill="#fafafa" />
-                <rect x="70" y="10" width="20" height="80" fill="#fafafa" />
-              </svg>
+            <div className="footer-engraved-logo" aria-hidden="true">
+              <span />
+              <span />
+              <span />
             </div>
             <p className="mt-3 max-w-xs text-sm font-light leading-[1.5] text-white/50">
               A map of the people who repair the things you love.

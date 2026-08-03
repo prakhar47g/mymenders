@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Map as MapIcon, Navigation, Plus, Search } from 'lucide-react';
-import heroVideo from '@/vid1.mp4';
 
 const steps = [
   {
@@ -62,7 +61,7 @@ export function HomePage() {
       <section className="relative h-screen overflow-hidden">
         <div className="absolute inset-0 bg-[#171b17]">
           <video
-            src={heroVideo}
+            src="https://eoxot1zisi65zkqg.public.blob.vercel-storage.com/vid1.mp4"
             autoPlay
             muted
             loop

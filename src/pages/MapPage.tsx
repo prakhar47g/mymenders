@@ -42,6 +42,7 @@ const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
 const UNCLUSTERED_LAYER_ID = 'vendor-points';
 const ADDRESS_PLACEHOLDER = 'address not available';
+const MAP_CARD_WIDTH_PX = 360;
 const BASEMAP_STYLES = [
   { id: 'positron', label: 'Positron', styleUrl: 'https://tiles.openfreemap.org/styles/positron' },
   { id: 'bright', label: 'Bright', styleUrl: 'https://tiles.openfreemap.org/styles/bright' },
@@ -296,9 +297,15 @@ const buildTagRow = (
 
   const tags = document.createElement('div');
   tags.className = 'flex flex-wrap gap-1.5';
+  const chipVariant =
+    group === 'categories'
+      ? 'mymenders-cloth-chip--categories'
+      : group === 'regional_techniques'
+        ? 'mymenders-cloth-chip--techniques'
+        : '';
   items.forEach((tag) => {
     const chip = document.createElement('span');
-    chip.className = 'mymenders-cloth-chip inline-flex items-center gap-1 px-2 py-0.5 text-[11px]';
+    chip.className = `mymenders-cloth-chip ${chipVariant} inline-flex items-center gap-1 px-2 py-0.5 text-[11px]`;
     chip.textContent = getTaxonomyLabel(group, tag);
     tags.append(chip);
   });
@@ -324,8 +331,9 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
 
 const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void) => {
   const container = document.createElement('div');
-  container.className = 'box-border min-w-[244px] max-w-[calc(100vw-40px)] p-3 pr-4';
-  container.style.maxWidth = 'min(504px, calc(100vw - 40px))';
+  container.className = 'box-border p-3 pr-4';
+  // Standard card width; only shrinks on narrow screens so it never overflows the viewport.
+  container.style.width = `min(${MAP_CARD_WIDTH_PX}px, calc(100vw - 40px))`;
 
   const title = document.createElement('h3');
   title.className =
@@ -697,7 +705,7 @@ export function MapPage() {
     }
 
     popupRef.current?.remove();
-    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: '504px' })
+    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: `${MAP_CARD_WIDTH_PX}px` })
       .setLngLat(coordinates)
       .setDOMContent(
         buildPopoverContent(resolvedVendor, (selectedVendor) => {
@@ -1155,7 +1163,7 @@ export function MapPage() {
                 const coordinates = getVendorCoordinates(vendor);
                 const isActive = selectedVendorId === vendor.id;
                 const isClickable = Boolean(coordinates);
-                const types = getVendorFilterValues(vendor, 'types');
+                const categories = getVendorFilterValues(vendor, 'categories');
                 const techniques = getVendorFilterValues(vendor, 'regional_techniques');
                 const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
 
@@ -1194,14 +1202,14 @@ export function MapPage() {
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{vendor.address || 'Address unavailable'}</span>
                       </p>
-                      {!!types.length ? (
+                      {!!categories.length ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
-                          {types.map((type) => (
+                          {categories.map((category) => (
                             <span
-                              key={`${vendor.id}-type-${type}`}
-                              className="rounded-full border border-[var(--mm-border)] bg-[var(--mm-panel-muted)] px-2 py-0.5 text-[10px] font-medium text-[var(--mm-muted)]"
+                              key={`${vendor.id}-category-${category}`}
+                              className="mymenders-cloth-chip--categories rounded-full px-2 py-0.5 text-[10px] font-medium"
                             >
-                              {getTaxonomyLabel('types', type)}
+                              {getTaxonomyLabel('categories', category)}
                             </span>
                           ))}
                         </div>
@@ -1211,7 +1219,7 @@ export function MapPage() {
                           {techniques.map((technique) => (
                             <span
                               key={`${vendor.id}-technique-${technique}`}
-                              className="rounded-full border border-[var(--mm-border)] bg-[var(--mm-panel)] px-2 py-0.5 text-[10px] font-medium text-[var(--mm-muted)]"
+                              className="mymenders-cloth-chip--techniques rounded-full px-2 py-0.5 text-[10px] font-medium"
                             >
                               {getTaxonomyLabel('regional_techniques', technique)}
                             </span>

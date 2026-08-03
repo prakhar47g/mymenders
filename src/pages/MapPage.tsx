@@ -51,12 +51,27 @@ const BASEMAP_STYLES = [
 ] as const;
 const DEFAULT_BASEMAP_STYLE_ID = 'bright';
 const PIN_COLOR_MAP: Record<string, string> = {
-  'Verified Mender': '#2A9D8F',
-  'Community Contribution': '#F4A261',
-  default: '#B8DCEB',
+  'Verified Mender': '#E8503F',
+  'Community Contribution': '#FFC93C',
+  default: '#4A9FE0',
 };
-const VENDOR_PIN_IMAGE_ID = 'vendor-pin-2';
-const VENDOR_PIN_IMAGE_URL = '/map-pin2.svg';
+const pinImageId = (color: string) => `vendor-pin-${color.replace('#', '').toLowerCase()}`;
+// The 96-unit image body renders at 28px (logical size 48 × pixelRatio), matching the revolution pin exactly.
+const VENDOR_PIN_ICON_SIZE = 28 / 48;
+
+// Pin in the style of the revolution project: a circle with a short rounded
+// point at the bottom (border-radius 50% 50% 50% 4px, rotated -45°), white
+// border + center dot, soft drop shadow under the point. One rasterized image
+// per pin color — white details can't be tinted via SDF `icon-color`, so the
+// color is baked in. Coordinates mirror the revolution shape scaled ×3.43.
+const buildVendorPinSvg = (color: string) => `
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="132" viewBox="0 0 96 132">
+  <defs><filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6.5"/></filter></defs>
+  <ellipse cx="48" cy="110" rx="19" ry="6" fill="rgba(32,40,36,.3)" filter="url(#s)"/>
+  <path fill="#ffffff" d="M14.06 81.9 L38.4 106.3 C38.4 109.5 44 110.2 48 110.2 C52 110.2 57.6 109.5 57.6 106.3 L81.9 81.9 C90.9 72.9 96 60.7 96 48 C96 21.5 74.5 0 48 0 C21.5 0 0 21.5 0 48 C0 60.7 5.06 72.9 14.06 81.9 Z"/>
+  <path fill="${color}" d="M18.9 77.1 L39.8 98 C39.8 100.7 44 101.3 48 101.3 C52 101.3 56.2 100.7 56.2 98 L77.1 77.1 C84.8 69.4 96 58.9 96 48 C96 25.3 70.7 6.9 48 6.9 C25.3 6.9 0 25.3 0 48 C0 58.9 11.2 69.4 18.9 77.1 Z"/>
+  <circle cx="48" cy="48" r="12" fill="#ffffff"/>
+</svg>`;
 
 const parseCoordinate = (value: unknown): number | undefined => {
   const parsed = Number(value);
@@ -437,16 +452,14 @@ const applyEnglishLabelOverrides = (map: maplibregl.Map) => {
   });
 };
 
-const ensureVendorPinImage = async (map: maplibregl.Map) => {
-  if (map.hasImage(VENDOR_PIN_IMAGE_ID)) return;
-
+const rasterizeVendorPinSvg = async (svgMarkup: string) => {
   // MapLibre's built-in loadImage intentionally does not support SVG files.
   // Rasterize our source SVG in-browser, then register the resulting pixels.
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const element = new Image();
     element.onload = () => resolve(element);
-    element.onerror = () => reject(new Error(`Failed to load ${VENDOR_PIN_IMAGE_URL}`));
-    element.src = VENDOR_PIN_IMAGE_URL;
+    element.onerror = () => reject(new Error('Failed to rasterize the vendor map pin SVG'));
+    element.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}`;
   });
 
   const canvas = document.createElement('canvas');
@@ -456,15 +469,22 @@ const ensureVendorPinImage = async (map: maplibregl.Map) => {
   if (!context) throw new Error('Unable to create a canvas for the vendor map pin');
 
   context.drawImage(image, 0, 0);
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  return context.getImageData(0, 0, canvas.width, canvas.height);
+};
 
-  if (!map.hasImage(VENDOR_PIN_IMAGE_ID)) {
-    map.addImage(VENDOR_PIN_IMAGE_ID, imageData, { pixelRatio: 2, sdf: true });
+const ensureVendorPinImages = async (map: maplibregl.Map) => {
+  for (const color of Object.values(PIN_COLOR_MAP)) {
+    const id = pinImageId(color);
+    if (map.hasImage(id)) continue;
+    const imageData = await rasterizeVendorPinSvg(buildVendorPinSvg(color));
+    if (!map.hasImage(id)) {
+      map.addImage(id, imageData, { pixelRatio: 2 });
+    }
   }
 };
 
 const ensureVendorLayers = async (map: maplibregl.Map) => {
-  await ensureVendorPinImage(map);
+  await ensureVendorPinImages(map);
 
   if (!map.getSource(VENDOR_SOURCE_ID)) {
     map.addSource(VENDOR_SOURCE_ID, {
@@ -486,11 +506,11 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
         'circle-color': [
           'step',
           ['get', 'point_count'],
-          '#B8DCEB',
+          '#A8D4F5',
           10,
-          '#6EB7B0',
+          '#6FB7E8',
           25,
-          '#2A9D8F',
+          '#3E92CC',
         ],
         'circle-radius': [
           'step',
@@ -532,17 +552,19 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
       source: VENDOR_SOURCE_ID,
       filter: ['!', ['has', 'point_count']],
       layout: {
-        'icon-image': VENDOR_PIN_IMAGE_ID,
-        'icon-size': 0.75,
+        'icon-image': [
+          'match',
+          ['get', 'pinColor'],
+          PIN_COLOR_MAP['Verified Mender'],
+          pinImageId(PIN_COLOR_MAP['Verified Mender']),
+          PIN_COLOR_MAP['Community Contribution'],
+          pinImageId(PIN_COLOR_MAP['Community Contribution']),
+          pinImageId(PIN_COLOR_MAP.default),
+        ],
+        'icon-size': VENDOR_PIN_ICON_SIZE,
         'icon-anchor': 'bottom',
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
-      },
-      paint: {
-        'icon-color': ['coalesce', ['get', 'pinColor'], PIN_COLOR_MAP.default],
-        'icon-halo-color': '#ffffff',
-        'icon-halo-width': 1,
-        'icon-halo-blur': 0,
       },
     });
   }

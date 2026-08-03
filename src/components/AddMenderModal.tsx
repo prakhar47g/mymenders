@@ -459,13 +459,18 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
 
   const modalContent = (
     <div className="fixed inset-0 z-[3200] flex items-center justify-center bg-[#171b17]/36 p-3 backdrop-blur-sm sm:p-4">
-      <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] border border-[#e5e7eb] bg-[#f5f6f8] shadow-[0_14px_32px_rgba(15,23,42,0.12)] animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex max-h-[min(90vh,820px)] w-[min(94vw,920px)] flex-col overflow-hidden rounded-[1.125rem] bg-[#f5f6f8] shadow-[0_14px_32px_rgba(15,23,42,0.12)] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-[#fafafa] px-5 py-3">
-          <h2 className="text-base font-semibold leading-none text-[#171b17] mymenders-heading-font">Add a Mender</h2>
+        <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-brand-dark px-5 py-3">
+          <h2
+            style={{ fontWeight: 700, fontVariationSettings: '"wght" 700' }}
+            className="mymenders-card-title-semi text-base uppercase leading-none tracking-wide text-white"
+          >
+            Add a Mender
+          </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
+            className="rounded-full p-1 text-[#c9cdd4] transition-colors hover:bg-[#2b3f58] hover:text-white"
           >
             <X className="w-5 h-5" />
           </button>

@@ -23,19 +23,23 @@ export function Navbar() {
           <div className="hidden md:flex h-16 items-stretch gap-5">
             <NavLink
               to="/map"
-              className={({ isActive }) =>
-                `relative inline-flex items-center justify-center px-4 text-sm font-medium transition-colors hover:text-white ${isActive ? 'text-white' : 'text-white/70'}`
-              }
+              className="group relative inline-flex items-center justify-center px-4 text-sm font-medium text-white"
             >
-              Map
+              {({ isActive }) => (
+                <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                  Map
+                </span>
+              )}
             </NavLink>
             <NavLink
               to="/about"
-              className={({ isActive }) =>
-                `relative inline-flex items-center justify-center px-4 text-sm font-medium transition-colors hover:text-white ${isActive ? 'text-white' : 'text-white/70'}`
-              }
+              className="group relative inline-flex items-center justify-center px-4 text-sm font-medium text-white"
             >
-              About
+              {({ isActive }) => (
+                <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                  About
+                </span>
+              )}
             </NavLink>
           </div>
 
@@ -56,20 +60,26 @@ export function Navbar() {
             <NavLink
               to="/map"
               onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                `block rounded-xl px-3 py-2 text-sm font-medium ${isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`
-              }
+              className="group block rounded-xl px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
             >
-              <div className="flex items-center gap-2"><MapIcon className="w-5 h-5" /> Map</div>
+              {({ isActive }) => (
+                <div className="flex items-center gap-2">
+                  <MapIcon className="h-5 w-5" />
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>Map</span>
+                </div>
+              )}
             </NavLink>
             <NavLink
               to="/about"
               onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                `block rounded-xl px-3 py-2 text-sm font-medium ${isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`
-              }
+              className="group block rounded-xl px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
             >
-              <div className="flex items-center gap-2"><Info className="w-5 h-5" /> About</div>
+              {({ isActive }) => (
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>About</span>
+                </div>
+              )}
             </NavLink>
           </div>
         </div>

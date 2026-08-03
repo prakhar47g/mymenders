@@ -148,6 +148,13 @@ body {
   box-shadow: 0 0 0 3px var(--mm-focus);
 }
 
+/* Admin fields use a monochrome focus ring instead of the brand-tinted one
+   (defined after the base rule so it wins the cascade). */
+.mymenders-field--mono:focus {
+  border-color: #333;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+}
+
 /* Leaflet map default height */
 .leaflet-container {
   width: 100%;

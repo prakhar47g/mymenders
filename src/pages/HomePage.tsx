@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Map as MapIcon, Navigation, Plus, Search } from 'lucide-react';
+import { ArrowRight, Navigation, Plus, Search } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 
 const steps = [
@@ -52,9 +52,13 @@ export function HomePage() {
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             <Link
               to="/map"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover"
+              className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-brand py-1 pl-1 pr-6 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover"
             >
-              <MapIcon className="h-4 w-4" aria-hidden="true" />
+              <img
+                src="/images/explore-map-thumb.jpg"
+                alt=""
+                className="h-10 w-10 rounded-full object-cover"
+              />
               Explore the map
             </Link>
             <Link

@@ -6,18 +6,18 @@ import { getGroupedTaxonomyOptions, getTaxonomyOptions } from '../../shared/vend
 type Props = { value: Vendor; saving?: boolean; onSave: (value: Vendor) => void; onCancel?: () => void };
 type Option = { value: string; label: string };
 type CategoryGroup = GroupBase<Option>;
-const inputClass = 'mymenders-field w-full border px-3 py-2 text-sm outline-none';
+const inputClass = 'mymenders-field mymenders-field--mono w-full border px-3 py-2 text-sm outline-none';
 const taxonomy = (group: string) => getTaxonomyOptions(group).map((item) => ({ value: item.id, label: item.label }));
 const categoryOptions: CategoryGroup[] = getGroupedTaxonomyOptions('categories').map((group) => ({ label: group.label, options: group.options.map((item) => ({ value: item.id, label: item.label })) }));
 const selectStyles = {
-  control: (base: any) => ({ ...base, backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderRadius: '0.625rem', minHeight: '2.5rem', fontSize: '0.8125rem', boxShadow: 'none', '&:hover': { borderColor: '#d1d5db' } }),
+  control: (base: any) => ({ ...base, backgroundColor: '#ffffff', borderColor: '#d5d5d5', borderRadius: '0.625rem', minHeight: '2.5rem', fontSize: '0.8125rem', boxShadow: 'none', '&:hover': { borderColor: '#aaa' } }),
   menu: (base: any) => ({ ...base, backgroundColor: '#ffffff', borderRadius: '0.75rem', boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)', fontSize: '0.875rem', overflow: 'hidden', zIndex: 50 }),
   menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
-  multiValue: (base: any) => ({ ...base, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '999px' }),
-  multiValueLabel: (base: any) => ({ ...base, color: '#3d403b', fontSize: '0.75rem', padding: '0.125rem 0.5rem' }),
-  multiValueRemove: (base: any) => ({ ...base, '&:hover': { backgroundColor: '#1a2e45', color: '#ffffff' } }),
-  placeholder: (base: any) => ({ ...base, color: '#8a877d' }),
-  option: (base: any, state: any) => ({ ...base, backgroundColor: state.isFocused || state.isSelected ? '#f3f4f6' : '#ffffff', color: '#171b17', '&:active': { backgroundColor: '#e5e7eb' } }),
+  multiValue: (base: any) => ({ ...base, backgroundColor: '#f5f5f5', border: '1px solid #e0e0e0', borderRadius: '999px' }),
+  multiValueLabel: (base: any) => ({ ...base, color: '#555', fontSize: '0.75rem', padding: '0.125rem 0.5rem' }),
+  multiValueRemove: (base: any) => ({ ...base, '&:hover': { backgroundColor: '#0a0a0a', color: '#ffffff' } }),
+  placeholder: (base: any) => ({ ...base, color: '#999' }),
+  option: (base: any, state: any) => ({ ...base, backgroundColor: state.isFocused || state.isSelected ? '#f5f5f5' : '#ffffff', color: '#111', '&:active': { backgroundColor: '#e0e0e0' } }),
 };
 
 export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
@@ -46,7 +46,7 @@ export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
       </div>
     </div>
     <Field label="Review / notes"><textarea rows={4} className={inputClass} value={form.review_text || ''} onChange={(e) => set('review_text', e.target.value)} /></Field>
-    <div className="flex gap-3 border-t border-[#e5e7eb] pt-5"><button type="submit" disabled={saving} className="rounded-full bg-brand-dark px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="rounded-full border border-[#d1d5db] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
+    <div className="flex gap-3 border-t border-[#e5e5e5] pt-5"><button type="submit" disabled={saving} className="rounded-full bg-[#0a0a0a] px-5 py-2.5 text-sm font-medium text-white hover:bg-black disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="rounded-full border border-[#d5d5d5] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
   </form>;
 }
 

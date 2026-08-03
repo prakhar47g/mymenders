@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 @theme {
-  --heading-font: "Unbounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --heading-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --body-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --field-label-font: "Zalando Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --logo-font: "Unbounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -15,6 +15,7 @@
   --body-font-stretch: 99%;
   --field-label-font-stretch: 100%;
   --font-sans: var(--body-font);
+  --font-display: "Unbounded", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --color-backdrop: #f5f6f8;
   --color-cloth: #fafafa;
   --color-stitch: #c46a3d;

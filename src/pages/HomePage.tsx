@@ -73,7 +73,7 @@ export function HomePage() {
         </div>
 
         <div className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
-          <h1 className="mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-white md:text-7xl">
+          <h1 className="font-display mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-white md:text-7xl">
             We love your clothes
             <br />
             like you do.
@@ -110,7 +110,7 @@ export function HomePage() {
               <div className="mymenders-cloth-panel flex h-14 w-14 items-center justify-center rounded-full border bg-cloth text-[#2f3e39]">
                 <Icon className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h3 className="mymenders-card-title-light font-normal! mt-5 text-xl text-[#171b17]">{title}</h3>
+              <h3 className="font-display mymenders-card-title-light font-normal! mt-5 text-xl text-[#171b17]">{title}</h3>
               <p className="mt-2 text-sm leading-[1.5] text-[#68665f]">{body}</p>
             </div>
           ))}

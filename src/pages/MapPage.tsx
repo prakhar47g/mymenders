@@ -278,7 +278,7 @@ const buildTagRow = (
   tags.className = 'flex flex-wrap gap-1.5';
   items.forEach((tag) => {
     const chip = document.createElement('span');
-    chip.className = 'inline-flex items-center gap-1 rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[11px] text-[#5f6368]';
+    chip.className = 'mymenders-cloth-chip inline-flex items-center gap-1 px-2 py-0.5 text-[11px]';
     chip.textContent = getTaxonomyLabel(group, tag);
     tags.append(chip);
   });
@@ -288,10 +288,10 @@ const buildTagRow = (
 
 const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
   const row = document.createElement('div');
-  row.className = 'mb-1.5 flex items-start gap-1.5 text-xs text-[#4f4a43]';
+  row.className = 'mb-1.5 flex items-start gap-1.5 text-xs text-[var(--mm-text-soft)]';
 
   const icon = document.createElement('div');
-  icon.className = 'mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[#7b7166]';
+  icon.className = 'mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[var(--mm-muted)]';
   icon.innerHTML = iconMarkup;
 
   const text = document.createElement('span');
@@ -309,12 +309,12 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   const title = document.createElement('h3');
   title.className =
-    'mymenders-card-title-light font-normal! mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[#171b17] capitalize';
+    'mymenders-card-title-light font-normal! mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
   const entry = document.createElement('div');
-  entry.className = 'mt-[-1px] mb-3 text-[10px] font-medium uppercase tracking-[0.05em] text-[#7b8087]';
+  entry.className = 'mt-[-1px] mb-3 text-[10px] font-medium uppercase tracking-[0.05em] text-[var(--mm-muted)]';
   entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
   container.append(entry);
 
@@ -339,7 +339,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   if (vendor.review_text) {
     const review = document.createElement('div');
-    review.className = 'mt-3 text-xs leading-[1.4] text-[#4f4a43]';
+    review.className = 'mt-3 text-xs leading-[1.4] text-[var(--mm-text-soft)]';
     review.innerHTML = `
       <div class="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.04em] text-[#68665f]">
         <span class="inline-flex h-4 w-4 items-center justify-center">${REVIEW_ICON}</span>
@@ -1051,7 +1051,7 @@ export function MapPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[#8a877d] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
+                  className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[var(--mm-faint)] transition-colors hover:bg-[var(--mm-panel-muted)] hover:text-[var(--mm-text)]"
                   aria-label="Clear search"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1079,7 +1079,7 @@ export function MapPage() {
                 className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#99c4cb] focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-[#1f241f] bg-[#1f241f] text-white'
-                    : 'border-dashed border-[#cbd5e1] bg-white text-[#3d403b] hover:border-[#94a3b8] hover:bg-[#f3f4f6]'
+                    : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                 }`}
                 aria-label="Filter menders"
                 aria-expanded={isFilterDrawerOpen}
@@ -1120,29 +1120,29 @@ export function MapPage() {
                       openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
                     }}
                     disabled={!isClickable}
-                    className={`group relative w-full border-b border-[#e5e7eb] last:border-b-0 py-3 pl-3 pr-3 text-left transition ${
+                    className={`group relative w-full border-b border-[var(--mm-border)] last:border-b-0 py-3 pl-3 pr-3 text-left transition ${
                       isActive
-                        ? 'bg-[#e5e7eb]'
+                        ? 'bg-[var(--mm-border)]'
                         : isClickable
-                          ? 'hover:bg-[#f3f4f6]'
-                          : 'bg-white/30 opacity-65'
+                          ? 'hover:bg-[var(--mm-panel-muted)]'
+                          : 'bg-[var(--mm-panel)]/30 opacity-65'
                     }`}
                     title={isClickable ? `Fly to ${vendorName}` : 'Location unavailable'}
                   >
                     <span
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[#6eb7b0]' : 'bg-[#d1d5db] opacity-0 group-hover:opacity-30'}`}
+                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-[var(--color-pin)]' : 'bg-[var(--mm-border-strong)] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="mymenders-card-title-light font-normal! truncate text-sm text-[#171b17]">{vendorName}</p>
+                        <p className="mymenders-card-title-light font-normal! truncate text-sm text-[var(--mm-text)]">{vendorName}</p>
                         {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
-                          <span className="shrink-0 text-[10px] font-medium tabular-nums text-[#94a3b8]">
+                          <span className="shrink-0 text-[10px] font-medium tabular-nums text-[var(--mm-muted)]">
                             {formatDistance(distanceKm)}
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[#64748b]">
+                      <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--mm-muted)]">
                         <MapPin className="w-3 h-3 shrink-0" />
                         <span className="truncate">{vendor.address || 'Address unavailable'}</span>
                       </p>
@@ -1151,7 +1151,7 @@ export function MapPage() {
                           {types.map((type) => (
                             <span
                               key={`${vendor.id}-type-${type}`}
-                              className="rounded-full border border-[#e5e7eb] bg-[#f3f4f6] px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
+                              className="rounded-full border border-[var(--mm-border)] bg-[var(--mm-panel-muted)] px-2 py-0.5 text-[10px] font-medium text-[var(--mm-muted)]"
                             >
                               {getTaxonomyLabel('types', type)}
                             </span>
@@ -1163,7 +1163,7 @@ export function MapPage() {
                           {techniques.map((technique) => (
                             <span
                               key={`${vendor.id}-technique-${technique}`}
-                              className="rounded-full border border-[#e5e7eb] bg-white px-2 py-0.5 text-[10px] font-medium text-[#4b5563]"
+                              className="rounded-full border border-[var(--mm-border)] bg-[var(--mm-panel)] px-2 py-0.5 text-[10px] font-medium text-[var(--mm-muted)]"
                             >
                               {getTaxonomyLabel('regional_techniques', technique)}
                             </span>
@@ -1175,7 +1175,7 @@ export function MapPage() {
                 );
               })
             ) : (
-              <div className="rounded-xl border border-[#e5e7eb] bg-white py-4 pl-3 pr-12 text-sm text-[#64748b]">
+              <div className="rounded-xl border border-[var(--mm-border)] bg-[var(--mm-panel)] py-4 pl-3 pr-12 text-sm text-[var(--mm-muted)]">
                 No menders match your search or filters.
               </div>
             )}
@@ -1243,11 +1243,11 @@ export function MapPage() {
                   return (
                     <section key={key} className="border-b border-[#e5e7eb] py-3 first:pt-0 last:border-b-0">
                       <div className="mb-2 flex items-center justify-between gap-3">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#68665f]">
+                        <h3 className="mymenders-field-label-font text-[11px] uppercase tracking-[0.04em] text-[var(--mm-muted)]">
                           {label}
                         </h3>
                         {selectedFilters[key].length ? (
-                          <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[11px] font-medium text-[#4b5563]">
+                          <span className="rounded-full bg-[var(--mm-panel-muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--mm-muted)]">
                             {selectedFilters[key].length}
                           </span>
                         ) : null}
@@ -1265,7 +1265,7 @@ export function MapPage() {
                               className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs font-medium leading-tight transition-colors ${
                                 checked
                                   ? 'border-[#1f241f] bg-[#1f241f] text-white'
-                                  : 'border-dashed border-[#cbd5e1] bg-white text-[#3d403b] hover:border-[#94a3b8] hover:bg-[#f3f4f6]'
+                                  : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                               }`}
                             >
                               <span className="min-w-0 truncate">{option.label}</span>

@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "node --env-file=.env.local node_modules/vite/bin/vite.js --port=3000 --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview"
-    ,"seed:admin": "node scripts/seed-admin.js"
+    "preview": "vite preview",
+    "seed:admin": "node scripts/seed-admin.js"
   },
   "dependencies": {
     "@fontsource/geist-sans": "^5.2.5",
+    "@fortawesome/free-brands-svg-icons": "^7.3.1",
+    "@fortawesome/react-fontawesome": "^3.5.0",
     "@smastrom/react-rating": "^1.5.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",

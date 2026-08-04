@@ -47,9 +47,6 @@ export function Footer() {
               <span />
               <span />
             </div>
-            <p className="mt-3 max-w-xs text-sm font-light leading-[1.5] text-white/50">
-              A map of the people who repair the things you love.
-            </p>
           </div>
 
           <div className="flex flex-col gap-10 sm:flex-row sm:gap-16">
@@ -65,7 +62,7 @@ export function Footer() {
               </nav>
             </div>
 
-            <div className="sm:mr-16">
+            <div>
               <p className="text-sm font-medium text-white">Legal</p>
               <nav className="mt-4 flex flex-col gap-3 text-sm">
                 <Link to="/privacy" className="text-white/60 transition-colors hover:text-white">
@@ -74,6 +71,20 @@ export function Footer() {
                 <Link to="/terms" className="text-white/60 transition-colors hover:text-white">
                   Terms and Conditions
                 </Link>
+              </nav>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-white">Social</p>
+              <nav className="mt-4 flex flex-col gap-3 text-sm">
+                <a
+                  href="https://www.instagram.com/my.mender"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/60 transition-colors hover:text-white"
+                >
+                  Instagram
+                </a>
               </nav>
             </div>
 
@@ -112,12 +123,8 @@ export function Footer() {
         </div>
 
         {/* Big stitched logo */}
-        <div className="mt-10">
+        <div className="mt-16">
           <StitchedLogo className="w-full" />
-        </div>
-
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 pt-6 sm:flex-row">
-          <p className="text-xs text-white/40">© {new Date().getFullYear()} My Mender</p>
         </div>
       </div>
     </footer>

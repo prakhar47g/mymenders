@@ -23,7 +23,7 @@ const steps = [
 
 export function HomePage() {
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen">
       {/* Hero */}
       <section className="relative h-screen overflow-hidden">
         <div className="absolute inset-0 bg-[#171b17]">

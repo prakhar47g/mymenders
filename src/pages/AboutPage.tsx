@@ -27,8 +27,8 @@ const supporters = [
 
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-[rgba(245,246,248,0.92)] pt-16 text-[var(--mm-text)]">
-      <main className="relative isolate mx-auto w-full max-w-7xl overflow-hidden px-4 py-14 sm:px-6 sm:py-20 lg:h-[calc(100svh-4rem)] lg:min-h-[700px] lg:px-8 lg:py-0">
+    <div className="min-h-screen bg-[rgba(245,246,248,0.92)] pt-20 text-[var(--mm-text)]">
+      <main className="relative isolate mx-auto w-full max-w-7xl overflow-hidden px-4 py-14 sm:px-6 sm:py-20 lg:h-[calc(100svh-5rem)] lg:min-h-[700px] lg:px-8 lg:py-0">
         <section className="relative z-[60] text-center lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:-mt-24 lg:w-[31rem]">
           <h2 className="font-display mymenders-card-title-light text-[19.33px] uppercase tracking-[0.06em] text-[var(--mm-faint)]">
             Our Mission

@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
-import { AddMenderModal } from '../components/AddMenderModal';
 import { reverseGeocode } from '../utils/geoapify';
 import {
   getTaxonomyLabel,
@@ -629,7 +628,6 @@ const getVendorFilterValues = (vendor: Vendor, key: FilterGroupKey) =>
 
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
@@ -1065,23 +1063,8 @@ export function MapPage() {
     }
   };
 
-  const handleAddMender = async (newMenderData: Omit<Vendor, 'id'>) => {
-    try {
-      const res = await fetch(`${window.location.origin}/api/vendors`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMenderData),
-      });
-      const newVendor = await res.json();
-      const normalizedVendor = normalizeVendor(newVendor);
-      setShowAddModal(false);
-    } catch (err) {
-      console.error('Failed to add vendor:', err);
-    }
-  };
-
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] mt-16 z-0">
+    <div className="relative w-full h-[calc(100vh-80px)] mt-20 z-0">
       <div className="grid h-full min-h-0 overflow-visible grid-cols-1 md:grid-cols-[25%_75%]">
         <aside
           className="relative z-20 hidden md:flex md:flex-col min-h-0 overflow-visible bg-[#fafafa] border-r border-[#e5e7eb]"
@@ -1358,16 +1341,6 @@ export function MapPage() {
               {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
               <span className="ml-2 text-xs font-medium">Near me</span>
             </button>
-
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex h-11 w-[148px] items-center justify-center rounded-full bg-brand-dark px-4 text-white transition-colors hover:bg-brand-dark-hover"
-              title="Add Mender"
-              aria-label="Add mender"
-            >
-              <Plus className="h-5 w-5 shrink-0" />
-              <span className="ml-2 text-xs font-medium">Add Mender</span>
-            </button>
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
@@ -1452,19 +1425,6 @@ export function MapPage() {
         </div>
       </div>
 
-      {showAddModal && (
-        <AddMenderModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={handleAddMender}
-          onAddressSelect={(coords) => {
-            setCenterMapTo({
-              lat: coords[0],
-              lng: coords[1],
-              zoom: 16,
-            });
-          }}
-        />
-      )}
     </div>
   );
 }

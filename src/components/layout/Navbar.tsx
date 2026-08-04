@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Map as MapIcon, Info, Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Map as MapIcon, Info, Menu, Plus, X } from 'lucide-react';
 import { BrandLogo } from '../BrandLogo';
 
-export function Navbar() {
+interface NavbarProps {
+  onAddMender: () => void;
+}
+
+const SCROLL_THRESHOLD = 48;
+
+export function Navbar({ onAddMender }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { pathname } = useLocation();
+
+  const isHome = pathname === '/';
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Transparent over the homepage hero; solid everywhere else and after scrolling
+  const transparent = isHome && !scrolled;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[1000] bg-brand-dark/95 backdrop-blur-sm">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-[1000] transition-colors duration-300 ${
+        transparent ? 'bg-transparent' : 'bg-brand-dark/95 backdrop-blur-sm'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
               <BrandLogo />
@@ -17,7 +41,7 @@ export function Navbar() {
             </NavLink>
           </div>
 
-          <div className="hidden md:flex h-16 items-stretch gap-5">
+          <div className="hidden md:flex h-20 items-stretch gap-5">
             <NavLink
               to="/map"
               className="group relative inline-flex items-center justify-center px-4 text-sm font-medium text-white"
@@ -38,6 +62,18 @@ export function Navbar() {
                 </span>
               )}
             </NavLink>
+          </div>
+
+          <div className="hidden md:flex items-center">
+            <button
+              onClick={onAddMender}
+              className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
+              title="Add Mender"
+              aria-label="Add mender"
+            >
+              <Plus className="h-5 w-5 shrink-0" />
+              <span className="ml-2 text-xs font-medium">Add Mender</span>
+            </button>
           </div>
 
           <div className="flex md:hidden items-center">
@@ -78,6 +114,17 @@ export function Navbar() {
                 </div>
               )}
             </NavLink>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onAddMender();
+              }}
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-light"
+            >
+              <Plus className="h-4 w-4 shrink-0" />
+              Add Mender
+            </button>
           </div>
         </div>
       )}

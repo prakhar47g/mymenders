@@ -620,7 +620,7 @@ export function AddMenderPage() {
           </div>
 
           {entryLevel === null ? (
-            <div className="flex min-h-0 flex-1 flex-col justify-center px-4 py-6">
+            <div className="flex min-h-0 flex-1 flex-col justify-start px-4 py-6">
               <h2 className="mymenders-card-title-semi mb-3 text-sm uppercase tracking-[0.04em] text-[var(--mm-muted)]">
                 Who is adding this?
               </h2>

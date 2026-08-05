@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { PhoneInput } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -211,6 +211,8 @@ export function AddMenderPage() {
   const [mapError, setMapError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submissionComplete, setSubmissionComplete] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [placesReady, setPlacesReady] = useState(false);
   const [addressSuggestionsEnabled, setAddressSuggestionsEnabled] = useState(false);
   const selectMenuPortalTarget = typeof document !== 'undefined' ? document.body : undefined;
@@ -538,7 +540,8 @@ export function AddMenderPage() {
         throw new Error(`Failed to add mender (${res.status}). Please try again.`);
       }
       setSubmitting(false);
-      navigate('/map');
+      setSubmissionComplete(true);
+      window.setTimeout(() => setShowSuccessModal(true), 450);
     } catch (err) {
       console.error('Failed to add vendor:', err);
       setSubmitError(err instanceof Error ? err.message : 'Failed to add mender. Please try again.');
@@ -790,16 +793,26 @@ export function AddMenderPage() {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
+                  disabled={submitting || submissionComplete}
                   className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="h-10 flex-1 rounded-full bg-brand-dark px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={submitting || submissionComplete}
+                  className={`flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+                    submissionComplete
+                      ? 'bg-[#5d8b61] text-white'
+                      : 'bg-brand-dark text-brand-dark-on hover:bg-brand-dark-hover'
+                  }`}
                 >
-                  {submitting ? 'Submitting…' : 'Submit for review'}
+                  {submissionComplete ? (
+                    <>
+                      <Check className="h-4 w-4 animate-[mm-submit-confirm_350ms_ease-out]" strokeWidth={2.5} aria-hidden="true" />
+                      Submitted
+                    </>
+                  ) : submitting ? 'Submitting…' : 'Submit for review'}
                 </button>
               </div>
               {submitError && <p className="mt-3 text-xs text-[#8b4e16]">{submitError}</p>}
@@ -846,6 +859,34 @@ export function AddMenderPage() {
           </div>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-[#171b17]/30 p-5 backdrop-blur-[2px]">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contribution-success-title"
+            className="w-full max-w-sm rounded-2xl border border-[#e5e7eb] bg-[#fafafa] p-7 shadow-[var(--mm-shadow-panel)] sm:p-8"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f1e7] text-[#527b56]">
+              <Check className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <h2 id="contribution-success-title" className="mymenders-card-title-semi mt-5 text-3xl tracking-[-0.045em] text-[var(--mm-text)]">
+              Thanks for your contribution.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--mm-muted)]">
+              Your mender has been submitted for review and will soon be live on the map.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/map')}
+              className="mt-7 h-10 w-full rounded-full bg-brand-dark px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+            >
+              Go back to Map
+            </button>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

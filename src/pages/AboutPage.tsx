@@ -20,12 +20,12 @@ const supporters = [
   {
     name: 'UAL Fashion, Textiles and Technology Institute',
     url: 'https://framerusercontent.com/images/vJF1QbF0EXixrZS1fTq0YedHPWE.png',
-    imageClassName: 'w-[52.7%] max-w-[10.2rem]',
+    imageClassName: 'w-[88px] max-w-full lg:w-[122px] lg:max-w-none',
   },
   {
     name: 'British Council',
     url: 'https://framerusercontent.com/images/7pyvLdQzMPkyxitxCpPjxuMFO9Q.png',
-    imageClassName: 'w-[62%] max-w-64',
+    imageClassName: 'w-[104px] max-w-full lg:w-36 lg:max-w-none',
   },
 ];
 
@@ -84,11 +84,11 @@ export function AboutPage() {
 
         <section aria-label="Organizations">
           <div className="mx-auto grid max-w-7xl gap-y-9 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0 lg:px-8">
-            <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-x-6 lg:grid-cols-[7rem_repeat(2,minmax(0,1fr))] lg:gap-x-4">
-              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)]">
+            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:gap-x-0">
+              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Initiative Of
               </h2>
-              <div className="flex min-w-0 items-center justify-between gap-6 lg:contents">
+              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[30px]">
                 {initiatives.map((initiative) => (
                   <a
                     key={initiative.name}
@@ -96,7 +96,7 @@ export function AboutPage() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={initiative.name}
-                    className="group flex min-w-0 items-center justify-center"
+                    className="group flex min-w-0 items-center justify-center lg:shrink-0"
                   >
                     <img
                       src={initiative.url}
@@ -108,13 +108,13 @@ export function AboutPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-x-6 lg:grid-cols-[7rem_repeat(2,minmax(0,1fr))] lg:gap-x-4">
-              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)]">
+            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:gap-x-0">
+              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Supported By
               </h2>
-              <div className="flex min-w-0 items-center justify-between gap-5 lg:contents">
+              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[30px]">
                 {supporters.map((supporter) => (
-                  <div key={supporter.name} className="flex min-w-0 items-center justify-center">
+                  <div key={supporter.name} className="flex min-w-0 items-center justify-center lg:shrink-0">
                     <img
                       src={supporter.url}
                       alt={supporter.name}

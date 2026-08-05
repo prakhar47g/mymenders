@@ -1143,7 +1143,7 @@ export function MapPage() {
                 ref={filterButtonRef}
                 type="button"
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
-                className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                className={`ml-auto inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'

@@ -626,8 +626,34 @@ const createEmptyFilterState = (): VendorFilterState => ({
 const getVendorFilterValues = (vendor: Vendor, key: FilterGroupKey) =>
   normalizeTaxonomyValues(key, vendor[key] || [], { allowUnknown: true });
 
+const VENDOR_LIST_SKELETON_COUNT = 7;
+
+// Mirrors the shape of a vendor list card (title, address, chips) so the
+// loading state doesn't shift the layout when the real list arrives.
+const VendorListSkeleton = () => (
+  <div aria-hidden="true">
+    {Array.from({ length: VENDOR_LIST_SKELETON_COUNT }, (_, index) => (
+      <div key={index} className="border-b border-[var(--mm-border)] py-3 pl-3 pr-3 last:border-b-0">
+        <div className="pl-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="mymenders-shimmer-block h-3.5 w-2/5 rounded-md" />
+            <div className="mymenders-shimmer-block h-3 w-9 rounded-md" />
+          </div>
+          <div className="mymenders-shimmer-block mt-2.5 h-3 w-3/4 rounded-md" />
+          <div className="mt-2 flex gap-1.5">
+            <div className="mymenders-shimmer-block h-4 w-16 rounded-full" />
+            <div className="mymenders-shimmer-block h-4 w-24 rounded-full" />
+            <div className="mymenders-shimmer-block h-4 w-14 rounded-full" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
@@ -663,6 +689,8 @@ export function MapPage() {
         setVendors(data.map(normalizeVendor));
       } catch (err) {
         console.error('Failed to fetch vendors:', err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     };
 
@@ -1141,7 +1169,9 @@ export function MapPage() {
               event.stopPropagation();
             }}
           >
-            {displayedVendorsWithDistance.length ? (
+            {isLoading ? (
+              <VendorListSkeleton />
+            ) : displayedVendorsWithDistance.length ? (
               displayedVendorsWithDistance.map(({ vendor, distanceKm }) => {
                 const coordinates = getVendorCoordinates(vendor);
                 const isActive = selectedVendorId === vendor.id;

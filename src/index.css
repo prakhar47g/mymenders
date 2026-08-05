@@ -157,6 +157,41 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
+/* Shimmer placeholder blocks for loading states — a soft sweep of light
+   that travels across the muted panel tone. */
+.mymenders-shimmer-block {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--mm-panel-muted);
+}
+
+.mymenders-shimmer-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+  animation: mm-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes mm-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mymenders-shimmer-block::after {
+    animation: none;
+    transform: none;
+  }
+}
+
 .mymenders-field {
   background-color: #ffffff;
   border-color: var(--mm-border);

@@ -38,7 +38,7 @@ export function AboutPage() {
       <main>
         <section
           aria-labelledby="about-hero-title"
-          className="grid w-full lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr]"
+          className="grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr]"
         >
           <div className="flex min-h-[28rem] items-end px-4 pb-12 pt-20 sm:min-h-[34rem] sm:px-6 sm:pb-16 lg:min-h-0 lg:px-8 lg:pb-16 lg:pt-0 xl:px-[max(2rem,calc((100vw-80rem)/2+2rem))] xl:pr-12">
             <h1
@@ -82,7 +82,7 @@ export function AboutPage() {
           </div>
         </section>
 
-        <section aria-label="Organizations" className="border-t border-[var(--mm-border-strong)]">
+        <section aria-label="Organizations">
           <div className="mx-auto grid max-w-7xl gap-y-9 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0 lg:px-8">
             <div className="grid grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-x-6 lg:grid-cols-[7rem_repeat(2,minmax(0,1fr))] lg:gap-x-4">
               <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)]">

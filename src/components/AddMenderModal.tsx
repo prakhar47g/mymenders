@@ -464,13 +464,13 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
         <div className="flex items-center justify-between border-b border-[#e5e7eb] bg-brand-dark px-5 py-3">
           <h2
             style={{ fontWeight: 700, fontVariationSettings: '"wght" 700' }}
-            className="mymenders-card-title-semi text-base uppercase leading-none tracking-wide text-white"
+            className="mymenders-card-title-semi text-base uppercase leading-none tracking-wide text-brand-dark-on"
           >
             Add a Mender
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-[#c9cdd4] transition-colors hover:bg-[#2b3f58] hover:text-white"
+            className="rounded-full p-1 text-[var(--mm-muted)] transition-colors hover:bg-brand-dark-hover hover:text-[var(--mm-text)]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -738,7 +738,7 @@ export function AddMenderModal({ onClose, onAdd, onAddressSelect }: AddMenderMod
                 </button>
                 <button
                   type="submit"
-                  className="h-10 flex-1 rounded-full bg-brand-dark px-5 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
+                  className="h-10 flex-1 rounded-full bg-brand-dark px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
                 >
                   Submit for review
                 </button>

@@ -397,7 +397,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   const detailsButton = document.createElement('button');
   detailsButton.type = 'button';
   detailsButton.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-brand/40 bg-brand px-3 text-xs font-medium text-brand-dark transition-colors hover:bg-brand-hover';
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-brand/40 bg-brand px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-hover';
   detailsButton.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DETAILS_BUTTON_ICON}
@@ -414,7 +414,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   directionsLink.target = '_blank';
   directionsLink.rel = 'noopener noreferrer';
   directionsLink.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-white transition-colors hover:bg-brand-dark-hover';
+    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
   directionsLink.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -1104,7 +1104,7 @@ export function MapPage() {
                   key={`${chip.groupKey}-${chip.value}`}
                   type="button"
                   onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
-                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-dark-hover"
+                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
                   title={`Remove ${chip.displayLabel}`}
                 >
                   <span className="truncate">{chip.displayLabel}</span>
@@ -1117,7 +1117,7 @@ export function MapPage() {
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
                 className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
-                    ? 'border-brand-dark bg-brand-dark text-white'
+                    ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                 }`}
                 aria-label="Filter menders"
@@ -1170,7 +1170,7 @@ export function MapPage() {
                   >
                     <span
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-brand-dark' : 'bg-[var(--mm-border-strong)] opacity-0 group-hover:opacity-30'}`}
+                      className={`pointer-events-none absolute inset-y-0 left-0 w-0.5 transition-opacity ${isActive ? 'opacity-100 bg-brand-dark-text' : 'bg-[var(--mm-border-strong)] opacity-0 group-hover:opacity-30'}`}
                     />
                     <div className="min-w-0 pl-1">
                       <div className="flex items-baseline justify-between gap-2">
@@ -1243,7 +1243,7 @@ export function MapPage() {
             <button
               type="button"
               onClick={() => setIsFilterDrawerOpen((value) => !value)}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Filter menders"
               aria-expanded={isFilterDrawerOpen}
               aria-controls="vendor-filter-drawer"
@@ -1303,7 +1303,7 @@ export function MapPage() {
                               aria-pressed={checked}
                               className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs font-medium leading-tight transition-colors ${
                                 checked
-                                  ? 'border-brand-dark bg-brand-dark text-white'
+                                  ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                                   : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
                               }`}
                             >
@@ -1334,7 +1334,7 @@ export function MapPage() {
             <button
               onClick={locateUser}
               disabled={findingLocation}
-              className="flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
               title="Near me"
               aria-label="Find nearby menders"
             >
@@ -1344,7 +1344,7 @@ export function MapPage() {
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-            <div className="flex w-11 flex-col overflow-hidden rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)]">
+            <div className="flex w-11 flex-col overflow-hidden rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)]">
               <button
                 onClick={() => {
                   const map = mapInstanceRef.current;
@@ -1357,7 +1357,7 @@ export function MapPage() {
                 <Plus className="w-5 h-5" />
               </button>
 
-              <div className="h-px bg-brand-dark/15" />
+              <div className="h-px bg-brand-dark-text/15" />
 
               <button
                 onClick={() => {
@@ -1384,7 +1384,7 @@ export function MapPage() {
                   duration: 700,
                 });
               }}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Reset to globe view"
             >
               <Globe className="w-5 h-5" />
@@ -1393,7 +1393,7 @@ export function MapPage() {
             <div className="relative" ref={styleMenuRef}>
               <button
                 onClick={() => setIsStyleMenuOpen((value) => !value)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
                 aria-label="Map style"
                 aria-expanded={isStyleMenuOpen}
               >

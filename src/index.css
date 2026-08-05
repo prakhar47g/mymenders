@@ -23,8 +23,10 @@
   --color-brand: #b8dceb;
   --color-brand-hover: #9ac8db;
   --color-brand-light: #e6f3f8;
-  --color-brand-dark: #102131;
-  --color-brand-dark-hover: #2b3f58;
+  --color-brand-dark: #EBEBEB;
+  --color-brand-dark-hover: #D6D6D6;
+  --color-brand-dark-text: #929694;
+  --color-brand-dark-on: #171b17;
 }
 
 body {
@@ -61,9 +63,9 @@ body {
   line-height: 1.45;
 }
 
-/* The footer mark is cut from the same navy as its surface. The dark inner
-   gradient creates depth; opposing edge shadows describe a recessed groove
-   catching a small amount of light from above. */
+/* The footer mark is cut from the same light surface as its background. The
+   dark inner gradient creates depth; opposing edge shadows describe a recessed
+   groove catching a small amount of light from above. */
 .footer-engraved-logo {
   display: grid;
   width: 48px;
@@ -74,12 +76,12 @@ body {
 }
 
 .footer-engraved-logo > span {
-  background: #0c1d2b;
+  background: #D6D6D6;
   box-shadow:
-    inset 1px 1px 0 rgba(0, 0, 0, 0.5),
-    inset -1px -1px 0 rgba(184, 220, 235, 0.085),
-    -1px -1px 0 rgba(0, 0, 0, 0.22),
-    1px 1px 0 rgba(255, 255, 255, 0.06);
+    inset 1px 1px 0 rgba(0, 0, 0, 0.12),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.7),
+    -1px -1px 0 rgba(0, 0, 0, 0.08),
+    1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 @layer base {

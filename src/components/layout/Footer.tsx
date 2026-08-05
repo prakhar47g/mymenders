@@ -38,7 +38,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-brand-dark text-white">
+    <footer className="bg-brand-dark text-[var(--mm-text)]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-10 md:flex-row md:items-start">
           <div>
@@ -51,37 +51,37 @@ export function Footer() {
 
           <div className="flex flex-col gap-10 sm:flex-row sm:gap-16">
             <div>
-              <p className="text-sm font-medium text-white">Company</p>
+              <p className="text-sm font-medium text-[var(--mm-text)]">Company</p>
               <nav className="mt-4 flex flex-col gap-3 text-sm">
-                <Link to="/map" className="text-white/60 transition-colors hover:text-white">
+                <Link to="/map" className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]">
                   Map
                 </Link>
-                <Link to="/about" className="text-white/60 transition-colors hover:text-white">
+                <Link to="/about" className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]">
                   About Us
                 </Link>
               </nav>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-white">Legal</p>
+              <p className="text-sm font-medium text-[var(--mm-text)]">Legal</p>
               <nav className="mt-4 flex flex-col gap-3 text-sm">
-                <Link to="/privacy" className="text-white/60 transition-colors hover:text-white">
+                <Link to="/privacy" className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]">
                   Your Privacy
                 </Link>
-                <Link to="/terms" className="text-white/60 transition-colors hover:text-white">
+                <Link to="/terms" className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]">
                   Terms and Conditions
                 </Link>
               </nav>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-white">Social</p>
+              <p className="text-sm font-medium text-[var(--mm-text)]">Social</p>
               <nav className="mt-4 flex flex-col gap-3 text-sm">
                 <a
                   href="https://www.instagram.com/my.mender"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/60 transition-colors hover:text-white"
+                  className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
                 >
                   Instagram
                 </a>
@@ -89,8 +89,8 @@ export function Footer() {
             </div>
 
             <div className="w-full sm:ml-auto sm:max-w-sm">
-              <p className="text-sm font-medium text-white">Join the newsletter</p>
-              <p className="mt-1 text-xs font-light text-white/50">
+              <p className="text-sm font-medium text-[var(--mm-text)]">Join the newsletter</p>
+              <p className="mt-1 text-xs font-light text-[var(--mm-faint)]">
                 Mending stories, repair tips, and new menders on the map.
               </p>
               <form onSubmit={handleSubscribe} className="mt-4 flex gap-2">
@@ -100,12 +100,12 @@ export function Footer() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   aria-label="Email address"
-                  className="h-11 min-w-0 flex-1 rounded-full border border-white/15 bg-white/5 px-4 text-sm text-white placeholder:text-white/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="h-11 min-w-0 flex-1 rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] px-4 text-sm text-[var(--mm-text)] placeholder:text-[var(--mm-faint)] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                 />
                 <button
                   type="submit"
                   disabled={status === 'submitting'}
-                  className="h-11 shrink-0 rounded-full bg-brand px-5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-11 shrink-0 rounded-full bg-brand px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
                 </button>

@@ -53,14 +53,14 @@ export function HomePage() {
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             <Link
               to="/map"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-hover"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-hover"
             >
               <MapIcon className="h-4 w-4" aria-hidden="true" />
               Explore the map
             </Link>
             <Link
               to="/about"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
             >
               About us
               <ArrowRight className="h-4 w-4" aria-hidden="true" />

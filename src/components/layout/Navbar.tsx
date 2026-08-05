@@ -29,22 +29,24 @@ export function Navbar({ onAddMender }: NavbarProps) {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-[1000] transition-colors duration-300 ${
-        transparent ? 'bg-transparent' : 'bg-brand-dark/95 backdrop-blur-sm'
+        transparent ? 'bg-transparent text-white' : 'bg-brand-dark/95 text-[var(--mm-text)] backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
-              <BrandLogo />
-              <span className="text-2xl tracking-tight text-white mymenders-logo-font">My Mender</span>
+              <BrandLogo color={transparent ? 'var(--color-cloth)' : 'var(--color-brand-dark-text)'} />
+              <span className={`text-2xl tracking-tight mymenders-logo-font ${transparent ? 'text-white' : 'text-brand-dark-text'}`}>
+                My Mender
+              </span>
             </NavLink>
           </div>
 
           <div className="hidden md:flex h-20 items-stretch gap-2">
             <NavLink
               to="/map"
-              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
+              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium"
             >
               {({ isActive }) => (
                 <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -54,7 +56,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
             </NavLink>
             <NavLink
               to="/about"
-              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
+              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium"
             >
               {({ isActive }) => (
                 <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -65,7 +67,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
             <div className="flex items-center pl-3">
               <button
                 onClick={onAddMender}
-                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
+                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
                 title="Add Mender"
                 aria-label="Add mender"
               >
@@ -78,7 +80,9 @@ export function Navbar({ onAddMender }: NavbarProps) {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="rounded-full p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
+              className={`rounded-full p-2 opacity-80 transition-colors focus:outline-none ${
+                transparent ? 'hover:bg-white/10' : 'hover:bg-black/5'
+              } hover:opacity-100`}
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -87,12 +91,12 @@ export function Navbar({ onAddMender }: NavbarProps) {
       </div>
 
       {isOpen && (
-        <div className="absolute w-full bg-brand-dark pb-4 md:hidden">
+        <div className="absolute w-full bg-brand-dark pb-4 text-[var(--mm-text)] md:hidden">
           <div className="px-2 pt-2 space-y-1 flex flex-col">
             <NavLink
               to="/map"
               onClick={() => setIsOpen(false)}
-              className="group block rounded-xl px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
+              className="group block rounded-xl px-3 py-2 text-sm font-medium hover:bg-black/5"
             >
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
@@ -104,7 +108,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
             <NavLink
               to="/about"
               onClick={() => setIsOpen(false)}
-              className="group block rounded-xl px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
+              className="group block rounded-xl px-3 py-2 text-sm font-medium hover:bg-black/5"
             >
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
@@ -119,7 +123,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
                 setIsOpen(false);
                 onAddMender();
               }}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-light"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-light"
             >
               <Plus className="h-4 w-4 shrink-0" />
               Add Mender

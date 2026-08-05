@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { PhoneInput } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -16,6 +17,7 @@ import { getGroupedTaxonomyOptions, getTaxonomyOptions } from '../../shared/vend
 
 const ENTRY_LEVEL_OPTIONS = ['Menders', 'Member of the public'] as const;
 type EntryLevelOption = (typeof ENTRY_LEVEL_OPTIONS)[number];
+
 const MENDER_ICON_URL =
   'https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/external-sewing-sewing-kmg-design-outline-color-kmg-design-3.png';
 const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
@@ -26,27 +28,21 @@ const PIN_COLORS: Record<string, string> = {
 };
 
 type EntryLevelMeta = {
-  iconSrc: string;
   title: string;
-  description: string;
+  iconSrc: string;
   activePanelClasses: string;
-  activeTitleClasses: string;
 };
 
 const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
   Menders: {
+    title: 'Mender',
     iconSrc: MENDER_ICON_URL,
-    title: 'I am a Mender',
-    description: 'Create a service profile with your details, specialties and map location.',
     activePanelClasses: 'border-brand-hover bg-brand',
-    activeTitleClasses: 'text-[#222222]',
   },
   'Member of the public': {
+    title: 'Contributor',
     iconSrc: CONTRIBUTOR_ICON_URL,
-    title: 'I am a contributor',
-    description: 'Share a recommendation, review or local tip from the community.',
     activePanelClasses: 'border-brand-hover bg-brand',
-    activeTitleClasses: 'text-[#222222]',
   },
 };
 
@@ -425,12 +421,10 @@ export function AddMenderPage() {
     setEntryLevel(level);
     if (level === 'Menders') resetReviewFields();
 
-    // Only the first pick gets the reveal choreography; switching between
-    // roles afterwards swaps the form content instantly.
-    if (entryLevel === null) {
-      setIsRevealingForm(true);
-      revealTimerRef.current = setTimeout(() => setIsRevealingForm(false), 800);
-    }
+    // Every role change gets the reveal choreography — a brief shimmer so
+    // the form swap doesn't feel instant.
+    setIsRevealingForm(true);
+    revealTimerRef.current = setTimeout(() => setIsRevealingForm(false), 1000);
   };
 
   // Clear the reveal timer if the user leaves the page mid-reveal.
@@ -439,6 +433,13 @@ export function AddMenderPage() {
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     };
   }, []);
+
+  // Back to the role picker — the only place to choose who's adding this.
+  const goBackToPicker = () => {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    setIsRevealingForm(false);
+    setEntryLevel(null);
+  };
 
   // ------------------------------------------------------------------
   // Submit
@@ -521,13 +522,13 @@ export function AddMenderPage() {
   // Shared by the standalone picker view and the form's entry-level section,
   // so the role can be switched at any time.
   const entryLevelCards = (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {ENTRY_LEVEL_OPTIONS.map((level) => {
         const meta = ENTRY_LEVEL_META[level];
         const isSelected = entryLevel === level;
 
         return (
-          <label key={level} className="block cursor-pointer">
+          <label key={level} className="group block cursor-pointer">
             <input
               type="radio"
               name="entry-level"
@@ -537,31 +538,30 @@ export function AddMenderPage() {
               className="peer sr-only"
             />
             <span
-              className={`flex aspect-[4/2] flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
+              className={`relative flex aspect-[3/1] items-center gap-2.5 rounded-2xl border pl-4 pr-3 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
                 isSelected
                   ? meta.activePanelClasses
-                  : 'border-[#e5e7eb] bg-white grayscale hover:border-[#d1d5db] hover:bg-[#f3f4f6]'
+                  : 'border-[#e5e7eb] bg-white hover:-translate-y-0.5 hover:border-[#d1d5db] hover:bg-[#fafafa] hover:shadow-[var(--mm-shadow-subtle)]'
               }`}
             >
-              <img
-                src={meta.iconSrc}
-                alt=""
-                aria-hidden="true"
-                className={`h-9 w-9 shrink-0 object-contain transition-all duration-150 ${
-                  isSelected ? 'opacity-100' : 'opacity-55'
+              <span
+                className={`min-w-0 flex-1 text-sm font-semibold leading-tight ${
+                  isSelected ? 'text-[#222222]' : 'text-[#171b17]'
                 }`}
-              />
-              <span className="min-w-0">
-                <span
-                  className={`block text-center text-[13px] font-medium leading-tight ${
-                    isSelected ? meta.activeTitleClasses : 'text-[#171b17]'
+              >
+                {meta.title}
+              </span>
+
+              {/* Icon in a circular grey container */}
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] transition-transform duration-200 group-hover:scale-105">
+                <img
+                  src={meta.iconSrc}
+                  alt=""
+                  aria-hidden="true"
+                  className={`h-6.5 w-6.5 object-contain transition-all duration-200 ${
+                    isSelected ? '' : 'opacity-60 saturate-50'
                   }`}
-                >
-                  {meta.title}
-                </span>
-                <span className={`mt-1 block text-center text-[11px] leading-[1.3] ${isSelected ? 'text-[#2f3e39]' : 'text-[#68665f]'}`}>
-                  {meta.description}
-                </span>
+                />
               </span>
             </span>
           </label>
@@ -596,11 +596,15 @@ export function AddMenderPage() {
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-4 px-4 py-4">
-                {/* Entry level — stays visible so the role can be switched */}
-                <fieldset>
-                  <legend className={FIELD_LABEL_CLASS}>I am a...</legend>
-                  {entryLevelCards}
-                </fieldset>
+                {/* Change the role by heading back to the picker */}
+                <button
+                  type="button"
+                  onClick={goBackToPicker}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                  Back
+                </button>
 
                 {isRevealingForm ? (
                   <FormSkeleton />

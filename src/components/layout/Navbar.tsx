@@ -47,7 +47,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
               className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
             >
               {({ isActive }) => (
-                <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
                   Map
                 </span>
               )}
@@ -57,7 +57,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
               className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
             >
               {({ isActive }) => (
-                <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
                   About
                 </span>
               )}

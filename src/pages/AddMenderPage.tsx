@@ -22,10 +22,14 @@ const MENDER_ICON_URL =
   'https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/external-sewing-sewing-kmg-design-outline-color-kmg-design-3.png';
 const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
 
-const PIN_COLORS: Record<string, string> = {
-  Menders: '#2A9D8F',
-  'Member of the public': '#F4A261',
+// CSS custom properties for the pin colours — change them in index.css to
+// retheme the pins. Values mirror the /map page pins (see MapPage.tsx).
+const PIN_COLOR_VARS: Record<string, string> = {
+  Menders: '--mm-pin-mender',
+  'Member of the public': '--mm-pin-contributor',
 };
+
+const FALLBACK_PIN_COLOR = '#99C4CB';
 
 type EntryLevelMeta = {
   title: string;
@@ -46,7 +50,18 @@ const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
   },
 };
 
-const getPinColor = (level: string) => PIN_COLORS[level] || '#99C4CB';
+// Google Maps marker icons are SVG data URLs and can't reference var()
+// directly, so resolve the CSS custom property at runtime. Fallback mirrors
+// the current theme value (same pattern as StitchedLogo.tsx).
+const getPinColor = (level: string) => {
+  const varName = PIN_COLOR_VARS[level];
+  if (!varName) return FALLBACK_PIN_COLOR;
+  if (typeof document === 'undefined') return FALLBACK_PIN_COLOR;
+  const resolved = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+  return resolved || FALLBACK_PIN_COLOR;
+};
 
 const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London
 
@@ -192,6 +207,7 @@ export function AddMenderPage() {
 
   // ---- map / location state ----
   const [position, setPosition] = useState<[number, number] | null>(null);
+  const [geoResolved, setGeoResolved] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -275,13 +291,31 @@ export function AddMenderPage() {
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
-        () => setPosition(DEFAULT_CENTER),
+        (pos) => {
+          setPosition([pos.coords.latitude, pos.coords.longitude]);
+          setGeoResolved(true);
+        },
+        () => {
+          setPosition(DEFAULT_CENTER);
+          setGeoResolved(true);
+        },
       );
     } else {
       setPosition(DEFAULT_CENTER);
+      setGeoResolved(true);
     }
   }, []);
+
+  // ------------------------------------------------------------------
+  // Effect 1b — centre the map on the user's location once geolocation
+  // resolves. The map is usually created (Effect 2) before the
+  // geolocation callback lands, so it starts on the default centre —
+  // this effect pulls it to the geolocated position afterwards.
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (!geoResolved || !position) return;
+    panMapTo(position[0], position[1]);
+  }, [geoResolved, position, panMapTo]);
 
   // ------------------------------------------------------------------
   // Effect 2 — Google Maps initialisation
@@ -544,14 +578,6 @@ export function AddMenderPage() {
                   : 'border-[#e5e7eb] bg-white hover:-translate-y-0.5 hover:border-[#d1d5db] hover:bg-[#fafafa] hover:shadow-[var(--mm-shadow-subtle)]'
               }`}
             >
-              <span
-                className={`min-w-0 flex-1 text-sm font-semibold leading-tight ${
-                  isSelected ? 'text-[#222222]' : 'text-[#171b17]'
-                }`}
-              >
-                {meta.title}
-              </span>
-
               {/* Icon in a circular grey container */}
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] transition-transform duration-200 group-hover:scale-105">
                 <img
@@ -562,6 +588,14 @@ export function AddMenderPage() {
                     isSelected ? '' : 'opacity-60 saturate-50'
                   }`}
                 />
+              </span>
+
+              <span
+                className={`min-w-0 flex-1 text-sm font-semibold leading-tight ${
+                  isSelected ? 'text-[#222222]' : 'text-[#171b17]'
+                }`}
+              >
+                {meta.title}
               </span>
             </span>
           </label>

@@ -52,6 +52,9 @@ body {
   --mm-focus: rgba(184, 220, 235, 0.35);
   --mm-shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.06);
   --mm-shadow-panel: 0 12px 28px rgba(15, 23, 42, 0.1);
+  /* Map pin colours — keep in sync with PIN_COLOR_MAP in MapPage.tsx */
+  --mm-pin-mender: #e8503f;
+  --mm-pin-contributor: #ffc93c;
 }
 
 body {

@@ -77,11 +77,11 @@ export function AboutPage() {
             </h2>
             <div className="grid grid-cols-2 items-center gap-6 opacity-65 transition-opacity hover:opacity-100">
               {supporters.map((supporter) => (
-                <div key={supporter.name} className="flex h-11 items-center">
+                <div key={supporter.name} className="flex h-[107.5px] items-center">
                   <img
                     src={supporter.url}
                     alt={supporter.name}
-                    className="h-[43px] w-auto max-w-24 object-contain mix-blend-multiply grayscale transition-all hover:grayscale-0"
+                    className="h-[107.5px] w-auto max-w-full object-contain mix-blend-multiply grayscale transition-all hover:grayscale-0"
                   />
                 </div>
               ))}

@@ -1,0 +1,813 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
+import { PhoneInput } from 'react-international-phone';
+import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
+import '@smastrom/react-rating/style.css';
+import { Vendor } from '../types';
+import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
+import { reverseGeocode as geoReverse } from '../utils/geoapify';
+import { GeoAutocomplete } from '../components/GeoAutocomplete';
+import { getGroupedTaxonomyOptions, getTaxonomyOptions } from '../../shared/vendorTaxonomy.js';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const ENTRY_LEVEL_OPTIONS = ['Menders', 'Member of the public'] as const;
+type EntryLevelOption = (typeof ENTRY_LEVEL_OPTIONS)[number];
+const MENDER_ICON_URL =
+  'https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/external-sewing-sewing-kmg-design-outline-color-kmg-design-3.png';
+const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
+
+const PIN_COLORS: Record<string, string> = {
+  Menders: '#2A9D8F',
+  'Member of the public': '#F4A261',
+};
+
+type EntryLevelMeta = {
+  iconSrc: string;
+  title: string;
+  description: string;
+  activePanelClasses: string;
+  activeTitleClasses: string;
+};
+
+const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
+  Menders: {
+    iconSrc: MENDER_ICON_URL,
+    title: 'I am a Mender',
+    description: 'Create a service profile with your details, specialties and map location.',
+    activePanelClasses: 'border-brand-hover bg-brand',
+    activeTitleClasses: 'text-[#222222]',
+  },
+  'Member of the public': {
+    iconSrc: CONTRIBUTOR_ICON_URL,
+    title: 'I am a contributor',
+    description: 'Share a recommendation, review or local tip from the community.',
+    activePanelClasses: 'border-brand-hover bg-brand',
+    activeTitleClasses: 'text-[#222222]',
+  },
+};
+
+const getPinColor = (level: string) => PIN_COLORS[level] || '#99C4CB';
+
+const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London
+
+// ---------------------------------------------------------------------------
+// react-select helpers
+// ---------------------------------------------------------------------------
+
+type Option = { value: string; label: string };
+type CategoryGroup = GroupBase<Option>;
+
+const toSelectOption = (option: { id: string; label: string }): Option => ({
+  value: option.id,
+  label: option.label,
+});
+
+const typeOptions: Option[] = getTaxonomyOptions('types').map(toSelectOption);
+const categoryOptions: CategoryGroup[] = getGroupedTaxonomyOptions('categories').map((group: {
+  label: string;
+  options: Array<{ id: string; label: string }>;
+}) => ({
+  label: group.label,
+  options: group.options.map(toSelectOption),
+}));
+const techniqueOptions: Option[] = getTaxonomyOptions('regional_techniques').map(toSelectOption);
+const reviewItemLabels = ['Rate 1 star', 'Rate 2 stars', 'Rate 3 stars', 'Rate 4 stars', 'Rate 5 stars'];
+
+const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);
+const toSingleValue = (opt: SingleValue<Option>): string[] => (opt ? [opt.value] : []);
+
+const selectStyles = {
+  control: (base: any) => ({
+    ...base,
+    backgroundColor: '#ffffff',
+    borderColor: '#e5e7eb',
+    borderRadius: '0.625rem',
+    minHeight: '2.5rem',
+    fontSize: '0.8125rem',
+    boxShadow: 'none',
+    color: '#171b17',
+    '&:hover': { borderColor: '#d1d5db' },
+  }),
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: '#ffffff',
+    borderRadius: '0.75rem',
+    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
+    fontSize: '0.875rem',
+    overflow: 'hidden',
+    zIndex: 50,
+  }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
+  multiValue: (base: any) => ({
+    ...base,
+    backgroundColor: '#f3f4f6',
+    border: '1px solid #e5e7eb',
+    borderRadius: '999px',
+  }),
+  multiValueLabel: (base: any) => ({
+    ...base,
+    color: '#3d403b',
+    fontSize: '0.75rem',
+    padding: '0.125rem 0.5rem',
+  }),
+  multiValueRemove: (base: any) => ({
+    ...base,
+    borderRadius: '0 999px 999px 0',
+    '&:hover': { backgroundColor: '#1a2e45', color: '#ffffff' },
+  }),
+  placeholder: (base: any) => ({ ...base, color: '#8a877d' }),
+  singleValue: (base: any) => ({ ...base, color: '#171b17' }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isFocused || state.isSelected ? '#f3f4f6' : '#ffffff',
+    color: '#171b17',
+    '&:active': { backgroundColor: '#e5e7eb' },
+  }),
+};
+
+const reviewRatingStyles = {
+  itemShapes: ThinRoundedStar,
+  itemStrokeWidth: 1.8,
+  activeFillColor: '#F4A261',
+  activeStrokeColor: '#F4A261',
+  inactiveFillColor: '#fff7ed',
+  inactiveStrokeColor: '#fdba74',
+};
+
+const FIELD_LABEL_CLASS =
+  'add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase';
+
+// Mirrors the shape of the form fields (labels + inputs) so the reveal
+// skeleton doesn't shift the layout when the real fields appear.
+const FormSkeleton = () => (
+  <div aria-hidden="true" className="space-y-4">
+    <div>
+      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-24 rounded" />
+      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+    </div>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div>
+        <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-20 rounded" />
+        <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+      </div>
+      <div>
+        <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-20 rounded" />
+        <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+      </div>
+    </div>
+    <div>
+      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-16 rounded" />
+      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+    </div>
+    <div>
+      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-24 rounded" />
+      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+    </div>
+    <div>
+      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-28 rounded" />
+      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
+    </div>
+  </div>
+);
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+export function AddMenderPage() {
+  const navigate = useNavigate();
+
+  // ---- form fields ----
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [onlinePresence, setOnlinePresence] = useState('');
+  const [entryLevel, setEntryLevel] = useState<string | null>(null);
+  const [isRevealingForm, setIsRevealingForm] = useState(false);
+  const [types, setTypes] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [regionalTechniques, setRegionalTechniques] = useState<string[]>([]);
+  const [reviewStars, setReviewStars] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+
+  // ---- map / location state ----
+  const [position, setPosition] = useState<[number, number] | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [placesReady, setPlacesReady] = useState(false);
+  const [addressSuggestionsEnabled, setAddressSuggestionsEnabled] = useState(false);
+  const selectMenuPortalTarget = typeof document !== 'undefined' ? document.body : undefined;
+
+  // ---- refs to survive effect closures ----
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const googleAutocompleteRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep a ref copy of position so GMaps callbacks always read the latest value
+  const positionRef = useRef(position);
+  positionRef.current = position;
+
+  // ------------------------------------------------------------------
+  // Helpers that touch the map directly (not via state)
+  // ------------------------------------------------------------------
+
+  const panMapTo = useCallback((lat: number, lng: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setCenter({ lat, lng });
+    map.setZoom(16);
+  }, []);
+
+  const enableAddressSuggestions = useCallback(() => {
+    setAddressSuggestionsEnabled(true);
+  }, []);
+
+  const disableAddressSuggestions = useCallback(() => {
+    setAddressSuggestionsEnabled(false);
+    addressInputRef.current?.blur();
+  }, []);
+
+  const reverseGeocode = useCallback(
+    (lat: number, lng: number) => {
+      disableAddressSuggestions();
+
+      // Try Google first
+      if ((window as any).google?.maps) {
+        const geocoder = new (window as any).google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+          if (status === 'OK' && results?.[0]?.formatted_address) {
+            setAddress(results[0].formatted_address);
+          } else {
+            // Fall back to Geoapify
+            geoReverse(lat, lng).then((addr) => { if (addr) setAddress(addr); });
+          }
+        });
+      } else {
+        // Google not loaded — use Geoapify directly
+        geoReverse(lat, lng).then((addr) => { if (addr) setAddress(addr); });
+      }
+    },
+    [disableAddressSuggestions],
+  );
+
+  // Central "go here" action used by autocomplete, click, and drag
+  const goToLocation = useCallback(
+    (lat: number, lng: number, addr?: string) => {
+      disableAddressSuggestions();
+      setPosition([lat, lng]);
+      if (addr) {
+        setAddress(addr);
+      } else {
+        reverseGeocode(lat, lng);
+      }
+      panMapTo(lat, lng);
+    },
+    [disableAddressSuggestions, panMapTo, reverseGeocode],
+  );
+
+  // ------------------------------------------------------------------
+  // Effect 1 — Geolocation
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
+        () => setPosition(DEFAULT_CENTER),
+      );
+    } else {
+      setPosition(DEFAULT_CENTER);
+    }
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Effect 2 — Google Maps initialisation
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    setMapError(null);
+
+    // Set up the global auth-failure callback
+    const onGmAuthFailure = () =>
+      setMapError(
+        'Google Maps authentication failed. Check your API key, billing, and domain restrictions.',
+      );
+    (window as any).gm_authFailure = onGmAuthFailure;
+
+    let cancelled = false;
+
+    loadGoogleMapsScript(apiKey || '')
+      .then(async () => {
+        if (cancelled || !mapContainerRef.current) return;
+        const g = (window as any).google;
+        if (!g?.maps) return;
+
+        // Ensure Places is available
+        try { await g.maps.importLibrary('places'); } catch { /* ok */ }
+
+        // ---- Create the map ----
+        const initial = positionRef.current || DEFAULT_CENTER;
+        const map = new g.maps.Map(mapContainerRef.current, {
+          center: { lat: initial[0], lng: initial[1] },
+          zoom: 13,
+          mapTypeControl: false,
+          streetViewControl: false,
+        });
+        mapRef.current = map;
+
+        // ---- Place Autocomplete ----
+        const hasPlaces = !!g.maps.places?.Autocomplete;
+        if (hasPlaces && addressInputRef.current) {
+          const autocomplete = new g.maps.places.Autocomplete(addressInputRef.current, {
+            fields: ['formatted_address', 'geometry', 'name'],
+          });
+          googleAutocompleteRef.current = autocomplete;
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            const location = place?.geometry?.location;
+            if (!location) {
+              setMapError('Unable to resolve the selected address. Try another suggestion.');
+              return;
+            }
+
+            const lat = location.lat();
+            const lng = location.lng();
+            const addr = place.formatted_address || place.name || addressInputRef.current?.value || '';
+            disableAddressSuggestions();
+            setAddress(addr);
+            setPosition([lat, lng]);
+            panMapTo(lat, lng);
+            setMapError(null);
+          });
+          setPlacesReady(true);
+        }
+
+        // ---- Marker (draggable) ----
+        const marker = new g.maps.Marker({
+          map,
+          position: { lat: initial[0], lng: initial[1] },
+          icon: createLocationPinIcon(g.maps, getPinColor('Menders'), '#ffffff'),
+          draggable: true,
+        });
+        markerRef.current = marker;
+
+        // ---- Map click ----
+        map.addListener('click', (evt: any) => {
+          if (!evt.latLng) return;
+          const lat = evt.latLng.lat();
+          const lng = evt.latLng.lng();
+          setPosition([lat, lng]);
+          panMapTo(lat, lng);
+          reverseGeocode(lat, lng);
+        });
+
+        // ---- Marker drag ----
+        marker.addListener('dragend', () => {
+          const pos = marker.getPosition();
+          if (!pos) return;
+          const lat = pos.lat();
+          const lng = pos.lng();
+          setPosition([lat, lng]);
+          panMapTo(lat, lng);
+          reverseGeocode(lat, lng);
+        });
+      })
+      .catch((err: any) => {
+        if (cancelled) return;
+        setMapError(err instanceof Error ? err.message : 'Failed to load Google Maps.');
+      });
+
+    return () => {
+      cancelled = true;
+      if ((window as any).gm_authFailure === onGmAuthFailure) {
+        (window as any).gm_authFailure = undefined;
+      }
+      googleAutocompleteRef.current = null;
+      markerRef.current = null;
+      mapRef.current = null;
+      setPlacesReady(false);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ------------------------------------------------------------------
+  // Effect 3 — sync marker position + colour when position/entryLevel changes
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (!position || !markerRef.current) return;
+    const g = (window as any).google;
+    if (!g?.maps) return;
+
+    const latLng = { lat: position[0], lng: position[1] };
+    markerRef.current.setPosition(latLng);
+    markerRef.current.setIcon(
+      createLocationPinIcon(g.maps, getPinColor(entryLevel ?? ''), '#ffffff'),
+    );
+  }, [position, entryLevel]);
+
+  // ------------------------------------------------------------------
+  // Form helpers
+  // ------------------------------------------------------------------
+
+  const resetReviewFields = () => {
+    setReviewStars(0);
+    setReviewText('');
+  };
+
+  const onEntryLevelChange = (level: string) => {
+    if (level === entryLevel) return;
+    setEntryLevel(level);
+    if (level === 'Menders') resetReviewFields();
+
+    // Only the first pick gets the reveal choreography; switching between
+    // roles afterwards swaps the form content instantly.
+    if (entryLevel === null) {
+      setIsRevealingForm(true);
+      revealTimerRef.current = setTimeout(() => setIsRevealingForm(false), 800);
+    }
+  };
+
+  // Clear the reveal timer if the user leaves the page mid-reveal.
+  useEffect(() => {
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    };
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Submit
+  // ------------------------------------------------------------------
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!entryLevel) return;
+    setSubmitError('');
+    setSubmitting(true);
+
+    if (!name.trim()) {
+      setSubmitError('Shop name is required.');
+      setSubmitting(false);
+      return;
+    }
+
+    if (!position || !Number.isFinite(position[0]) || !Number.isFinite(position[1])) {
+      setSubmitError('Please select a location on the map — click or drag the pin.');
+      setSubmitting(false);
+      return;
+    }
+
+    const resolvedAddress = address.trim() || 'Location selected on map';
+    const normalizedReview = Number.isFinite(reviewStars) ? Math.min(5, Math.max(0, reviewStars)) : 0;
+
+    const payload = {
+      name,
+      category: entryLevel,
+      entry_level: entryLevel,
+      types,
+      address: resolvedAddress,
+      latitude: position[0],
+      longitude: position[1],
+      phone,
+      contact: phone,
+      website: onlinePresence || undefined,
+      online_presence: onlinePresence,
+      categories,
+      regional_techniques: regionalTechniques,
+      review_text: reviewText,
+      rating: entryLevel === 'Member of the public' ? normalizedReview : 0,
+      rating_count:
+        entryLevel === 'Member of the public' && (reviewText || normalizedReview > 0) ? 1 : 0,
+      photos: JSON.stringify({
+        entry_level: entryLevel,
+        types,
+        categories,
+        regional_techniques: regionalTechniques,
+        online_presence: onlinePresence,
+        review_text: reviewText,
+      }),
+    };
+
+    try {
+      const res = await fetch(`${window.location.origin}/api/vendors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to add mender (${res.status}). Please try again.`);
+      }
+      setSubmitting(false);
+      navigate('/map');
+    } catch (err) {
+      console.error('Failed to add vendor:', err);
+      setSubmitError(err instanceof Error ? err.message : 'Failed to add mender. Please try again.');
+      setSubmitting(false);
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // Derived UI flags
+  // ------------------------------------------------------------------
+
+  // Show the fallback text input when Places isn't available OR we hit an error
+  const showFallbackInput = !placesReady;
+
+  // Shared by the standalone picker view and the form's entry-level section,
+  // so the role can be switched at any time.
+  const entryLevelCards = (
+    <div className="grid grid-cols-2 gap-2">
+      {ENTRY_LEVEL_OPTIONS.map((level) => {
+        const meta = ENTRY_LEVEL_META[level];
+        const isSelected = entryLevel === level;
+
+        return (
+          <label key={level} className="block cursor-pointer">
+            <input
+              type="radio"
+              name="entry-level"
+              value={level}
+              checked={isSelected}
+              onChange={() => onEntryLevelChange(level)}
+              className="peer sr-only"
+            />
+            <span
+              className={`flex aspect-[4/2] flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
+                isSelected
+                  ? meta.activePanelClasses
+                  : 'border-[#e5e7eb] bg-white grayscale hover:border-[#d1d5db] hover:bg-[#f3f4f6]'
+              }`}
+            >
+              <img
+                src={meta.iconSrc}
+                alt=""
+                aria-hidden="true"
+                className={`h-9 w-9 shrink-0 object-contain transition-all duration-150 ${
+                  isSelected ? 'opacity-100' : 'opacity-55'
+                }`}
+              />
+              <span className="min-w-0">
+                <span
+                  className={`block text-center text-[13px] font-medium leading-tight ${
+                    isSelected ? meta.activeTitleClasses : 'text-[#171b17]'
+                  }`}
+                >
+                  {meta.title}
+                </span>
+                <span className={`mt-1 block text-center text-[11px] leading-[1.3] ${isSelected ? 'text-[#2f3e39]' : 'text-[#68665f]'}`}>
+                  {meta.description}
+                </span>
+              </span>
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
+
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
+
+  return (
+    <div className="relative z-0 mt-20 h-[calc(100vh-80px)] w-full">
+      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[35%_65%]">
+        {/* ==================== FORM SIDEBAR ==================== */}
+        <aside className="order-2 flex h-[calc(60vh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full">
+          <div className="shrink-0 border-b border-[#e5e7eb] px-4 py-3">
+            <h1 className="mymenders-card-title-semi text-xl uppercase tracking-wide text-brand-dark-on">
+              Add a Mender
+            </h1>
+          </div>
+
+          {entryLevel === null ? (
+            <div className="flex min-h-0 flex-1 flex-col justify-center px-4 py-6">
+              <h2 className="mymenders-card-title-semi mb-3 text-sm uppercase tracking-[0.04em] text-[var(--mm-muted)]">
+                Who is adding this?
+              </h2>
+              <fieldset>{entryLevelCards}</fieldset>
+            </div>
+          ) : (
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="space-y-4 px-4 py-4">
+                {/* Entry level — stays visible so the role can be switched */}
+                <fieldset>
+                  <legend className={FIELD_LABEL_CLASS}>I am a...</legend>
+                  {entryLevelCards}
+                </fieldset>
+
+                {isRevealingForm ? (
+                  <FormSkeleton />
+                ) : (
+                <div className="mymenders-fade-in space-y-4">
+                {/* Studio Name */}
+                <div>
+                  <label htmlFor="name" className={FIELD_LABEL_CLASS}>
+                    Mender / Studio Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Maria's Shoe Repair"
+                    className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
+                  />
+                </div>
+
+                {/* Type + Phone */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className={FIELD_LABEL_CLASS}>Studio Type</label>
+                    <Select
+                      options={typeOptions}
+                      value={typeOptions.find((o) => types.includes(o.value)) ?? null}
+                      onChange={(opt) => setTypes(toSingleValue(opt))}
+                      placeholder="Select studio type..."
+                      isClearable
+                      menuPortalTarget={selectMenuPortalTarget}
+                      menuPosition="fixed"
+                      styles={selectStyles}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className={FIELD_LABEL_CLASS}>
+                      Tel Number
+                    </label>
+                    <PhoneInput
+                      defaultCountry="gb"
+                      value={phone}
+                      onChange={(nextPhone) => setPhone(nextPhone)}
+                      placeholder="Phone"
+                      allowMaskOverflow
+                      inputProps={{ id: 'phone', name: 'phone' }}
+                      className="mymenders-phone-input"
+                      inputClassName="mymenders-phone-input__field"
+                      countrySelectorStyleProps={{
+                        buttonClassName: 'mymenders-phone-input__country-button',
+                        dropdownStyleProps: {
+                          className: 'mymenders-phone-input__dropdown',
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Social */}
+                <div>
+                  <label htmlFor="online" className={FIELD_LABEL_CLASS}>
+                    Social
+                  </label>
+                  <input
+                    id="online"
+                    type="text"
+                    value={onlinePresence}
+                    onChange={(e) => setOnlinePresence(e.target.value)}
+                    placeholder="Website or social link"
+                    className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
+                  />
+                </div>
+
+                {/* Categories */}
+                <div>
+                  <p className={FIELD_LABEL_CLASS}>Categories</p>
+                  <Select
+                    isMulti
+                    options={categoryOptions}
+                    value={categoryOptions
+                      .flatMap((group) => group.options)
+                      .filter((option) => categories.includes(option.value))}
+                    onChange={(opts) => setCategories(toValues(opts))}
+                    placeholder="Select categories..."
+                    menuPortalTarget={selectMenuPortalTarget}
+                    menuPosition="fixed"
+                    styles={selectStyles}
+                  />
+                </div>
+
+                {/* Regional Techniques */}
+                <div>
+                  <label className={FIELD_LABEL_CLASS}>
+                    Regional techniques
+                  </label>
+                  <Select
+                    isMulti
+                    options={techniqueOptions}
+                    value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
+                    onChange={(opts) => setRegionalTechniques(toValues(opts))}
+                    placeholder="Select techniques..."
+                    menuPortalTarget={selectMenuPortalTarget}
+                    menuPosition="fixed"
+                    styles={selectStyles}
+                  />
+                </div>
+
+                {/* Review (Member of the public only) */}
+                {entryLevel === 'Member of the public' && (
+                  <div>
+                    <span
+                      id="review-stars-label"
+                      className={FIELD_LABEL_CLASS}
+                    >
+                      Review
+                    </span>
+                    <div>
+                      <ReactRating
+                        id="review-stars"
+                        style={{ maxWidth: 180 }}
+                        value={reviewStars}
+                        onChange={setReviewStars}
+                        transition="colors"
+                        spaceBetween="small"
+                        itemStyles={reviewRatingStyles}
+                        visibleLabelId="review-stars-label"
+                        invisibleItemLabels={reviewItemLabels}
+                      />
+                      <textarea
+                        id="review-text"
+                        aria-label="Written review"
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        placeholder="Leave your feedback"
+                        rows={2}
+                        className="mymenders-field mt-2 w-full border px-3 py-2 text-sm outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+                </div>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 border-t border-[#e5e7eb] bg-[#f5f6f8] px-4 py-3">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="h-10 flex-1 rounded-full bg-brand-dark px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? 'Submitting…' : 'Submit for review'}
+                </button>
+              </div>
+              {submitError && <p className="mt-3 text-xs text-[#8b4e16]">{submitError}</p>}
+            </div>
+          </form>
+          )}
+        </aside>
+
+        {/* ==================== MAP ==================== */}
+        <div className="relative order-1 h-[40vh] min-h-0 md:order-2 md:h-full">
+          <div ref={mapContainerRef} className="h-full w-full" />
+
+          {/* Floating address search */}
+          <div className="absolute left-4 right-4 top-4 z-10 mx-auto max-w-lg">
+            <div className="mymenders-cloth-panel rounded-2xl border p-1.5">
+              {!showFallbackInput ? (
+                <input
+                  ref={addressInputRef}
+                  type="text"
+                  value={address}
+                  onFocus={enableAddressSuggestions}
+                  onChange={(e) => {
+                    enableAddressSuggestions();
+                    setAddress(e.target.value);
+                  }}
+                  placeholder="Search an address to place the pin"
+                  autoComplete="off"
+                  className="mymenders-field w-full border px-3 py-2.5 text-sm text-[#171b17] outline-none"
+                />
+              ) : (
+                <GeoAutocomplete
+                  value={address}
+                  onChange={(val) => setAddress(val)}
+                  onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
+                  suggestionsEnabled={addressSuggestionsEnabled}
+                  onManualInputFocus={enableAddressSuggestions}
+                  onManualInputChange={enableAddressSuggestions}
+                  onSuggestionsClose={disableAddressSuggestions}
+                  placeholder="Search an address to place the pin"
+                />
+              )}
+            </div>
+            {mapError && <p className="mt-1.5 px-2 text-xs text-[#9b5f1d]">{mapError}</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -192,6 +192,28 @@ body {
   }
 }
 
+/* Gentle entrance for content revealed after a loading state. */
+.mymenders-fade-in {
+  animation: mm-fade-in 0.3s ease-out both;
+}
+
+@keyframes mm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mymenders-fade-in {
+    animation: none;
+  }
+}
+
 .mymenders-field {
   background-color: #ffffff;
   border-color: var(--mm-border);

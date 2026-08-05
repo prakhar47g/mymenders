@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Map as MapIcon, Info, Menu, Plus, X } from 'lucide-react';
 import { BrandLogo } from '../BrandLogo';
 
-interface NavbarProps {
-  onAddMender: () => void;
-}
-
 const SCROLL_THRESHOLD = 48;
 
-export function Navbar({ onAddMender }: NavbarProps) {
+export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const isHome = pathname === '/';
 
@@ -66,7 +63,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
             </NavLink>
             <div className="flex items-center pl-3">
               <button
-                onClick={onAddMender}
+                onClick={() => navigate('/add')}
                 className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
                 title="Add Mender"
                 aria-label="Add mender"
@@ -121,7 +118,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
               type="button"
               onClick={() => {
                 setIsOpen(false);
-                onAddMender();
+                navigate('/add');
               }}
               className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-light"
             >

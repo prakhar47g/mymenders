@@ -41,10 +41,10 @@ export function Navbar({ onAddMender }: NavbarProps) {
             </NavLink>
           </div>
 
-          <div className="hidden md:flex h-20 items-stretch gap-5">
+          <div className="hidden md:flex h-20 items-stretch gap-2">
             <NavLink
               to="/map"
-              className="group relative inline-flex items-center justify-center px-4 text-sm font-medium text-white"
+              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
             >
               {({ isActive }) => (
                 <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -54,7 +54,7 @@ export function Navbar({ onAddMender }: NavbarProps) {
             </NavLink>
             <NavLink
               to="/about"
-              className="group relative inline-flex items-center justify-center px-4 text-sm font-medium text-white"
+              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium text-white"
             >
               {({ isActive }) => (
                 <span className={`inline-flex h-full items-center border-b-2 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -62,18 +62,17 @@ export function Navbar({ onAddMender }: NavbarProps) {
                 </span>
               )}
             </NavLink>
-          </div>
-
-          <div className="hidden md:flex items-center">
-            <button
-              onClick={onAddMender}
-              className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
-              title="Add Mender"
-              aria-label="Add mender"
-            >
-              <Plus className="h-5 w-5 shrink-0" />
-              <span className="ml-2 text-xs font-medium">Add Mender</span>
-            </button>
+            <div className="flex items-center pl-3">
+              <button
+                onClick={onAddMender}
+                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
+                title="Add Mender"
+                aria-label="Add mender"
+              >
+                <Plus className="h-5 w-5 shrink-0" />
+                <span className="ml-2 text-xs font-medium">Add Mender</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex md:hidden items-center">

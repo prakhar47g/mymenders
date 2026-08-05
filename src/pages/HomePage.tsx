@@ -29,6 +29,7 @@ export function HomePage() {
         <div className="absolute inset-0 bg-[#171b17]">
           <video
             src="https://eoxot1zisi65zkqg.public.blob.vercel-storage.com/vid1.mp4"
+            poster="https://eoxot1zisi65zkqg.public.blob.vercel-storage.com/hero-poster.jpg"
             autoPlay
             muted
             loop

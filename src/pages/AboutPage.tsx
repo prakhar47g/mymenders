@@ -84,11 +84,11 @@ export function AboutPage() {
 
         <section aria-label="Organizations">
           <div className="mx-auto grid max-w-7xl gap-y-9 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0 lg:px-8">
-            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:gap-x-0">
+            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
               <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Initiative Of
               </h2>
-              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[30px]">
+              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[50px]">
                 {initiatives.map((initiative) => (
                   <a
                     key={initiative.name}
@@ -108,11 +108,11 @@ export function AboutPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:gap-x-0">
+            <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
               <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Supported By
               </h2>
-              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[30px]">
+              <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[50px]">
                 {supporters.map((supporter) => (
                   <div key={supporter.name} className="flex min-w-0 items-center justify-center lg:shrink-0">
                     <img

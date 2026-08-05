@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Map as MapIcon, Navigation, Plus, Search } from 'lucide-react';
+import { ArrowRight, Navigation, Plus, Search } from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 
 const steps = [
@@ -25,7 +25,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative h-screen overflow-hidden">
+      <section className="home-hero relative h-[100svh] overflow-hidden">
         <div className="absolute inset-0 bg-[#171b17]">
           <video
             src="https://eoxot1zisi65zkqg.public.blob.vercel-storage.com/vid1.mp4"
@@ -39,33 +39,24 @@ export function HomePage() {
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
-        <div className="relative mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center sm:px-6">
-          <h1 className="font-display mymenders-card-title-light text-5xl leading-[1.02] tracking-[-0.03em] text-white md:text-7xl">
-            We love your clothes
-            <br />
-            like you do.
-          </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-lg font-light leading-[1.45] text-white">
-            My Mender is a map of the people who repair the things you love — verified menders,
-            community contributions, and the craft knowledge that keeps garments alive.
-          </p>
+        <div className="home-hero__content relative">
+          <div className="home-hero__copy">
+            <h1 className="home-hero__title font-display mymenders-card-title-light text-white">
+              We love your clothes
+              <br />
+              like you do.
+            </h1>
+          </div>
 
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+          <nav aria-label="Hero links" className="home-hero__actions">
             <Link
               to="/map"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand px-7 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-hover"
+              className="home-hero__map-link"
             >
-              <MapIcon className="h-4 w-4" aria-hidden="true" />
-              Explore the map
+              Search menders
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link
-              to="/about"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-dark px-7 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
-            >
-              About us
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
+          </nav>
         </div>
       </section>
 

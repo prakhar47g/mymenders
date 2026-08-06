@@ -340,11 +340,6 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
-  const entry = document.createElement('div');
-  entry.className = 'mt-[-1px] mb-3 text-[10px] font-medium uppercase tracking-[0.05em] text-[var(--mm-muted)]';
-  entry.textContent = normalizeEntryLevel(vendor.entry_level || vendor.category);
-  container.append(entry);
-
   const contactSection = document.createElement('div');
   contactSection.className = 'space-y-0.5';
   const primaryType = vendor.types?.[0]?.trim();
@@ -1101,49 +1096,37 @@ export function MapPage() {
           }}
         >
           <div className="shrink-0 border-b border-[#e5e7eb] px-3 py-3">
-            <div className="relative">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search menders..."
-                aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-              />
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[var(--mm-faint)] transition-colors hover:bg-[var(--mm-panel-muted)] hover:text-[var(--mm-text)]"
-                  aria-label="Clear search"
-                >
-                  <X className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              ) : null}
-            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search menders..."
+                  aria-label="Search menders"
+                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[var(--mm-faint)] transition-colors hover:bg-[var(--mm-panel-muted)] hover:text-[var(--mm-text)]"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
 
-            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1.5">
-              {activeFilterChips.map((chip) => (
-                <button
-                  key={`${chip.groupKey}-${chip.value}`}
-                  type="button"
-                  onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
-                  className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
-                  title={`Remove ${chip.displayLabel}`}
-                >
-                  <span className="truncate">{chip.displayLabel}</span>
-                  <X className="h-3 w-3 shrink-0" aria-hidden="true" />
-                </button>
-              ))}
               <button
                 ref={filterButtonRef}
                 type="button"
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
-                className={`ml-auto inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
@@ -1161,6 +1144,23 @@ export function MapPage() {
                 ) : null}
               </button>
             </div>
+
+            {activeFilterChips.length ? (
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {activeFilterChips.map((chip) => (
+                  <button
+                    key={`${chip.groupKey}-${chip.value}`}
+                    type="button"
+                    onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
+                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+                    title={`Remove ${chip.displayLabel}`}
+                  >
+                    <span className="truncate">{chip.displayLabel}</span>
+                    <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div

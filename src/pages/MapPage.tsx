@@ -174,6 +174,12 @@ const buildGoogleMapsDirectionsUrl = (vendor: Vendor) => {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 };
 
+const toExternalWebsiteUrl = (value?: string) => {
+  const trimmed = (value || '').trim();
+  if (!trimmed) return null;
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
 const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
   type: 'FeatureCollection',
   features: [],
@@ -336,7 +342,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   const title = document.createElement('h3');
   title.className =
-    'mymenders-card-title-semi mb-1 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
+    'mymenders-card-title-semi mb-3 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
@@ -387,29 +393,19 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   }
 
   const actionRow = document.createElement('div');
-  actionRow.className = 'mt-3 grid grid-cols-2 gap-2';
+  actionRow.className = 'mt-3 flex items-center gap-2';
 
-  const detailsButton = document.createElement('button');
-  detailsButton.type = 'button';
-  detailsButton.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full border border-brand/40 bg-brand px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-hover';
-  detailsButton.innerHTML = `
-    <span class="inline-flex items-center justify-center w-4 h-4">
-      ${DETAILS_BUTTON_ICON}
-    </span>
-    Details
-  `;
-  detailsButton.addEventListener('click', () => {
-    onDetails(vendor);
-  });
-  actionRow.append(detailsButton);
+  const circleActiveClass =
+    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
+  const circleDisabledClass =
+    'inline-flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
 
   const directionsLink = document.createElement('a');
   directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
   directionsLink.target = '_blank';
   directionsLink.rel = 'noopener noreferrer';
   directionsLink.className =
-    'inline-flex h-9 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
+    'inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
   directionsLink.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -417,6 +413,79 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
     Directions
   `;
   actionRow.append(directionsLink);
+
+  const detailsButton = document.createElement('button');
+  detailsButton.type = 'button';
+  detailsButton.className = circleActiveClass;
+  detailsButton.title = 'Details';
+  detailsButton.setAttribute('aria-label', 'Details');
+  detailsButton.innerHTML = `
+    <span class="inline-flex items-center justify-center w-4 h-4">
+      ${DETAILS_BUTTON_ICON}
+    </span>
+  `;
+  detailsButton.addEventListener('click', () => {
+    onDetails(vendor);
+  });
+  actionRow.append(detailsButton);
+
+  const trimmedPhone = (vendor.phone || '').trim();
+  if (trimmedPhone) {
+    const phoneLink = document.createElement('a');
+    phoneLink.className = circleActiveClass;
+    phoneLink.href = `tel:${trimmedPhone}`;
+    phoneLink.title = `Call ${trimmedPhone}`;
+    phoneLink.setAttribute('aria-label', `Call ${trimmedPhone}`);
+    phoneLink.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${PHONE_ICON}
+      </span>
+    `;
+    actionRow.append(phoneLink);
+  } else {
+    const phoneButton = document.createElement('button');
+    phoneButton.type = 'button';
+    phoneButton.disabled = true;
+    phoneButton.className = circleDisabledClass;
+    phoneButton.title = 'No phone available';
+    phoneButton.setAttribute('aria-label', 'No phone available');
+    phoneButton.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${PHONE_ICON}
+      </span>
+    `;
+    actionRow.append(phoneButton);
+  }
+
+  const websiteUrl = toExternalWebsiteUrl(vendor.online_presence);
+  if (websiteUrl) {
+    const websiteLink = document.createElement('a');
+    websiteLink.className = circleActiveClass;
+    websiteLink.href = websiteUrl;
+    websiteLink.target = '_blank';
+    websiteLink.rel = 'noopener noreferrer';
+    websiteLink.title = websiteUrl;
+    websiteLink.setAttribute('aria-label', 'Visit website or social profile');
+    websiteLink.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${ONLINE_ICON}
+      </span>
+    `;
+    actionRow.append(websiteLink);
+  } else {
+    const websiteButton = document.createElement('button');
+    websiteButton.type = 'button';
+    websiteButton.disabled = true;
+    websiteButton.className = circleDisabledClass;
+    websiteButton.title = 'No website available';
+    websiteButton.setAttribute('aria-label', 'No website available');
+    websiteButton.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${ONLINE_ICON}
+      </span>
+    `;
+    actionRow.append(websiteButton);
+  }
 
   container.append(actionRow);
 

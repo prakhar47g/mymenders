@@ -7,6 +7,7 @@ import {
   Globe,
   Globe2,
   House,
+  Info,
   MapPin,
   MessageSquareQuote,
   Minus,
@@ -16,7 +17,6 @@ import {
   Plus,
   Route,
   Search,
-  Signpost,
   SlidersHorizontal,
   Star,
   X,
@@ -115,7 +115,7 @@ const getPinColor = (entryLevel?: string) => {
 
 const renderIconMarkup = (icon: React.ReactElement) => renderToStaticMarkup(icon);
 
-const DETAILS_BUTTON_ICON = renderIconMarkup(<Signpost className="w-4 h-4" aria-hidden="true" />);
+const DETAILS_BUTTON_ICON = renderIconMarkup(<Info className="w-4 h-4" aria-hidden="true" />);
 const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Route className="w-4 h-4" aria-hidden="true" />);
 const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="true" />);
 const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);

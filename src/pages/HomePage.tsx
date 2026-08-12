@@ -62,7 +62,7 @@ export function HomePage() {
 
       {/* How it works */}
       <section className="bg-[#f5f6f8]">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-px px-4 py-16 sm:px-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px px-[30px] py-16 md:grid-cols-3">
           {steps.map(({ icon: Icon, title, body }) => (
             <div key={title} className="flex flex-col items-center px-6 py-4 text-center">
               <div className="mymenders-cloth-panel flex h-14 w-14 items-center justify-center rounded-full border bg-cloth text-[#2f3e39]">

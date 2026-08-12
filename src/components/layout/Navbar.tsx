@@ -29,7 +29,7 @@ export function Navbar() {
         transparent ? 'bg-transparent text-white' : 'bg-brand-dark/95 text-[var(--mm-text)] backdrop-blur-sm'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-[30px]">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">

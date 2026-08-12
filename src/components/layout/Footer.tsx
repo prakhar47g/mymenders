@@ -39,7 +39,7 @@ export function Footer() {
 
   return (
     <footer className="bg-brand-dark text-[var(--mm-text)]">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="px-[30px] py-12">
         <div className="flex flex-col justify-between gap-10 md:flex-row md:items-start">
           <div>
             <div className="footer-engraved-logo" aria-hidden="true">

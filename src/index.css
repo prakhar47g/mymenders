@@ -427,7 +427,7 @@ body {
 
 /* Homepage hero: keep the editorial proportions adjustable in one place. */
 .home-hero {
-  --home-hero-inline-space: clamp(1rem, 3vw, 2rem);
+  --home-hero-inline-space: 30px;
   --home-hero-top-space: 5rem;
   --home-hero-bottom-space: clamp(2.5rem, 10svh, 7rem);
   --home-hero-column-gap: clamp(2.5rem, 7vw, 7rem);
@@ -443,8 +443,6 @@ body {
   align-items: end;
   column-gap: var(--home-hero-column-gap);
   height: 100%;
-  max-width: 80rem;
-  margin-inline: auto;
   padding: var(--home-hero-top-space) var(--home-hero-inline-space) var(--home-hero-bottom-space);
 }
 

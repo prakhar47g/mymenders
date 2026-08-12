@@ -38,9 +38,9 @@ export function AboutPage() {
       <main>
         <section
           aria-labelledby="about-hero-title"
-          className="grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr]"
+          className="grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12"
         >
-          <div className="flex min-h-[28rem] items-end px-4 pb-12 pt-20 sm:min-h-[34rem] sm:px-6 sm:pb-16 lg:min-h-0 lg:px-8 lg:pb-16 lg:pt-0 xl:px-[max(2rem,calc((100vw-80rem)/2+2rem))] xl:pr-12">
+          <div className="flex min-h-[28rem] items-end px-[30px] pb-12 pt-20 sm:min-h-[34rem] sm:pb-16 lg:min-h-0 lg:pb-16 lg:pt-0">
             <h1
               id="about-hero-title"
               className="font-display mymenders-card-title-light text-[42px] leading-[0.98] tracking-[-0.04em] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
@@ -67,7 +67,7 @@ export function AboutPage() {
 
         <section
           aria-labelledby="about-mission-title"
-          className="border-t border-black/[0.06] px-4 py-24 text-center sm:px-6 sm:py-32 lg:px-8 lg:py-40"
+          className="border-t border-black/[0.06] px-[30px] py-24 text-center sm:py-32 lg:py-40"
         >
           <div className="mx-auto max-w-3xl">
             <h2
@@ -83,7 +83,7 @@ export function AboutPage() {
         </section>
 
         <section aria-label="Organizations">
-          <div className="mx-auto grid max-w-7xl gap-y-9 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0 lg:px-8">
+          <div className="grid gap-y-9 px-[30px] py-10 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0">
             <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
               <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Initiative Of

@@ -52,7 +52,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="grid flex-1 gap-10 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_1fr] lg:gap-12">
+          <div className="grid flex-1 gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,9rem)_minmax(0,9rem)_minmax(0,9rem)_1fr] lg:gap-12">
             <div>
               <p className="mymenders-section-label text-[var(--mm-text)]">Company</p>
               <nav className="mt-4 flex flex-col gap-2.5 text-sm">

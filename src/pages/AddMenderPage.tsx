@@ -150,7 +150,7 @@ const reviewRatingStyles = {
 };
 
 const FIELD_LABEL_CLASS =
-  'add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase';
+  'add-mender-modal-label mb-1.5 block text-[11px] uppercase';
 
 // Mirrors the shape of the form fields (labels + inputs) so the reveal
 // skeleton doesn't shift the layout when the real fields appear.
@@ -594,7 +594,7 @@ export function AddMenderPage() {
               </span>
 
               <span
-                className={`min-w-0 flex-1 text-sm font-semibold leading-tight ${
+                className={`min-w-0 flex-1 text-sm leading-tight ${
                   isSelected ? 'text-[#222222]' : 'text-[#171b17]'
                 }`}
               >
@@ -617,14 +617,14 @@ export function AddMenderPage() {
         {/* ==================== FORM SIDEBAR ==================== */}
         <aside className="order-2 flex h-[calc(60vh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full">
           <div className="shrink-0 border-b border-[#e5e7eb] px-4 py-3">
-            <h1 className="mymenders-card-title-semi text-xl uppercase tracking-wide text-brand-dark-on">
+            <h1 className="mymenders-card-title-semi text-xl uppercase text-brand-dark-on">
               Add a Mender
             </h1>
           </div>
 
           {entryLevel === null ? (
             <div className="flex min-h-0 flex-1 flex-col justify-start px-4 py-6">
-              <h2 className="mymenders-card-title-semi mb-3 text-sm uppercase tracking-[0.04em] text-[var(--mm-muted)]">
+              <h2 className="mymenders-card-title-semi mb-3 text-sm uppercase text-[var(--mm-muted)]">
                 Who is adding this?
               </h2>
               <fieldset>{entryLevelCards}</fieldset>
@@ -637,7 +637,7 @@ export function AddMenderPage() {
                 <button
                   type="button"
                   onClick={goBackToPicker}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
+                  className="inline-flex items-center gap-1.5 text-xs text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                   Back
@@ -794,14 +794,14 @@ export function AddMenderPage() {
                   type="button"
                   onClick={() => navigate(-1)}
                   disabled={submitting || submissionComplete}
-                  className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+                  className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || submissionComplete}
-                  className={`flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
                     submissionComplete
                       ? 'bg-[#5d8b61] text-white'
                       : 'bg-brand-dark text-brand-dark-on hover:bg-brand-dark-hover'
@@ -871,7 +871,7 @@ export function AddMenderPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e8f1e7] text-[#527b56]">
               <Check className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
             </div>
-            <h2 id="contribution-success-title" className="mymenders-card-title-semi mt-5 text-3xl tracking-[-0.045em] text-[var(--mm-text)]">
+            <h2 id="contribution-success-title" className="mymenders-card-title-semi mt-5 text-3xl text-[var(--mm-text)]">
               Thanks for your contribution.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[var(--mm-muted)]">
@@ -880,7 +880,7 @@ export function AddMenderPage() {
             <button
               type="button"
               onClick={() => navigate('/map')}
-              className="mt-7 h-10 w-full rounded-full bg-brand-dark px-5 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+              className="mt-7 h-10 w-full rounded-full bg-brand-dark px-5 text-sm text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
             >
               Go back to Map
             </button>

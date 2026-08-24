@@ -296,7 +296,7 @@ const buildTagRow = (
   wrapper.className = 'mb-2 last:mb-0';
 
   const title = document.createElement('div');
-  title.className = 'mb-1 text-[10px] font-medium text-[#68665f] mymenders-map-card-label';
+  title.className = 'mb-1 text-[10px] text-[#68665f] mymenders-map-card-label';
   title.textContent = label;
   wrapper.append(title);
 
@@ -342,7 +342,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   const title = document.createElement('h3');
   title.className =
-    'mymenders-card-title-semi mb-3 pr-8 text-base leading-[1.08] tracking-[-0.02em] text-[var(--mm-text)] capitalize';
+    'mymenders-card-title-semi mb-3 pr-8 text-base leading-[1.08] text-[var(--mm-text)] capitalize';
   title.textContent = toDisplayName(vendor.name);
   container.append(title);
 
@@ -369,7 +369,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
     const review = document.createElement('div');
     review.className = 'mt-3 text-xs leading-[1.4] text-[var(--mm-text-soft)]';
     review.innerHTML = `
-      <div class="mb-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.04em] text-[#68665f]">
+      <div class="mb-1 flex items-center gap-1.5 text-[10px] uppercase text-[#68665f]">
         <span class="inline-flex h-4 w-4 items-center justify-center">${REVIEW_ICON}</span>
         Review
       </div>
@@ -382,7 +382,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   if ((vendor.rating || 0) > 0) {
     const rating = document.createElement('div');
-    rating.className = 'mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-2.5 py-0.5 text-[11px] font-medium text-[#785531]';
+    rating.className = 'mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-2.5 py-0.5 text-[11px] text-[#785531]';
     rating.innerHTML = `
       <span class="inline-flex h-5 w-5 items-center justify-center text-[#c9782f]">
         ${RATING_ICON}
@@ -405,7 +405,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   directionsLink.target = '_blank';
   directionsLink.rel = 'noopener noreferrer';
   directionsLink.className =
-    'inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
+    'inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
   directionsLink.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -1195,7 +1195,7 @@ export function MapPage() {
                 ref={filterButtonRef}
                 type="button"
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
@@ -1207,7 +1207,7 @@ export function MapPage() {
                 <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
                 Filters
                 {hasActiveFilters ? (
-                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[#171b17]">
                     {activeFilterCount}
                   </span>
                 ) : null}
@@ -1221,7 +1221,7 @@ export function MapPage() {
                     key={`${chip.groupKey}-${chip.value}`}
                     type="button"
                     onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
-                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs font-medium text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
                     title={`Remove ${chip.displayLabel}`}
                   >
                     <span className="truncate">{chip.displayLabel}</span>
@@ -1275,7 +1275,7 @@ export function MapPage() {
                       <div className="flex items-baseline justify-between gap-2">
                         <p className="mymenders-card-title-semi truncate text-sm text-[var(--mm-text)]">{vendorName}</p>
                         {distanceKm !== undefined && distanceKm < MAX_LIST_DISTANCE_KM ? (
-                          <span className="shrink-0 text-[10px] font-medium tabular-nums text-[var(--mm-muted)]">
+                          <span className="shrink-0 text-[10px] tabular-nums text-[var(--mm-muted)]">
                             {formatDistance(distanceKm)}
                           </span>
                         ) : null}
@@ -1289,7 +1289,7 @@ export function MapPage() {
                           {categories.map((category) => (
                             <span
                               key={`${vendor.id}-category-${category}`}
-                              className="mymenders-cloth-chip--categories rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              className="mymenders-cloth-chip--categories rounded-full px-2 py-0.5 text-[10px] "
                             >
                               {getTaxonomyLabel('categories', category)}
                             </span>
@@ -1301,7 +1301,7 @@ export function MapPage() {
                           {techniques.map((technique) => (
                             <span
                               key={`${vendor.id}-technique-${technique}`}
-                              className="mymenders-cloth-chip--techniques rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              className="mymenders-cloth-chip--techniques rounded-full px-2 py-0.5 text-[10px] "
                             >
                               {getTaxonomyLabel('regional_techniques', technique)}
                             </span>
@@ -1349,7 +1349,7 @@ export function MapPage() {
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
               {hasActiveFilters ? (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] font-semibold leading-none text-[#171b17]">
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[#171b17]">
                   {activeFilterCount}
                 </span>
               ) : null}
@@ -1381,11 +1381,11 @@ export function MapPage() {
                   return (
                     <section key={key} className="border-b border-[#e5e7eb] py-3 first:pt-0 last:border-b-0">
                       <div className="mb-2 flex items-center justify-between gap-3">
-                        <h3 className="mymenders-field-label-font text-[11px] uppercase tracking-[0.04em] text-[var(--mm-muted)]">
+                        <h3 className="mymenders-field-label-font text-[11px] uppercase text-[var(--mm-muted)]">
                           {label}
                         </h3>
                         {selectedFilters[key].length ? (
-                          <span className="rounded-full bg-[var(--mm-panel-muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--mm-muted)]">
+                          <span className="rounded-full bg-[var(--mm-panel-muted)] px-2 py-0.5 text-[11px] text-[var(--mm-muted)]">
                             {selectedFilters[key].length}
                           </span>
                         ) : null}
@@ -1400,7 +1400,7 @@ export function MapPage() {
                               type="button"
                               onClick={() => toggleFilterOption(key, option.id)}
                               aria-pressed={checked}
-                              className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs font-medium leading-tight transition-colors ${
+                              className={`inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-xs leading-tight transition-colors ${
                                 checked
                                   ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                                   : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
@@ -1421,7 +1421,7 @@ export function MapPage() {
                   type="button"
                   onClick={clearAllFilters}
                   disabled={!hasActiveFilters}
-                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm font-medium text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   Clear all
                 </button>
@@ -1438,7 +1438,7 @@ export function MapPage() {
               aria-label="Find nearby menders"
             >
               {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
-              <span className="ml-2 text-xs font-medium">Near me</span>
+              <span className="ml-2 text-xs ">Near me</span>
             </button>
           </div>
 
@@ -1510,7 +1510,7 @@ export function MapPage() {
                       }}
                       className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
                         selectedBasemapStyleId === style.id
-                          ? 'bg-brand/20 text-[#2f3e39] font-medium'
+                          ? 'bg-brand/20 text-[#2f3e39] '
                           : 'text-[#3d403b] hover:bg-[#f3f4f6]'
                       }`}
                     >

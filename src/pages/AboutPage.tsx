@@ -43,10 +43,10 @@ export function AboutPage() {
           <div className="flex min-h-[28rem] items-end px-[30px] pb-12 pt-20 sm:min-h-[34rem] sm:pb-16 lg:min-h-0 lg:pb-16 lg:pt-0">
             <h1
               id="about-hero-title"
-              className="font-display mymenders-card-title-light text-[42px] leading-[0.98] tracking-[-0.04em] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
+              className="font-display text-[42px] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
             >
               Repair keeps
-              <span className="block italic">what we love</span>
+              <span className="block">what we love</span>
               <span className="block">
                 alive.
               </span>
@@ -72,11 +72,11 @@ export function AboutPage() {
           <div className="mx-auto max-w-3xl">
             <h2
               id="about-mission-title"
-              className="font-display mymenders-card-title-light text-[19.33px] uppercase tracking-[0.06em] text-[var(--mm-faint)]"
+              className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
             >
               Our Mission
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg font-light leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
               My Mender is a map-based, subscription-driven platform designed to extend the life of garments by reconnecting people with menders, repair knowledge, and the cultures of care that already exist, yet remain fragmented and undervalued.
             </p>
           </div>
@@ -85,7 +85,7 @@ export function AboutPage() {
         <section aria-label="Organizations">
           <div className="grid gap-y-9 px-[30px] py-10 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0">
             <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
-              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
+              <h2 className="mymenders-field-label-font text-[10px] uppercase text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Initiative Of
               </h2>
               <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[50px]">
@@ -109,7 +109,7 @@ export function AboutPage() {
             </div>
 
             <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
-              <h2 className="mymenders-field-label-font text-[10px] uppercase tracking-[0.06em] text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
+              <h2 className="mymenders-field-label-font text-[10px] uppercase text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Supported By
               </h2>
               <div className="grid min-w-0 grid-cols-2 items-center gap-x-5 lg:flex lg:justify-start lg:gap-[50px]">

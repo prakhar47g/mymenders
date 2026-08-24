@@ -19,7 +19,7 @@ export function Navbar() {
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
               <BrandLogo className="h-[29px] w-[29px] shrink-0" color="var(--color-brand-dark-text)" />
-              <span className="text-[29px] tracking-tight mymenders-logo-font text-brand-dark-text">
+              <span className="text-[29px] mymenders-logo-font text-brand-dark-text">
                 My Mender
               </span>
             </NavLink>
@@ -28,7 +28,7 @@ export function Navbar() {
           <div className="hidden md:flex h-20 items-stretch gap-2">
             <NavLink
               to="/map"
-              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium"
+              className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
               {({ isActive }) => (
                 <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -38,7 +38,7 @@ export function Navbar() {
             </NavLink>
             <NavLink
               to="/about"
-              className="group relative inline-flex items-center justify-center px-3 text-sm font-medium"
+              className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
               {({ isActive }) => (
                 <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive || isAbout ? 'border-[#b8dceb]' : 'border-transparent'}`}>
@@ -54,7 +54,7 @@ export function Navbar() {
                 aria-label="Add mender"
               >
                 <Plus className="h-5 w-5 shrink-0" />
-                <span className="ml-2 text-xs font-medium">Add Mender</span>
+                <span className="ml-2 text-sm">Add Mender</span>
               </button>
             </div>
           </div>
@@ -76,7 +76,7 @@ export function Navbar() {
             <NavLink
               to="/map"
               onClick={() => setIsOpen(false)}
-              className="group block rounded-xl px-3 py-2 text-sm font-medium hover:bg-black/5"
+              className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
             >
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
@@ -88,7 +88,7 @@ export function Navbar() {
             <NavLink
               to="/about"
               onClick={() => setIsOpen(false)}
-              className="group block rounded-xl px-3 py-2 text-sm font-medium hover:bg-black/5"
+              className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
             >
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export function Navbar() {
                 setIsOpen(false);
                 navigate('/add');
               }}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-medium text-brand-dark-on transition-colors hover:bg-brand-light"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm text-brand-dark-on transition-colors hover:bg-brand-light"
             >
               <Plus className="h-4 w-4 shrink-0" />
               Add Mender

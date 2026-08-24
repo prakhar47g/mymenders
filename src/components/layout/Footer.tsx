@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '../ui/button';
+import { ButtonGroup } from '../ui/button-group';
+import { InputGroup, InputGroupInput } from '../ui/input-group';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -93,28 +96,30 @@ export function Footer() {
               </nav>
             </div>
 
-            <div className="sm:col-span-2 lg:col-span-1 lg:max-w-sm lg:justify-self-end">
-              <p className="mymenders-section-label text-[var(--mm-text)]">Newsletter</p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--mm-muted)]">
-                Mending stories, repair tips, and new menders on the map.
-              </p>
-              <form onSubmit={handleSubscribe} className="mt-4 flex gap-2">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  aria-label="Email address"
-                  placeholder="you@example.com"
-                  className="mymenders-field h-11 min-w-0 flex-1 rounded-full px-4 text-sm placeholder:text-[var(--mm-faint)] focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  disabled={status === 'submitting'}
-                  className="mymenders-btn mymenders-btn--primary h-11 shrink-0 px-5"
-                >
-                  {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
-                </button>
+            <div className="w-full sm:col-span-2 lg:col-span-1 lg:w-[24rem] lg:max-w-full lg:justify-self-end">
+              <p className="mymenders-section-label text-[var(--mm-text)]">Stay in touch</p>
+              <form onSubmit={handleSubscribe} className="mt-4">
+                <ButtonGroup className="w-full">
+                  <InputGroup className="h-11 min-w-0 flex-1 rounded-l-full border-[var(--mm-border)] bg-white shadow-none focus-within:border-[var(--mm-text)] focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
+                    <InputGroupInput
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      aria-label="Email address"
+                      placeholder="Enter your email"
+                      className="h-9 px-3 text-sm placeholder:text-[var(--mm-faint)] focus-visible:ring-0"
+                    />
+                  </InputGroup>
+                  <Button
+                    type="submit"
+                    disabled={status === 'submitting'}
+                    size="lg"
+                    className="h-11 rounded-r-full border border-[var(--color-brand)] bg-[var(--color-brand)] px-4 text-sm text-brand-dark-on hover:bg-[var(--color-brand-hover)]"
+                  >
+                    {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
+                  </Button>
+                </ButtonGroup>
               </form>
               {message ? (
                 <p

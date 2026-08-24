@@ -46,11 +46,11 @@ export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
       </div>
     </div>
     <Field label="Review / notes"><textarea rows={4} className={inputClass} value={form.review_text || ''} onChange={(e) => set('review_text', e.target.value)} /></Field>
-    <div className="flex gap-3 border-t border-[#e5e5e5] pt-5"><button type="submit" disabled={saving} className="rounded-full bg-[#0a0a0a] px-5 py-2.5 text-sm font-medium text-white hover:bg-black disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="rounded-full border border-[#d5d5d5] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
+    <div className="flex gap-3 border-t border-[#e5e5e5] pt-5"><button type="submit" disabled={saving} className="rounded-full bg-[#0a0a0a] px-5 py-2.5 text-sm text-white hover:bg-black disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="rounded-full border border-[#d5d5d5] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
   </form>;
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block"><span className="add-mender-modal-label mb-1.5 block text-[11px] font-medium uppercase">{label}</span>{children}</label>; }
+function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block"><span className="add-mender-modal-label mb-1.5 block text-[11px] uppercase">{label}</span>{children}</label>; }
 function TaxonomyMultiSelect({ options, value, onChange }: { options: Option[] | CategoryGroup[]; value: string[]; onChange: (values: string[]) => void }) {
   const flatOptions = options.flatMap((option) => 'options' in option ? option.options : option);
   return <Select<Option, true>

@@ -144,7 +144,7 @@ export function GeoAutocomplete({
               onMouseDown={() => pickSuggestion(s)}
               onMouseEnter={() => setActiveIndex(i)}
             >
-              <span className="font-medium">{s.formatted}</span>
+              <span className="">{s.formatted}</span>
               {s.city && (
                 <span className="ml-2 text-xs text-[#8a877d]">
                   {[s.city, s.country].filter(Boolean).join(', ')}

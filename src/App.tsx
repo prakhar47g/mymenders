@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
-import { HomePage } from './pages/HomePage';
 import { MapPage } from './pages/MapPage';
 import { AddMenderPage } from './pages/AddMenderPage';
 import { AboutPage } from './pages/AboutPage';
@@ -24,7 +23,7 @@ function PublicApp() {
   return <>
     <Navbar />
     <Routes>
-      <Route index element={<HomePage />} />
+      <Route index element={<AboutPage />} />
       <Route path="map" element={<MapPage />} />
       <Route path="add" element={<AddMenderPage />} />
       <Route path="about" element={<AboutPage />} />

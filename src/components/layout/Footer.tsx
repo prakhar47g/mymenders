@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { StitchedLogo } from '../StitchedLogo';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -129,9 +128,6 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 overflow-hidden">
-          <StitchedLogo className="w-full" />
-        </div>
       </div>
     </footer>
   );

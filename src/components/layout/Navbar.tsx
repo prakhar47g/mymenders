@@ -1,40 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Map as MapIcon, Info, Menu, Plus, X } from 'lucide-react';
 import { BrandLogo } from '../BrandLogo';
 
-const SCROLL_THRESHOLD = 48;
-
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const isHome = pathname === '/';
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  // Transparent over the homepage hero; solid everywhere else and after scrolling
-  const transparent = isHome && !scrolled;
+  const isAbout = pathname === '/' || pathname === '/about';
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[1000] transition-colors duration-300 ${
-        transparent ? 'bg-transparent text-white' : 'bg-brand-dark/95 text-[var(--mm-text)] backdrop-blur-sm'
-      }`}
+      className="fixed top-0 left-0 right-0 z-[1000] bg-brand-dark/95 text-[var(--mm-text)] backdrop-blur-sm"
     >
       <div className="px-[30px]">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
-              <BrandLogo color={transparent ? 'var(--color-cloth)' : 'var(--color-brand-dark-text)'} />
-              <span className={`text-2xl tracking-tight mymenders-logo-font ${transparent ? 'text-white' : 'text-brand-dark-text'}`}>
+              <BrandLogo className="h-[29px] w-[29px] shrink-0" color="var(--color-brand-dark-text)" />
+              <span className="text-[29px] tracking-tight mymenders-logo-font text-brand-dark-text">
                 My Mender
               </span>
             </NavLink>
@@ -56,7 +41,7 @@ export function Navbar() {
               className="group relative inline-flex items-center justify-center px-3 text-sm font-medium"
             >
               {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive || isAbout ? 'border-[#b8dceb]' : 'border-transparent'}`}>
                   About
                 </span>
               )}
@@ -77,9 +62,7 @@ export function Navbar() {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`rounded-full p-2 opacity-80 transition-colors focus:outline-none ${
-                transparent ? 'hover:bg-white/10' : 'hover:bg-black/5'
-              } hover:opacity-100`}
+              className="rounded-full p-2 opacity-80 transition-colors focus:outline-none hover:bg-black/5 hover:opacity-100"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -110,7 +93,7 @@ export function Navbar() {
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
                   <Info className="h-5 w-5" />
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>About</span>
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive || isAbout ? 'border-[#b8dceb]' : 'border-transparent'}`}>About</span>
                 </div>
               )}
             </NavLink>

@@ -78,7 +78,7 @@ export function AboutPage() {
 
         <section
           aria-labelledby="about-mission-title"
-          className="border-t border-black/[0.06] px-[30px] py-24 text-center sm:py-32 lg:py-40"
+          className="border-t border-black/[0.06] px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
         >
           <div className="mx-auto max-w-3xl">
             <h2
@@ -95,7 +95,7 @@ export function AboutPage() {
 
         <section
           aria-labelledby="how-it-works-title"
-          className="border-t border-black/[0.06] px-[30px] py-24 text-center sm:py-32 lg:py-40"
+          className="px-[30px] pb-24 pt-12 text-center sm:pb-32 sm:pt-16 lg:pb-40 lg:pt-20"
         >
           <div className="mx-auto max-w-6xl">
             <h2
@@ -105,11 +105,11 @@ export function AboutPage() {
               How It Works
             </h2>
 
-            <div className="mx-auto mt-16 grid max-w-5xl divide-y divide-black/[0.1] text-left sm:mt-20 lg:grid-cols-3 lg:divide-y-0">
+            <div className="mx-auto mt-20 grid max-w-5xl divide-y divide-black/[0.1] text-left sm:mt-24 lg:grid-cols-3 lg:divide-y-0">
               {howItWorks.map((step) => (
                 <article key={step.title} className="py-7 lg:px-8 lg:py-2">
                   <h3 className="text-center text-[18px] leading-[1.2] text-[var(--mm-text)]">{step.title}</h3>
-                  <p className="mt-3 max-w-2xl text-[15px] leading-[1.55] text-[var(--mm-text-soft)]">
+                  <p className="mt-3 max-w-2xl text-center text-[15px] leading-[1.55] text-[var(--mm-text-soft)]">
                     {step.description}
                   </p>
                 </article>

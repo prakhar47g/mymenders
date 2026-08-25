@@ -3,16 +3,16 @@ import { Footer } from '../components/layout/Footer';
 
 const initiatives = [
   {
-    name: 'Iro Iro',
-    url: 'https://framerusercontent.com/images/I832b7iZYGhar08MeqXTnrXE0TA.png',
-    href: 'https://iroirozerowaste.com',
-    imageClassName: 'h-12 w-auto max-w-16',
-  },
-  {
     name: 'Estethica',
     url: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzEzMUMxOCIvPjxyZWN0IHg9IjEwIiB5PSI0MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMTMxQzE4Ii8+PHJlY3QgeD0iMTAiIHk9IjcwIiB3aWR0aD0iODAiIGhlaWdodD0iMjAiIGZpbGw9IiMxMzFDMTgiLz48L3N2Zz4=',
     href: 'https://www.estethica.com/',
     imageClassName: 'h-10 w-10',
+  },
+  {
+    name: 'Iro Iro',
+    url: 'https://framerusercontent.com/images/I832b7iZYGhar08MeqXTnrXE0TA.png',
+    href: 'https://iroirozerowaste.com',
+    imageClassName: 'h-12 w-auto max-w-16',
   },
 ];
 
@@ -26,6 +26,21 @@ const supporters = [
     name: 'British Council',
     url: 'https://framerusercontent.com/images/7pyvLdQzMPkyxitxCpPjxuMFO9Q.png',
     imageClassName: 'w-[104px] max-w-full lg:w-36 lg:max-w-none',
+  },
+];
+
+const howItWorks = [
+  {
+    title: 'Explore the map',
+    description: 'Find menders near you, searchable by skill and location.',
+  },
+  {
+    title: 'Connect',
+    description: 'Reach out directly to book a repair or ask a question.',
+  },
+  {
+    title: 'Add a mender',
+    description: "Know a mending practitioner, or are one yourself? Tap 'Add a Mender' and share their details.",
   },
 ];
 
@@ -45,11 +60,7 @@ export function AboutPage() {
               id="about-hero-title"
               className="font-display text-[42px] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
             >
-              Repair keeps
-              <span className="block">what we love</span>
-              <span className="block">
-                alive.
-              </span>
+              The only antidote to a throwaway society is to keep
             </h1>
           </div>
 
@@ -77,8 +88,33 @@ export function AboutPage() {
               Our Mission
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
-              My Mender is a map-based, subscription-driven platform designed to extend the life of garments by reconnecting people with menders, repair knowledge, and the cultures of care that already exist, yet remain fragmented and undervalued.
+              My Mender is a map-based digital platform designed to extend the life of garments by reconnecting people with their local menders, making repair services visible, searchable and trustworthy, while documenting the cultural knowledge and everyday practices that already exist but remain undervalued and undocumented.
             </p>
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="how-it-works-title"
+          className="border-t border-black/[0.06] px-[30px] py-24 text-center sm:py-32 lg:py-40"
+        >
+          <div className="mx-auto max-w-6xl">
+            <h2
+              id="how-it-works-title"
+              className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
+            >
+              How It Works
+            </h2>
+
+            <div className="mx-auto mt-16 grid max-w-5xl divide-y divide-black/[0.1] text-left sm:mt-20 lg:grid-cols-3 lg:divide-y-0">
+              {howItWorks.map((step) => (
+                <article key={step.title} className="py-7 lg:px-8 lg:py-2">
+                  <h3 className="text-center text-[18px] leading-[1.2] text-[var(--mm-text)]">{step.title}</h3>
+                  <p className="mt-3 max-w-2xl text-[15px] leading-[1.55] text-[var(--mm-text-soft)]">
+                    {step.description}
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 

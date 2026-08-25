@@ -1,17 +1,33 @@
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Helvetica Neue Local";
+  src: url("/helveticaneue.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Neue Local";
+  src: url("/helveticaneue-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 @theme {
-  --heading-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --body-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --field-label-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --logo-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --heading-font: "Helvetica Neue Local", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body-font: "Helvetica Neue Local", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --field-label-font: "Helvetica Neue Local", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --logo-font: "Helvetica Neue Local", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --heading-font-weight: 400;
   --body-font-weight: 400;
   --field-label-font-weight: 400;
   --logo-font-weight: 700;
   --font-sans: var(--body-font);
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Helvetica Neue Local", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --color-backdrop: #f5f6f8;
   --color-cloth: #fafafa;
   --color-stitch: #c46a3d;

@@ -372,6 +372,12 @@ body {
   text-transform: uppercase;
 }
 
+.mymenders-logo-wordmark {
+  display: inline-block;
+  transform: scaleX(1.24);
+  transform-origin: left center;
+}
+
 .mymenders-phone-input {
   --react-international-phone-height: 40px;
   --react-international-phone-border-radius: 0.625rem;

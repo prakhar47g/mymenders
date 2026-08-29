@@ -78,7 +78,7 @@ export function AboutPage() {
 
         <section
           aria-labelledby="about-mission-title"
-          className="border-t border-black/[0.06] px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
+          className="px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
         >
           <div className="mx-auto max-w-3xl">
             <h2

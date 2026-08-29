@@ -19,7 +19,7 @@ export function Navbar() {
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
               <BrandLogo className="h-[29px] w-[29px] shrink-0" color="var(--color-brand-dark-text)" />
-              <span className="text-[29px] mymenders-logo-font text-brand-dark-text">
+              <span className="mymenders-logo-wordmark text-[29px] mymenders-logo-font text-brand-dark-text">
                 My Mender
               </span>
             </NavLink>

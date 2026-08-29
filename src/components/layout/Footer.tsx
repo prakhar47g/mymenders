@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Instagram } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ButtonGroup } from '../ui/button-group';
 import { InputGroup, InputGroupInput } from '../ui/input-group';
@@ -41,7 +42,26 @@ export function Footer() {
 
   return (
     <footer className="bg-brand-dark text-[var(--mm-text)]">
-      <div className="border-t border-black/[0.06] px-[30px] py-14 md:py-16">
+      <div className="flex min-h-[100px] flex-col items-center justify-center gap-5 bg-[var(--color-brand)] px-[30px] py-6 sm:flex-row sm:gap-6 sm:py-0">
+        <div className="flex flex-col gap-1 text-center">
+          <p className="text-[18px] leading-[23px] text-[var(--mm-text)]">Join our Instagram community</p>
+          <p className="text-sm leading-5 text-[var(--mm-text-soft)]">
+            Follow the people and practices keeping clothes alive.
+          </p>
+        </div>
+        <a
+          href="https://www.instagram.com/my.mender"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Follow My Mender on Instagram"
+          className="flex shrink-0 items-center gap-3 rounded-full border border-[rgba(23,27,23,0.55)] px-4 py-[11px] text-sm leading-[18px] text-[var(--mm-text)] transition-colors hover:bg-white/20"
+        >
+          <Instagram aria-hidden="true" className="h-[17px] w-[17px] stroke-[1.7]" />
+          <span>Follow @my.mender</span>
+        </a>
+      </div>
+
+      <div className="px-[30px] py-14 md:py-16">
         <div className="flex flex-col justify-between gap-12 lg:flex-row lg:items-start">
           <div className="max-w-xs">
             <div className="footer-engraved-logo" aria-hidden="true">

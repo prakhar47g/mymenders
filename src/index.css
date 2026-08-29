@@ -32,12 +32,12 @@
   --color-cloth: #fafafa;
   --color-stitch: #c46a3d;
   --color-pin: #6eb7b0;
-  --color-brand: #b8dceb;
+  --color-brand: #d9dfdb;
   --color-brand-hover: #9ac8db;
   --color-brand-light: #e6f3f8;
   --color-brand-dark: #EBEBEB;
   --color-brand-dark-hover: #D6D6D6;
-  --color-brand-dark-text: #929694;
+  --color-brand-dark-text: #808184;
   --color-brand-dark-on: #171b17;
 }
 
@@ -68,10 +68,10 @@ body {
   --mm-panel: #ffffff;
   --mm-panel-muted: #f3f4f6;
   --mm-surface: #f5f6f8;
-  --mm-accent: #b8dceb;
+  --mm-accent: #d9dfdb;
   --mm-accent-hover: #9ac8db;
   --mm-accent-dark: #1a2e45;
-  --mm-focus: rgba(184, 220, 235, 0.35);
+  --mm-focus: rgba(217, 223, 219, 0.35);
   --mm-shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.06);
   --mm-shadow-panel: 0 12px 28px rgba(15, 23, 42, 0.1);
   /* Map pin colours — keep in sync with PIN_COLOR_MAP in MapPage.tsx */
@@ -479,7 +479,7 @@ body {
 
 .mymenders-btn--primary:hover:not(:disabled) {
   background-color: var(--color-brand-hover);
-  box-shadow: 0 4px 14px rgba(184, 220, 235, 0.45);
+  box-shadow: 0 4px 14px rgba(217, 223, 219, 0.45);
 }
 
 .mymenders-btn--dark {
@@ -559,7 +559,7 @@ body {
 .mymenders-step-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--mm-shadow-panel);
-  border-color: rgba(184, 220, 235, 0.6);
+  border-color: rgba(217, 223, 219, 0.6);
 }
 
 .mymenders-step-card__number {
@@ -627,7 +627,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 100%, rgba(184, 220, 235, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 20% 100%, rgba(217, 223, 219, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 90% 0%, rgba(110, 183, 176, 0.08) 0%, transparent 55%);
   pointer-events: none;
 }

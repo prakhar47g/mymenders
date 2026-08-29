@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Footer } from '../components/layout/Footer';
 
 const initiatives = [
@@ -48,10 +48,47 @@ const logoClassName =
   'object-contain mix-blend-multiply grayscale opacity-60 transition-[filter,opacity] duration-300 hover:grayscale-0 hover:opacity-100';
 
 export function AboutPage() {
+  const heroRef = useRef<HTMLElement>(null);
+  const [heroTextOpacity, setHeroTextOpacity] = useState(1);
+
+  useEffect(() => {
+    const updateHeroTextOpacity = () => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setHeroTextOpacity(1);
+        return;
+      }
+
+      const heroHeight = heroRef.current?.getBoundingClientRect().height ?? window.innerHeight;
+      const progress = Math.min(Math.max(window.scrollY / Math.max(heroHeight, 1), 0), 1);
+      setHeroTextOpacity(1 - progress * 0.85);
+    };
+
+    let frame: number | null = null;
+    const handleScroll = () => {
+      if (frame !== null) return;
+
+      frame = window.requestAnimationFrame(() => {
+        frame = null;
+        updateHeroTextOpacity();
+      });
+    };
+
+    updateHeroTextOpacity();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[rgba(245,246,248,0.92)] pt-20 text-[var(--mm-text)]">
+    <div className="min-h-screen bg-[#f3f5f9] pt-20 text-[var(--mm-text)]">
       <main>
         <section
+          ref={heroRef}
           aria-labelledby="about-hero-title"
           className="grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12"
         >
@@ -59,6 +96,7 @@ export function AboutPage() {
             <h1
               id="about-hero-title"
               className="font-display text-[42px] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
+              style={{ opacity: heroTextOpacity }}
             >
               The only antidote to a throwaway society is to keep
             </h1>

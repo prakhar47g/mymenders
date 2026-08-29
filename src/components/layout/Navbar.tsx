@@ -31,7 +31,7 @@ export function Navbar() {
               className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
               {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
                   Map
                 </span>
               )}
@@ -41,7 +41,7 @@ export function Navbar() {
               className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
               {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive || isAbout ? 'border-[#b8dceb]' : 'border-transparent'}`}>
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive || isAbout ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
                   About
                 </span>
               )}
@@ -81,7 +81,7 @@ export function Navbar() {
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
                   <MapIcon className="h-5 w-5" />
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive ? 'border-[#b8dceb]' : 'border-transparent'}`}>Map</span>
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>Map</span>
                 </div>
               )}
             </NavLink>
@@ -93,7 +93,7 @@ export function Navbar() {
               {({ isActive }) => (
                 <div className="flex items-center gap-2">
                   <Info className="h-5 w-5" />
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#b8dceb] ${isActive || isAbout ? 'border-[#b8dceb]' : 'border-transparent'}`}>About</span>
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive || isAbout ? 'border-[#d9dfdb]' : 'border-transparent'}`}>About</span>
                 </div>
               )}
             </NavLink>

@@ -396,7 +396,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   actionRow.className = 'mt-3 flex items-center gap-2';
 
   const circleActiveClass =
-    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
+    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
   const circleDisabledClass =
     'inline-flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
 
@@ -1342,7 +1342,7 @@ export function MapPage() {
             <button
               type="button"
               onClick={() => setIsFilterDrawerOpen((value) => !value)}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Filter menders"
               aria-expanded={isFilterDrawerOpen}
               aria-controls="vendor-filter-drawer"
@@ -1433,7 +1433,7 @@ export function MapPage() {
             <button
               onClick={locateUser}
               disabled={findingLocation}
-              className="flex h-11 w-[116px] items-center justify-center rounded-full border border-brand/40 bg-brand px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex h-11 w-[116px] items-center justify-center rounded-full border-[0.5px] border-black bg-brand px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
               title="Near me"
               aria-label="Find nearby menders"
             >
@@ -1443,7 +1443,7 @@ export function MapPage() {
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-            <div className="flex w-11 flex-col overflow-hidden rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)]">
+            <div className="flex w-11 flex-col overflow-hidden rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)]">
               <button
                 onClick={() => {
                   const map = mapInstanceRef.current;
@@ -1483,7 +1483,7 @@ export function MapPage() {
                   duration: 700,
                 });
               }}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="flex h-11 w-11 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
               aria-label="Reset to globe view"
             >
               <Globe className="w-5 h-5" />
@@ -1492,7 +1492,7 @@ export function MapPage() {
             <div className="relative" ref={styleMenuRef}>
               <button
                 onClick={() => setIsStyleMenuOpen((value) => !value)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-brand/40 bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+                className="flex h-11 w-11 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
                 aria-label="Map style"
                 aria-expanded={isStyleMenuOpen}
               >

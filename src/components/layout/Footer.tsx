@@ -120,7 +120,7 @@ export function Footer() {
               <p className="mymenders-section-label text-[var(--mm-text)]">Stay in touch</p>
               <form onSubmit={handleSubscribe} className="mt-4">
                 <ButtonGroup className="w-full">
-                  <InputGroup className="h-11 min-w-0 flex-1 rounded-l-full border-[var(--mm-border)] bg-white shadow-none focus-within:border-[var(--mm-text)] focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
+                  <InputGroup className="h-11 min-w-0 flex-1 rounded-l-full border-[0.5px] border-black bg-white shadow-none focus-within:border-black focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
                     <InputGroupInput
                       type="email"
                       required
@@ -135,7 +135,7 @@ export function Footer() {
                     type="submit"
                     disabled={status === 'submitting'}
                     size="lg"
-                    className="h-11 rounded-r-full border border-[var(--color-brand)] bg-[var(--color-brand)] px-4 text-sm text-brand-dark-on hover:bg-[var(--color-brand-hover)]"
+                    className="h-11 rounded-r-full border-[0.5px] border-black bg-[var(--color-brand)] px-4 text-sm text-brand-dark-on hover:bg-[var(--color-brand-hover)]"
                   >
                     {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
                   </Button>

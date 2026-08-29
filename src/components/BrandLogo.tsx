@@ -11,9 +11,9 @@ export function BrandLogo({
 }) {
   return (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
-      <rect x="10" y="10" width="20" height="80" fill={color} />
-      <rect x="40" y="10" width="20" height="80" fill={color} />
-      <rect x="70" y="10" width="20" height="80" fill={color} />
+      <rect x="6" y="10" width="24" height="80" fill={color} />
+      <rect x="38" y="10" width="24" height="80" fill={color} />
+      <rect x="70" y="10" width="24" height="80" fill={color} />
     </svg>
   );
 }

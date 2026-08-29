@@ -94,9 +94,9 @@ body {
   display: grid;
   width: 48px;
   height: 48px;
-  grid-template-columns: repeat(3, 12px);
+  grid-template-columns: repeat(3, 13.09px);
   align-items: stretch;
-  gap: 6px;
+  gap: 4.36px;
 }
 
 .footer-engraved-logo > span {

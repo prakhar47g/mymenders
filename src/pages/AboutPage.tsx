@@ -98,7 +98,7 @@ export function AboutPage() {
               className="font-display text-[42px] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
               style={{ opacity: heroTextOpacity }}
             >
-              <span className="block">The only <i>antidote</i></span>
+              <span className="block">The only antidote</span>
               <span className="block">to a throwaway society</span>
               <span className="block">is to keep</span>
             </h1>

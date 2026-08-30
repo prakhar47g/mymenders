@@ -27,16 +27,6 @@ export function Navbar() {
 
           <div className="hidden md:flex h-20 items-stretch gap-2">
             <NavLink
-              to="/map"
-              className="group relative inline-flex items-center justify-center px-3 text-sm "
-            >
-              {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
-                  Map
-                </span>
-              )}
-            </NavLink>
-            <NavLink
               to="/about"
               className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
@@ -46,10 +36,20 @@ export function Navbar() {
                 </span>
               )}
             </NavLink>
+            <NavLink
+              to="/map"
+              className="group relative inline-flex items-center justify-center px-3 text-sm "
+            >
+              {({ isActive }) => (
+                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
+                  Map
+                </span>
+              )}
+            </NavLink>
             <div className="flex items-center pl-3">
               <button
                 onClick={() => navigate('/add')}
-                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-light"
+                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb]"
                 title="Add Mender"
                 aria-label="Add mender"
               >
@@ -74,18 +74,6 @@ export function Navbar() {
         <div className="absolute w-full bg-brand-dark pb-4 text-[var(--mm-text)] md:hidden">
           <div className="px-2 pt-2 space-y-1 flex flex-col">
             <NavLink
-              to="/map"
-              onClick={() => setIsOpen(false)}
-              className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
-            >
-              {({ isActive }) => (
-                <div className="flex items-center gap-2">
-                  <MapIcon className="h-5 w-5" />
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>Map</span>
-                </div>
-              )}
-            </NavLink>
-            <NavLink
               to="/about"
               onClick={() => setIsOpen(false)}
               className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
@@ -97,13 +85,25 @@ export function Navbar() {
                 </div>
               )}
             </NavLink>
+            <NavLink
+              to="/map"
+              onClick={() => setIsOpen(false)}
+              className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
+            >
+              {({ isActive }) => (
+                <div className="flex items-center gap-2">
+                  <MapIcon className="h-5 w-5" />
+                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>Map</span>
+                </div>
+              )}
+            </NavLink>
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 navigate('/add');
               }}
-              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm text-brand-dark-on transition-colors hover:bg-brand-light"
+              className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-3 py-2 text-sm text-brand-dark-on transition-colors hover:bg-[#d9dfdb]"
             >
               <Plus className="h-4 w-4 shrink-0" />
               Add Mender

@@ -113,6 +113,14 @@ export function Footer() {
                 >
                   Instagram
                 </a>
+                <a
+                  href="https://www.linkedin.com/company/my-mender/home/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
+                >
+                  LinkedIn
+                </a>
               </nav>
             </div>
 

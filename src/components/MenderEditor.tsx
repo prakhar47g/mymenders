@@ -41,7 +41,9 @@ export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
         <Field label="Address"><input className={inputClass} value={form.address || ''} onChange={(e) => set('address', e.target.value)} /></Field>
         <div className="grid gap-4 grid-cols-2"><Field label="Latitude"><input type="number" step="any" className={inputClass} value={form.latitude} onChange={(e) => set('latitude', Number(e.target.value))} /></Field><Field label="Longitude"><input type="number" step="any" className={inputClass} value={form.longitude} onChange={(e) => set('longitude', Number(e.target.value))} /></Field></div>
         <Field label="Telephone"><input className={inputClass} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
-        <Field label="Website or social link"><input className={inputClass} value={form.online_presence || form.website || ''} onChange={(e) => { set('online_presence', e.target.value); set('website', e.target.value); }} /></Field>
+        <Field label="Website"><input type="text" className={inputClass} value={form.website || ''} onChange={(e) => set('website', e.target.value)} /></Field>
+        <Field label="Social"><input type="text" className={inputClass} value={form.social || ''} onChange={(e) => set('social', e.target.value)} /></Field>
+        <Field label="Email address"><input type="email" className={inputClass} value={form.email || ''} onChange={(e) => set('email', e.target.value)} /></Field>
         <Field label="Photo URL"><input className={inputClass} value={form.photo_url || ''} onChange={(e) => set('photo_url', e.target.value)} /></Field>
       </div>
     </div>

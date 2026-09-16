@@ -8,6 +8,7 @@ import {
   Globe2,
   House,
   Info,
+  Mail,
   MapPin,
   MessageSquareQuote,
   Minus,
@@ -17,6 +18,7 @@ import {
   Plus,
   Route,
   Search,
+  Share2,
   SlidersHorizontal,
   Star,
   X,
@@ -27,6 +29,9 @@ import { reverseGeocode } from '../utils/geoapify';
 import {
   getTaxonomyLabel,
   getTaxonomyOptions,
+  getStudioTypeColor,
+  STUDIO_TYPE_COLORS,
+  STUDIO_TYPE_FALLBACK_COLOR,
   normalizeTaxonomyValues,
 } from '../../shared/vendorTaxonomy.js';
 
@@ -35,7 +40,6 @@ const GLOBAL_ZOOM = 2.5;
 const LOCAL_ZOOM = 15;
 const CITY_ZOOM = 12.5;
 const AUTO_CENTER_TO_FIRST_VENDOR = true;
-const DEFAULT_ENTRY_LEVEL = 'Verified Mender';
 const VENDOR_SOURCE_ID = 'vendors';
 const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
@@ -55,12 +59,14 @@ const BASEMAP_STYLES = [
   { id: 'fiord', label: 'Fiord', styleUrl: 'https://tiles.openfreemap.org/styles/fiord' },
 ] as const;
 const DEFAULT_BASEMAP_STYLE_ID = 'bright';
-const PIN_COLOR_MAP: Record<string, string> = {
-  'Verified Mender': '#E8503F',
-  'Community Contribution': '#FFC93C',
-  default: '#4A9FE0',
-};
 const pinImageId = (color: string) => `vendor-pin-${color.replace('#', '').toLowerCase()}`;
+const PIN_COLORS = [...Object.values(STUDIO_TYPE_COLORS), STUDIO_TYPE_FALLBACK_COLOR];
+const PIN_IMAGE_EXPRESSION: any = [
+  'match',
+  ['get', 'pinColor'],
+  ...PIN_COLORS.slice(0, -1).flatMap((color) => [color, pinImageId(color)]),
+  pinImageId(STUDIO_TYPE_FALLBACK_COLOR),
+];
 const VENDOR_PIN_CANVAS_HEIGHT = 64;
 const VENDOR_PIN_TIP_Y = 28 + 14 * Math.SQRT2;
 const VENDOR_PIN_TIP_OFFSET = VENDOR_PIN_CANVAS_HEIGHT - VENDOR_PIN_TIP_Y;
@@ -107,15 +113,10 @@ const parseListFromSource = (value: unknown): string[] => {
 };
 
 const normalizeEntryLevel = (entryLevel?: string) => {
-  if (!entryLevel) return DEFAULT_ENTRY_LEVEL;
+  if (!entryLevel) return undefined;
   if (entryLevel === 'Menders') return 'Verified Mender';
   if (entryLevel === 'Member of the public') return 'Community Contribution';
   return entryLevel;
-};
-
-const getPinColor = (entryLevel?: string) => {
-  if (!entryLevel) return PIN_COLOR_MAP.default;
-  return PIN_COLOR_MAP[entryLevel] || PIN_COLOR_MAP.default;
 };
 
 const renderIconMarkup = (icon: React.ReactElement) => renderToStaticMarkup(icon);
@@ -125,6 +126,8 @@ const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Route className="w-4 h-4" aria-
 const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="true" />);
 const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);
 const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
+const EMAIL_ICON = renderIconMarkup(<Mail className="w-4 h-4" aria-hidden="true" />);
+const SOCIAL_ICON = renderIconMarkup(<Share2 className="w-4 h-4" aria-hidden="true" />);
 const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
 const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
 const HOUSE_ICON = renderIconMarkup(<House className="w-4 h-4" aria-hidden="true" />);
@@ -206,7 +209,7 @@ const buildVendorFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollect
         },
         properties: {
           vendorId: vendor.id,
-          pinColor: getPinColor(normalizeEntryLevel(vendor.entry_level || vendor.category)),
+          pinColor: getStudioTypeColor(vendor.types),
         },
       },
     ];
@@ -283,7 +286,9 @@ const normalizeVendor = (raw: any): Vendor => {
     types: normalizeVendorTaxonomyValues('types', raw.types || (metadata as any)?.types || (raw as any).type || (metadata as any)?.type),
     categories: normalizeVendorTaxonomyValues('categories', raw.categories || (metadata as any)?.categories),
     regional_techniques: normalizeVendorTaxonomyValues('regional_techniques', raw.regional_techniques || (metadata as any)?.regional_techniques),
-    online_presence: raw.online_presence || raw.website || (metadata as any)?.online_presence || (metadata as any)?.website,
+    website: raw.website || raw.online_presence || (metadata as any)?.online_presence || (metadata as any)?.website,
+    social: raw.social || (metadata as any)?.social,
+    email: raw.email || (metadata as any)?.email,
     review_text: raw.review_text || (metadata as any)?.review_text,
     entry_level: normalizeEntryLevel(raw.entry_level || (metadata as any)?.entry_level),
   };
@@ -323,7 +328,7 @@ const buildTagRow = (
   container.append(wrapper);
 };
 
-const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string) => {
+const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string, label?: string) => {
   const row = document.createElement('div');
   row.className = 'mb-1.5 flex items-start gap-1.5 text-xs text-[var(--mm-text-soft)]';
 
@@ -333,7 +338,13 @@ const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: str
 
   const text = document.createElement('span');
   text.className = 'min-w-0 flex-1 break-words leading-[1.35]';
-  text.textContent = value;
+  if (label) {
+    const labelText = document.createElement('span');
+    labelText.className = 'mr-1 text-[10px] uppercase text-[var(--mm-muted)]';
+    labelText.textContent = `${label}:`;
+    text.append(labelText);
+  }
+  text.append(document.createTextNode(value));
 
   row.append(icon, text);
   container.append(row);
@@ -357,7 +368,9 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   if (primaryType) appendTextRow(contactSection, HOUSE_ICON, getTaxonomyLabel('types', primaryType));
   if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
   if (vendor.address) appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
-  if (vendor.online_presence) appendTextRow(contactSection, ONLINE_ICON, vendor.online_presence);
+  if (vendor.website) appendTextRow(contactSection, ONLINE_ICON, vendor.website, 'Website');
+  if (vendor.social) appendTextRow(contactSection, SOCIAL_ICON, vendor.social, 'Social');
+  if (vendor.email) appendTextRow(contactSection, EMAIL_ICON, vendor.email, 'Email');
   if (contactSection.children.length) {
     container.append(contactSection);
   }
@@ -398,19 +411,19 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   }
 
   const actionRow = document.createElement('div');
-  actionRow.className = 'mt-3 flex items-center gap-2';
+  actionRow.className = 'mt-3 flex flex-wrap items-center gap-1.5';
 
   const circleActiveClass =
-    'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
+    'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
   const circleDisabledClass =
-    'inline-flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
+    'inline-flex h-8 w-8 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
 
   const directionsLink = document.createElement('a');
   directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
   directionsLink.target = '_blank';
   directionsLink.rel = 'noopener noreferrer';
   directionsLink.className =
-    'inline-flex h-9 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-brand-dark px-3 text-xs text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
+    'inline-flex h-8 min-w-[108px] flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-dark px-2.5 text-[11px] text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
   directionsLink.innerHTML = `
     <span class="inline-flex items-center justify-center w-4 h-4">
       ${DIRECTIONS_BUTTON_ICON}
@@ -462,35 +475,49 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
     actionRow.append(phoneButton);
   }
 
-  const websiteUrl = toExternalWebsiteUrl(vendor.online_presence);
-  if (websiteUrl) {
-    const websiteLink = document.createElement('a');
-    websiteLink.className = circleActiveClass;
-    websiteLink.href = websiteUrl;
-    websiteLink.target = '_blank';
-    websiteLink.rel = 'noopener noreferrer';
-    websiteLink.title = websiteUrl;
-    websiteLink.setAttribute('aria-label', 'Visit website or social profile');
-    websiteLink.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${ONLINE_ICON}
-      </span>
-    `;
-    actionRow.append(websiteLink);
-  } else {
-    const websiteButton = document.createElement('button');
-    websiteButton.type = 'button';
-    websiteButton.disabled = true;
-    websiteButton.className = circleDisabledClass;
-    websiteButton.title = 'No website available';
-    websiteButton.setAttribute('aria-label', 'No website available');
-    websiteButton.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${ONLINE_ICON}
-      </span>
-    `;
-    actionRow.append(websiteButton);
-  }
+  const appendContactAction = ({
+    value,
+    label,
+    iconMarkup,
+    href,
+    external = false,
+  }: {
+    value?: string;
+    label: string;
+    iconMarkup: string;
+    href: (value: string) => string | null;
+    external?: boolean;
+  }) => {
+    const trimmedValue = (value || '').trim();
+    const targetUrl = trimmedValue ? href(trimmedValue) : null;
+    if (targetUrl) {
+      const link = document.createElement('a');
+      link.className = circleActiveClass;
+      link.href = targetUrl;
+      if (external) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+      link.title = label;
+      link.setAttribute('aria-label', label);
+      link.innerHTML = `<span class="inline-flex items-center justify-center w-4 h-4">${iconMarkup}</span>`;
+      actionRow.append(link);
+      return;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.disabled = true;
+    button.className = circleDisabledClass;
+    button.title = `No ${label.toLowerCase()} available`;
+    button.setAttribute('aria-label', `No ${label.toLowerCase()} available`);
+    button.innerHTML = `<span class="inline-flex items-center justify-center w-4 h-4">${iconMarkup}</span>`;
+    actionRow.append(button);
+  };
+
+  appendContactAction({ value: vendor.email, label: 'Email', iconMarkup: EMAIL_ICON, href: (value) => `mailto:${value}` });
+  appendContactAction({ value: vendor.website, label: 'Visit website', iconMarkup: ONLINE_ICON, href: toExternalWebsiteUrl, external: true });
+  appendContactAction({ value: vendor.social, label: 'Visit social profile', iconMarkup: SOCIAL_ICON, href: toExternalWebsiteUrl, external: true });
 
   container.append(actionRow);
 
@@ -553,7 +580,7 @@ const rasterizeVendorPinSvg = async (svgMarkup: string) => {
 };
 
 const ensureVendorPinImages = async (map: maplibregl.Map) => {
-  for (const color of Object.values(PIN_COLOR_MAP)) {
+  for (const color of PIN_COLORS) {
     const id = pinImageId(color);
     if (map.hasImage(id)) continue;
     const imageData = await rasterizeVendorPinSvg(buildVendorPinSvg(color));
@@ -632,15 +659,7 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
       source: VENDOR_SOURCE_ID,
       filter: ['!', ['has', 'point_count']],
       layout: {
-        'icon-image': [
-          'match',
-          ['get', 'pinColor'],
-          PIN_COLOR_MAP['Verified Mender'],
-          pinImageId(PIN_COLOR_MAP['Verified Mender']),
-          PIN_COLOR_MAP['Community Contribution'],
-          pinImageId(PIN_COLOR_MAP['Community Contribution']),
-          pinImageId(PIN_COLOR_MAP.default),
-        ],
+        'icon-image': PIN_IMAGE_EXPRESSION,
         'icon-size': 1,
         'icon-anchor': 'bottom',
         // The bitmap keeps room for the CSS-equivalent shadow below the tip.

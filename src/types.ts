@@ -16,6 +16,8 @@ export interface Vendor {
   rating_count?: number;
   phone?: string;
   website?: string;
+  social?: string;
+  email?: string;
   hours?: string;
   photo_url?: string;
   photos?: string;

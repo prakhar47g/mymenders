@@ -46,6 +46,32 @@ const TAXONOMY_LABELS = {
   regional_techniques: 'regional technique',
 };
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeOptionalContact = (value) => {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || null;
+};
+
+const normalizeVendorEmail = (value) => {
+  const normalized = normalizeOptionalContact(value);
+  if (normalized && !EMAIL_PATTERN.test(normalized)) {
+    throw new ValidationError('A valid email address is required');
+  }
+  return normalized;
+};
+
+const stripLegacyContactMetadata = (metadata) => {
+  const {
+    online_presence: _onlinePresence,
+    website: _website,
+    social: _social,
+    email: _email,
+    ...rest
+  } = metadata;
+  return rest;
+};
+
 const canonicalizeTaxonomyArray = (group, value) => {
   const values = normalizeStringArray(value);
 
@@ -66,6 +92,8 @@ export async function insertVendor(pool, data) {
     category,
     phone,
     website,
+    social,
+    email,
     hours,
     photo_url,
     photos,
@@ -73,7 +101,6 @@ export async function insertVendor(pool, data) {
     types,
     categories,
     regional_techniques,
-    online_presence,
     review_text,
     rating,
     rating_count,
@@ -83,7 +110,10 @@ export async function insertVendor(pool, data) {
     throw new ValidationError('Name, latitude, and longitude are required');
   }
 
-  const incomingPhotos = safeParseMetadata(photos);
+  const incomingPhotos = stripLegacyContactMetadata(safeParseMetadata(photos));
+  const normalizedWebsite = normalizeOptionalContact(website);
+  const normalizedSocial = normalizeOptionalContact(social);
+  const normalizedEmail = normalizeVendorEmail(email);
 
   const parsedPhotos = {
     ...incomingPhotos,
@@ -94,15 +124,14 @@ export async function insertVendor(pool, data) {
       'regional_techniques',
       regional_techniques ?? incomingPhotos.regional_techniques,
     ),
-    online_presence: online_presence || website || undefined,
     review_text: review_text || undefined,
     rating: normalizeRating(rating),
     rating_count: normalizeRatingCount(rating_count),
   };
 
   const result = await pool.query(
-    `INSERT INTO vendors (name, address, latitude, longitude, category, phone, website, hours, photo_url, photos, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft')
+    `INSERT INTO vendors (name, address, latitude, longitude, category, phone, website, social, email, hours, photo_url, photos, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'draft')
      RETURNING *`,
     [
       name,
@@ -111,8 +140,10 @@ export async function insertVendor(pool, data) {
       longitude,
       entry_level || category || 'Menders',
       phone || null,
-      online_presence || website || null,
-      hours || null,
+      normalizedWebsite,
+      normalizedSocial,
+      normalizedEmail,
+      normalizeOptionalContact(hours),
       photo_url || null,
       JSON.stringify(parsedPhotos),
     ],
@@ -130,14 +161,16 @@ export async function updateVendor(pool, id, data) {
   if (!name || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     throw new ValidationError('Name, latitude, and longitude are required');
   }
-  const photos = safeParseMetadata(data.photos);
+  const photos = stripLegacyContactMetadata(safeParseMetadata(data.photos));
+  const normalizedWebsite = normalizeOptionalContact(data.website);
+  const normalizedSocial = normalizeOptionalContact(data.social);
+  const normalizedEmail = normalizeVendorEmail(data.email);
   const nextPhotos = {
     ...photos,
     entry_level: data.entry_level || data.category || 'Menders',
     types: canonicalizeTaxonomyArray('types', data.types),
     categories: canonicalizeTaxonomyArray('categories', data.categories),
     regional_techniques: canonicalizeTaxonomyArray('regional_techniques', data.regional_techniques),
-    online_presence: data.online_presence || data.website || undefined,
     review_text: data.review_text || undefined,
     rating: normalizeRating(data.rating),
     rating_count: normalizeRatingCount(data.rating_count),
@@ -145,11 +178,11 @@ export async function updateVendor(pool, id, data) {
   const status = data.status === 'draft' || data.status === 'active' ? data.status : null;
   const result = await pool.query(
     `UPDATE vendors SET name=$2, address=$3, latitude=$4, longitude=$5, category=$6,
-      phone=$7, website=$8, hours=$9, photo_url=$10, photos=$11, status=COALESCE($12, status)
+      phone=$7, website=$8, social=$9, email=$10, hours=$11, photo_url=$12, photos=$13, status=COALESCE($14, status)
      WHERE id=$1 RETURNING *`,
     [vendorId, name, data.address || null, latitude, longitude, data.entry_level || data.category || 'Menders',
-      data.phone || null, data.online_presence || data.website || null, data.hours || null,
-      data.photo_url || null, JSON.stringify(nextPhotos), status],
+      normalizeOptionalContact(data.phone), normalizedWebsite, normalizedSocial, normalizedEmail,
+      normalizeOptionalContact(data.hours), data.photo_url || null, JSON.stringify(nextPhotos), status],
   );
   if (!result.rows[0]) throw new ValidationError('Vendor not found');
   return result.rows[0];
@@ -189,8 +222,6 @@ export async function updateVendorAddress(pool, data) {
 
   return result.rows[0];
 }
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function insertEmailSub(pool, email) {
   const normalizedEmail = String(email || '').trim().toLowerCase();

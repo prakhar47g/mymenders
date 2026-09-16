@@ -46,6 +46,16 @@ export function Navbar() {
                 </span>
               )}
             </NavLink>
+            <a
+              href="https://www.instagram.com/my.mender"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative inline-flex items-center justify-center px-3 text-sm"
+            >
+              <span className="border-b-2 border-transparent pb-0.5 transition-colors group-hover:border-[#d9dfdb]">
+                Instagram
+              </span>
+            </a>
             <div className="flex items-center pl-3">
               <button
                 onClick={() => navigate('/add')}
@@ -97,6 +107,16 @@ export function Navbar() {
                 </div>
               )}
             </NavLink>
+            <a
+              href="https://www.instagram.com/my.mender"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
+            >
+              <span className="border-b-2 border-transparent pb-0.5 transition-colors group-hover:border-[#d9dfdb]">
+                Instagram
+              </span>
+            </a>
             <button
               type="button"
               onClick={() => {

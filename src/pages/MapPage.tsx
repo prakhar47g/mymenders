@@ -8,6 +8,8 @@ import {
   Globe2,
   House,
   Info,
+  Instagram,
+  Linkedin,
   Mail,
   MapPin,
   MessageSquareQuote,
@@ -18,14 +20,15 @@ import {
   Plus,
   Route,
   Search,
-  Share2,
   SlidersHorizontal,
+  SquareArrowOutUpRight,
   Star,
+  Twitter,
   X,
+  X as XBrand,
 } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Vendor } from '../types';
-import { reverseGeocode } from '../utils/geoapify';
 import {
   getTaxonomyLabel,
   getTaxonomyOptions,
@@ -44,12 +47,9 @@ const VENDOR_SOURCE_ID = 'vendors';
 const CLUSTER_CIRCLE_LAYER_ID = 'vendor-clusters';
 const CLUSTER_COUNT_LAYER_ID = 'vendor-cluster-count';
 const UNCLUSTERED_LAYER_ID = 'vendor-points';
-const ADDRESS_PLACEHOLDER = 'address not available';
-const MAP_SELECTED_ADDRESS_PLACEHOLDER = 'location selected on map';
-const ADDRESS_PLACEHOLDERS = new Set([
-  ADDRESS_PLACEHOLDER,
-  MAP_SELECTED_ADDRESS_PLACEHOLDER,
-]);
+const VENDOR_ZONE_SOURCE_ID = 'vendor-zones';
+const VENDOR_ZONE_FILL_LAYER_ID = 'vendor-zone-fill';
+const VENDOR_ZONE_LINE_LAYER_ID = 'vendor-zone-line';
 const MAP_CARD_WIDTH_PX = 360;
 const BASEMAP_STYLES = [
   { id: 'positron', label: 'Positron', styleUrl: 'https://tiles.openfreemap.org/styles/positron' },
@@ -127,7 +127,7 @@ const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="t
 const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);
 const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
 const EMAIL_ICON = renderIconMarkup(<Mail className="w-4 h-4" aria-hidden="true" />);
-const SOCIAL_ICON = renderIconMarkup(<Share2 className="w-4 h-4" aria-hidden="true" />);
+const SOCIAL_ICON = renderIconMarkup(<SquareArrowOutUpRight className="w-4 h-4" aria-hidden="true" />);
 const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
 const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
 const HOUSE_ICON = renderIconMarkup(<House className="w-4 h-4" aria-hidden="true" />);
@@ -168,9 +168,6 @@ const formatDistance = (distanceKm?: number) => {
   return `${Math.round(distanceKm)} km`;
 };
 
-const shouldResolveVendorAddress = (address?: string) =>
-  ADDRESS_PLACEHOLDERS.has((address || '').trim().toLowerCase());
-
 const buildGoogleMapsDirectionsUrl = (vendor: Vendor) => {
   const latitude = parseCoordinate(vendor.latitude);
   const longitude = parseCoordinate(vendor.longitude);
@@ -186,6 +183,32 @@ const toExternalWebsiteUrl = (value?: string) => {
   const trimmed = (value || '').trim();
   if (!trimmed) return null;
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
+const getSocialIconMarkup = (value?: string) => {
+  const normalized = (value || '').trim().toLowerCase();
+  let host = normalized;
+
+  try {
+    host = new URL(/^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`).hostname
+      .replace(/^www\./, '');
+  } catch {
+    // Keep the raw value for a conservative substring fallback.
+  }
+
+  if (host === 'instagram.com' || host.endsWith('.instagram.com')) {
+    return renderIconMarkup(<Instagram className="w-4 h-4" aria-hidden="true" />);
+  }
+  if (host === 'twitter.com' || host.endsWith('.twitter.com')) {
+    return renderIconMarkup(<Twitter className="w-4 h-4" aria-hidden="true" />);
+  }
+  if (host === 'x.com' || host.endsWith('.x.com')) {
+    return renderIconMarkup(<XBrand className="w-4 h-4" aria-hidden="true" />);
+  }
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+    return renderIconMarkup(<Linkedin className="w-4 h-4" aria-hidden="true" />);
+  }
+  return SOCIAL_ICON;
 };
 
 const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
@@ -216,44 +239,30 @@ const buildVendorFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollect
   }),
 });
 
-const hydrateVendorAddress = async (vendor: Vendor): Promise<Vendor> => {
-  if (!shouldResolveVendorAddress(vendor.address)) {
-    return vendor;
-  }
+const buildVendorZoneFeatureCollection = (vendors: Vendor[]): GeoJSON.FeatureCollection<GeoJSON.Polygon> => ({
+  type: 'FeatureCollection',
+  features: vendors.flatMap((vendor) => {
+    if (vendor.location_visibility !== 'approx') return [];
+    const latitude = parseCoordinate(vendor.latitude);
+    const longitude = parseCoordinate(vendor.longitude);
+    const radiusKm = parseCoordinate(vendor.location_radius_km) ?? 0.2;
+    if (latitude === undefined || longitude === undefined) return [];
 
-  const latitude = parseCoordinate(vendor.latitude);
-  const longitude = parseCoordinate(vendor.longitude);
-  if (latitude === undefined || longitude === undefined) {
-    return vendor;
-  }
+    const coordinates = Array.from({ length: 65 }, (_, index) => {
+      const bearing = (index / 64) * 2 * Math.PI;
+      const latitudeOffset = (radiusKm * Math.cos(bearing)) / EARTH_RADIUS_KM * (180 / Math.PI);
+      const longitudeOffset = (radiusKm * Math.sin(bearing))
+        / (EARTH_RADIUS_KM * Math.max(0.15, Math.cos(latitude * (Math.PI / 180)))) * (180 / Math.PI);
+      return [longitude + longitudeOffset, latitude + latitudeOffset] as [number, number];
+    });
 
-  const resolvedAddress = await reverseGeocode(latitude, longitude);
-  if (!resolvedAddress) {
-    return vendor;
-  }
-
-  return {
-    ...vendor,
-    address: resolvedAddress,
-  };
-};
-
-const persistVendorAddress = async (vendor: Vendor) => {
-  if (!vendor.id || !vendor.address) return;
-
-  const res = await fetch(`${window.location.origin}/api/vendors`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: vendor.id,
-      address: vendor.address,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to persist vendor address: ${res.status}`);
-  }
-};
+    return [{
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [coordinates] },
+      properties: { vendorId: vendor.id },
+    }];
+  }),
+});
 
 type FilterGroupKey = 'types' | 'categories' | 'regional_techniques';
 type TaxonomyOption = { id: string; label: string };
@@ -281,6 +290,8 @@ const normalizeVendor = (raw: any): Vendor => {
     ...raw,
     latitude: parseCoordinate(raw.latitude) ?? Number.NaN,
     longitude: parseCoordinate(raw.longitude) ?? Number.NaN,
+    location_visibility: raw.location_visibility === 'approx' ? 'approx' : 'exact',
+    location_radius_km: parseCoordinate(raw.location_radius_km) ?? undefined,
     rating: typeof raw.rating === 'number' ? raw.rating : Number(raw.rating) || 0,
     rating_count: Number(raw.rating_count) || Number((metadata as any)?.rating_count) || 0,
     types: normalizeVendorTaxonomyValues('types', raw.types || (metadata as any)?.types || (raw as any).type || (metadata as any)?.type),
@@ -367,10 +378,9 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   const primaryType = vendor.types?.[0]?.trim();
   if (primaryType) appendTextRow(contactSection, HOUSE_ICON, getTaxonomyLabel('types', primaryType));
   if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
-  if (vendor.address) appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
-  if (vendor.website) appendTextRow(contactSection, ONLINE_ICON, vendor.website, 'Website');
-  if (vendor.social) appendTextRow(contactSection, SOCIAL_ICON, vendor.social, 'Social');
-  if (vendor.email) appendTextRow(contactSection, EMAIL_ICON, vendor.email, 'Email');
+  if (vendor.location_visibility !== 'approx' && vendor.address) {
+    appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
+  }
   if (contactSection.children.length) {
     container.append(contactSection);
   }
@@ -418,19 +428,35 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   const circleDisabledClass =
     'inline-flex h-8 w-8 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
 
-  const directionsLink = document.createElement('a');
-  directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
-  directionsLink.target = '_blank';
-  directionsLink.rel = 'noopener noreferrer';
-  directionsLink.className =
-    'inline-flex h-8 min-w-[108px] flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-dark px-2.5 text-[11px] text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
-  directionsLink.innerHTML = `
-    <span class="inline-flex items-center justify-center w-4 h-4">
-      ${DIRECTIONS_BUTTON_ICON}
-    </span>
-    Directions
-  `;
-  actionRow.append(directionsLink);
+  if (vendor.location_visibility === 'approx') {
+    const directionsButton = document.createElement('button');
+    directionsButton.type = 'button';
+    directionsButton.disabled = true;
+    directionsButton.className =
+      'inline-flex h-8 min-w-[108px] flex-1 cursor-not-allowed items-center justify-center gap-1.5 rounded-full bg-[var(--mm-panel-muted)] px-2.5 text-[11px] text-[var(--mm-muted)]';
+    directionsButton.title = 'Directions unavailable for approximate locations';
+    directionsButton.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${DIRECTIONS_BUTTON_ICON}
+      </span>
+      Directions
+    `;
+    actionRow.append(directionsButton);
+  } else {
+    const directionsLink = document.createElement('a');
+    directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
+    directionsLink.target = '_blank';
+    directionsLink.rel = 'noopener noreferrer';
+    directionsLink.className =
+      'inline-flex h-8 min-w-[108px] flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-dark px-2.5 text-[11px] text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
+    directionsLink.innerHTML = `
+      <span class="inline-flex items-center justify-center w-4 h-4">
+        ${DIRECTIONS_BUTTON_ICON}
+      </span>
+      Directions
+    `;
+    actionRow.append(directionsLink);
+  }
 
   const detailsButton = document.createElement('button');
   detailsButton.type = 'button';
@@ -517,7 +543,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
 
   appendContactAction({ value: vendor.email, label: 'Email', iconMarkup: EMAIL_ICON, href: (value) => `mailto:${value}` });
   appendContactAction({ value: vendor.website, label: 'Visit website', iconMarkup: ONLINE_ICON, href: toExternalWebsiteUrl, external: true });
-  appendContactAction({ value: vendor.social, label: 'Visit social profile', iconMarkup: SOCIAL_ICON, href: toExternalWebsiteUrl, external: true });
+  appendContactAction({ value: vendor.social, label: 'Visit social profile', iconMarkup: getSocialIconMarkup(vendor.social), href: toExternalWebsiteUrl, external: true });
 
   container.append(actionRow);
 
@@ -600,6 +626,39 @@ const ensureVendorLayers = async (map: maplibregl.Map) => {
       cluster: true,
       clusterMaxZoom: 14,
       clusterRadius: 56,
+    });
+  }
+
+  if (!map.getSource(VENDOR_ZONE_SOURCE_ID)) {
+    map.addSource(VENDOR_ZONE_SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
+  }
+
+  if (!map.getLayer(VENDOR_ZONE_FILL_LAYER_ID)) {
+    map.addLayer({
+      id: VENDOR_ZONE_FILL_LAYER_ID,
+      type: 'fill',
+      source: VENDOR_ZONE_SOURCE_ID,
+      paint: {
+        'fill-color': '#d9dfdb',
+        'fill-opacity': 0.22,
+      },
+    });
+  }
+
+  if (!map.getLayer(VENDOR_ZONE_LINE_LAYER_ID)) {
+    map.addLayer({
+      id: VENDOR_ZONE_LINE_LAYER_ID,
+      type: 'line',
+      source: VENDOR_ZONE_SOURCE_ID,
+      paint: {
+        'line-color': '#6f877d',
+        'line-width': 1.25,
+        'line-opacity': 0.6,
+        'line-dasharray': [2, 2],
+      },
     });
   }
 
@@ -793,7 +852,7 @@ export function MapPage() {
     vendorsRef.current = vendors;
   }, [vendors]);
 
-  const openVendorPopup = async (vendor: Vendor, options: { focus?: boolean; zoom?: number } = {}) => {
+  const openVendorPopup = (vendor: Vendor, options: { focus?: boolean; zoom?: number } = {}) => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
@@ -810,19 +869,11 @@ export function MapPage() {
 
     setSelectedVendorId(vendor.id);
 
-    const resolvedVendor = await hydrateVendorAddress(vendor);
-    if (resolvedVendor.address !== vendor.address) {
-      setVendors((prev) => prev.map((item) => (item.id === resolvedVendor.id ? resolvedVendor : item)));
-      persistVendorAddress(resolvedVendor).catch((error) => {
-        console.error('Failed to persist resolved vendor address:', error);
-      });
-    }
-
     popupRef.current?.remove();
     popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: `${MAP_CARD_WIDTH_PX}px` })
       .setLngLat(coordinates)
       .setDOMContent(
-        buildPopoverContent(resolvedVendor, (selectedVendor) => {
+        buildPopoverContent(vendor, (selectedVendor) => {
           const targetCoordinates = getVendorCoordinates(selectedVendor);
           if (!targetCoordinates) return;
           map.flyTo({
@@ -1027,7 +1078,7 @@ export function MapPage() {
       }
 
       const vendorFeatures = map.queryRenderedFeatures(event.point, {
-        layers: [UNCLUSTERED_LAYER_ID],
+        layers: [UNCLUSTERED_LAYER_ID, VENDOR_ZONE_FILL_LAYER_ID],
       });
       const vendorFeature = vendorFeatures[0];
 
@@ -1043,7 +1094,7 @@ export function MapPage() {
       if (!map.getLayer(CLUSTER_CIRCLE_LAYER_ID) || !map.getLayer(UNCLUSTERED_LAYER_ID)) return;
 
       const interactiveFeatures = map.queryRenderedFeatures(event.point, {
-        layers: [CLUSTER_CIRCLE_LAYER_ID, CLUSTER_COUNT_LAYER_ID, UNCLUSTERED_LAYER_ID],
+        layers: [CLUSTER_CIRCLE_LAYER_ID, CLUSTER_COUNT_LAYER_ID, UNCLUSTERED_LAYER_ID, VENDOR_ZONE_FILL_LAYER_ID],
       });
       map.getCanvas().style.cursor = interactiveFeatures.length ? 'pointer' : '';
     };
@@ -1085,8 +1136,10 @@ export function MapPage() {
     if (!map) return;
 
     const source = map.getSource(VENDOR_SOURCE_ID) as GeoJSONSource | undefined;
-    if (!source) return;
+    const zoneSource = map.getSource(VENDOR_ZONE_SOURCE_ID) as GeoJSONSource | undefined;
+    if (!source || !zoneSource) return;
     source.setData(buildVendorFeatureCollection(visibleMapVendors));
+    zoneSource.setData(buildVendorZoneFeatureCollection(visibleMapVendors));
   }, [isMapReady, visibleMapVendors]);
 
   useEffect(() => {
@@ -1304,10 +1357,17 @@ export function MapPage() {
                           </span>
                         ) : null}
                       </div>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--mm-muted)]">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{vendor.address || 'Address unavailable'}</span>
-                      </p>
+                      {vendor.location_visibility === 'approx' ? (
+                        <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--mm-muted)]">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span className="truncate">Contact the mender for the exact location</span>
+                        </p>
+                      ) : vendor.address ? (
+                        <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-[var(--mm-muted)]">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{vendor.address}</span>
+                        </p>
+                      ) : null}
                       {!!categories.length ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {categories.map((category) => (

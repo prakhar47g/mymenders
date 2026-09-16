@@ -54,6 +54,7 @@ const adminVendor = (row) => {
     review_text: metadata.review_text || '',
     rating: metadata.rating ?? 0,
     rating_count: metadata.rating_count ?? 0,
+    location_visibility: row.location_visibility === 'approx' ? 'approx' : 'exact',
   };
 };
 

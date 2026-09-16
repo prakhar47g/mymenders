@@ -3,7 +3,13 @@ import Select, { type GroupBase, type MultiValue } from 'react-select';
 import type { Vendor } from '../types';
 import { getGroupedTaxonomyOptions, getTaxonomyOptions } from '../../shared/vendorTaxonomy.js';
 
-type Props = { value: Vendor; saving?: boolean; onSave: (value: Vendor) => void; onCancel?: () => void };
+type Props = {
+  value: Vendor;
+  saving?: boolean;
+  onSave: (value: Vendor) => void;
+  onVisibilityChange?: (visibility: 'exact' | 'approx') => void;
+  onCancel?: () => void;
+};
 type Option = { value: string; label: string };
 type CategoryGroup = GroupBase<Option>;
 const inputClass = 'mymenders-field mymenders-field--mono w-full border px-3 py-2 text-sm outline-none';
@@ -20,7 +26,7 @@ const selectStyles = {
   option: (base: any, state: any) => ({ ...base, backgroundColor: state.isFocused || state.isSelected ? '#f5f5f5' : '#ffffff', color: '#111', '&:active': { backgroundColor: '#e0e0e0' } }),
 };
 
-export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
+export function MenderEditor({ value, saving, onSave, onVisibilityChange, onCancel }: Props) {
   const [form, setForm] = useState<Vendor>(value);
   useEffect(() => setForm(value), [value]);
   const set = (key: keyof Vendor, next: unknown) => setForm((current) => ({ ...current, [key]: next }));
@@ -38,6 +44,7 @@ export function MenderEditor({ value, saving, onSave, onCancel }: Props) {
       </div>
       <div className="space-y-4">
         <Field label="Status"><select className={inputClass} value={form.status || 'active'} onChange={(e) => set('status', e.target.value as Vendor['status'])}><option value="draft">Draft</option><option value="active">Active</option></select></Field>
+        <Field label="Location visibility"><select className={inputClass} disabled={saving} value={form.location_visibility || 'exact'} onChange={(e) => { const visibility = e.target.value as 'exact' | 'approx'; set('location_visibility', visibility); onVisibilityChange?.(visibility); }}><option value="exact">Exact address/pin</option><option value="approx">Approximate zone (200 m)</option></select><span className="mt-1.5 block text-[11px] leading-[1.35] text-[#777]">Visibility changes publish immediately. Approximate locations never expose the canonical address or coordinates.</span></Field>
         <Field label="Address"><input className={inputClass} value={form.address || ''} onChange={(e) => set('address', e.target.value)} /></Field>
         <div className="grid gap-4 grid-cols-2"><Field label="Latitude"><input type="number" step="any" className={inputClass} value={form.latitude} onChange={(e) => set('latitude', Number(e.target.value))} /></Field><Field label="Longitude"><input type="number" step="any" className={inputClass} value={form.longitude} onChange={(e) => set('longitude', Number(e.target.value))} /></Field></div>
         <Field label="Telephone"><input className={inputClass} value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>

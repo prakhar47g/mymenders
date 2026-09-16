@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, MapPin, VectorSquare } from 'lucide-react';
 import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { PhoneInput, type CountryIso2 } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -201,6 +201,8 @@ export function AddMenderPage() {
   const [social, setSocial] = useState('');
   const [email, setEmail] = useState('');
   const [entryLevel, setEntryLevel] = useState<string | null>(null);
+  const [locationVisibility, setLocationVisibility] = useState<'exact' | 'approx'>('exact');
+  const [locationVisibilityTouched, setLocationVisibilityTouched] = useState(false);
   const [isRevealingForm, setIsRevealingForm] = useState(false);
   const [types, setTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -496,6 +498,8 @@ export function AddMenderPage() {
   const onEntryLevelChange = (level: string) => {
     if (level === entryLevel) return;
     setEntryLevel(level);
+    setLocationVisibility(level === 'Member of the public' ? 'approx' : 'exact');
+    setLocationVisibilityTouched(false);
     if (level === 'Menders') resetReviewFields();
 
     // Every role change gets the reveal choreography — a brief shimmer so
@@ -516,6 +520,15 @@ export function AddMenderPage() {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     setIsRevealingForm(false);
     setEntryLevel(null);
+    setLocationVisibility('exact');
+    setLocationVisibilityTouched(false);
+  };
+
+  const onStudioTypeChange = (nextTypes: string[]) => {
+    setTypes(nextTypes);
+    if (entryLevel === 'Menders' && !locationVisibilityTouched) {
+      setLocationVisibility(nextTypes.includes('home') ? 'approx' : 'exact');
+    }
   };
 
   // ------------------------------------------------------------------
@@ -562,6 +575,7 @@ export function AddMenderPage() {
       address: resolvedAddress,
       latitude: selectedPosition[0],
       longitude: selectedPosition[1],
+      location_visibility: entryLevel === 'Member of the public' ? 'approx' : locationVisibility,
       phone,
       contact: phone,
       website: website || undefined,
@@ -723,7 +737,7 @@ export function AddMenderPage() {
                   <Select
                     options={typeOptions}
                     value={typeOptions.find((o) => types.includes(o.value)) ?? null}
-                    onChange={(opt) => setTypes(toSingleValue(opt))}
+                    onChange={(opt) => onStudioTypeChange(toSingleValue(opt))}
                     placeholder="Select studio type..."
                     isClearable
                     menuPortalTarget={selectMenuPortalTarget}
@@ -731,6 +745,55 @@ export function AddMenderPage() {
                     styles={selectStyles}
                   />
                 </div>
+
+                {/* Location privacy is relevant only to Home menders. */}
+                {types.includes('home') ? (
+                  <div className="rounded-2xl border border-dashed border-[#e5e7eb] bg-white p-3" role="group" aria-labelledby="location-visibility-label">
+                    <p id="location-visibility-label" className={FIELD_LABEL_CLASS}>Location visibility</p>
+                    {entryLevel === 'Member of the public' ? (
+                      <div className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-xs leading-[1.4] text-[var(--mm-text-soft)]">
+                        <p className="font-bold text-[var(--mm-text)]">Approximate zone</p>
+                        <p className="mt-0.5">Contributor locations are always shown as a nearby point within a 200 m zone.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Location visibility">
+                          {([
+                            ['exact', 'Exact', 'Show your submitted address and pin.'],
+                            ['approx', 'Approximate', 'Show a nearby point within a 200 m zone.'],
+                          ] as const).map(([value, label, description]) => (
+                            <label key={value} className="flex h-full cursor-pointer">
+                              <input
+                                type="radio"
+                                name="location-visibility"
+                                value={value}
+                                checked={locationVisibility === value}
+                                onChange={() => {
+                                  setLocationVisibility(value);
+                                  setLocationVisibilityTouched(true);
+                                }}
+                                className="peer sr-only"
+                              />
+                              <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[#171b17] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
+                                <span className="flex items-start gap-2">
+                                  {value === 'exact' ? (
+                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                                  ) : (
+                                    <VectorSquare className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                                  )}
+                                  <span className="min-w-0">
+                                    <span className="block text-xs font-bold text-[var(--mm-text)]">{label}</span>
+                                    <span className="mt-0.5 block text-[11px] leading-[1.35] text-[var(--mm-muted)]">{description}</span>
+                                  </span>
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : null}
 
                 {/* Tel Number + Email */}
                 <div className="grid grid-cols-2 gap-3">

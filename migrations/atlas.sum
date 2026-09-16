@@ -1,4 +1,6 @@
-h1:Z+mFW5vnMW6SGGn7P09NV8szP+vZMFSxOSwbbxphk3A=
+h1:4QIqmZGWRZZ1LLRUeprMptLjG5cZwdepR6v3t+GCQYM=
 202607170001_admin_menders.sql h1:TD9ZjKn15RlczIs137s3Fwb1/2cE3srMMDVuTY4pA5A=
 202608010001_email_subs.sql h1:ARw7F5FH9r+vcSAoxHP5qWJy++Wh7pHroQOZDY0zsiQ=
 202609160001_vendor_contacts.sql h1:5EHwO1JHVCFQj3u8EZo1AcAmP9fqCGJG3kilpncLII0=
+202609160002_location_privacy.sql h1:QyWCNaI1IABL2sURYu5iSB9hKr4y0gnGpud2Np0PJmY=
+202609160003_approximate_location_200m.sql h1:JU3ZnQ2IunPoK1AzeVZEVtq0Fvx6qKCWOG/isxSK7kM=

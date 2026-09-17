@@ -47,9 +47,22 @@ const howItWorks = [
 const logoClassName =
   'object-contain mix-blend-multiply grayscale opacity-60 transition-[filter,opacity] duration-300 hover:grayscale-0 hover:opacity-100';
 
-export function AboutPage() {
+export function AboutPage({ homepage = false }: { homepage?: boolean }) {
   const heroRef = useRef<HTMLElement>(null);
   const [heroTextOpacity, setHeroTextOpacity] = useState(1);
+  const heroImage = homepage
+    ? {
+        src: '/images/about/red-patched-top.webp',
+        alt: 'A red ribbed top repaired with colorful visible mending patches',
+        width: 1086,
+        height: 1448,
+      }
+    : {
+        src: '/images/about/visible-mending-sweater.jpg',
+        alt: 'A charcoal knitted sweater restored with visible woven patches',
+        width: 726,
+        height: 1024,
+      };
 
   useEffect(() => {
     const updateHeroTextOpacity = () => {
@@ -106,11 +119,11 @@ export function AboutPage() {
 
           <figure className="w-full overflow-hidden">
             <img
-              src="/images/about/visible-mending-sweater.jpg"
-              alt="A charcoal knitted sweater restored with visible woven patches"
+              src={heroImage.src}
+              alt={heroImage.alt}
               className="block h-auto w-full lg:h-full lg:object-cover lg:object-center"
-              width="726"
-              height="1024"
+              width={heroImage.width}
+              height={heroImage.height}
               decoding="async"
             />
           </figure>

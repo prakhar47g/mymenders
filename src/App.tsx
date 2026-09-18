@@ -26,7 +26,7 @@ function PublicApp() {
       <Route index element={<AboutPage homepage />} />
       <Route path="map" element={<MapPage />} />
       <Route path="add" element={<AddMenderPage />} />
-      <Route path="about" element={<AboutPage />} />
+      <Route path="about" element={<AboutPage homepage />} />
     </Routes>
   </>;
 }

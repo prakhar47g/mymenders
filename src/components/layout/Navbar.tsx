@@ -27,7 +27,7 @@ export function Navbar() {
 
           <div className="hidden md:flex h-20 items-stretch gap-2">
             <NavLink
-              to="/about"
+              to="/#about-mission"
               className="group relative inline-flex items-center justify-center px-3 text-sm "
             >
               {({ isActive }) => (
@@ -84,7 +84,7 @@ export function Navbar() {
         <div className="absolute w-full bg-brand-dark pb-4 text-[var(--mm-text)] md:hidden">
           <div className="px-2 pt-2 space-y-1 flex flex-col">
             <NavLink
-              to="/about"
+              to="/#about-mission"
               onClick={() => setIsOpen(false)}
               className="group block rounded-xl px-3 py-2 text-sm hover:bg-black/5"
             >

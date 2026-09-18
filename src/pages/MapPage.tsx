@@ -6,7 +6,6 @@ import {
   Cog,
   Globe,
   Globe2,
-  House,
   Info,
   Instagram,
   Linkedin,
@@ -23,6 +22,7 @@ import {
   SlidersHorizontal,
   SquareArrowOutUpRight,
   Star,
+  Store,
   Twitter,
   X,
   X as XBrand,
@@ -130,7 +130,7 @@ const EMAIL_ICON = renderIconMarkup(<Mail className="w-4 h-4" aria-hidden="true"
 const SOCIAL_ICON = renderIconMarkup(<SquareArrowOutUpRight className="w-4 h-4" aria-hidden="true" />);
 const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
 const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
-const HOUSE_ICON = renderIconMarkup(<House className="w-4 h-4" aria-hidden="true" />);
+const STORE_ICON = renderIconMarkup(<Store className="w-4 h-4" aria-hidden="true" />);
 
 const toDisplayName = (name?: string) => (name || '').trim();
 const EARTH_RADIUS_KM = 6371;
@@ -376,7 +376,7 @@ const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void
   const contactSection = document.createElement('div');
   contactSection.className = 'space-y-0.5';
   const primaryType = vendor.types?.[0]?.trim();
-  if (primaryType) appendTextRow(contactSection, HOUSE_ICON, getTaxonomyLabel('types', primaryType));
+  if (primaryType) appendTextRow(contactSection, STORE_ICON, getTaxonomyLabel('types', primaryType));
   if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
   if (vendor.location_visibility !== 'approx' && vendor.address) {
     appendTextRow(contactSection, ADDRESS_ICON, vendor.address);

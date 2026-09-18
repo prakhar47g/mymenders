@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Footer } from '../components/layout/Footer';
 
 const initiatives = [
@@ -50,6 +51,7 @@ const logoClassName =
 export function AboutPage({ homepage = false }: { homepage?: boolean }) {
   const heroRef = useRef<HTMLElement>(null);
   const [heroTextOpacity, setHeroTextOpacity] = useState(1);
+  const { hash } = useLocation();
   const heroImage = homepage
     ? {
         src: '/images/about/red-patched-top.webp',
@@ -63,6 +65,19 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
         width: 726,
         height: 1024,
       };
+
+  useEffect(() => {
+    if (hash !== '#about-mission') return;
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('about-mission')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [hash]);
 
   useEffect(() => {
     const updateHeroTextOpacity = () => {
@@ -130,8 +145,9 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
         </section>
 
         <section
+          id="about-mission"
           aria-labelledby="about-mission-title"
-          className="px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
+          className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
         >
           <div className="mx-auto max-w-3xl">
             <h2

@@ -801,6 +801,8 @@ const VendorListSkeleton = () => (
 export function MapPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [centerMapTo, setCenterMapTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [findingLocation, setFindingLocation] = useState(false);
@@ -828,14 +830,18 @@ export function MapPage() {
     let cancelled = false;
 
     const loadVendors = async () => {
+      setLoadError(null);
       try {
         const res = await fetch(`${window.location.origin}/api/vendors`);
+        if (!res.ok) throw new Error(`Vendor request failed with status ${res.status}`);
         const data = await res.json();
-        if (!Array.isArray(data) || cancelled) return;
+        if (!Array.isArray(data)) throw new Error('Vendor response was not a list');
+        if (cancelled) return;
 
         setVendors(data.map(normalizeVendor));
       } catch (err) {
         console.error('Failed to fetch vendors:', err);
+        if (!cancelled) setLoadError('We couldn’t load menders right now.');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -846,7 +852,7 @@ export function MapPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     vendorsRef.current = vendors;
@@ -958,6 +964,8 @@ export function MapPage() {
     0,
   );
   const hasActiveFilters = activeFilterCount > 0;
+  const hasSearchOrFilters = Boolean(searchQuery.trim()) || hasActiveFilters;
+  const resultLabel = displayedVendorsWithDistance.length === 1 ? 'mender' : 'menders';
 
   const clearAllFilters = () => {
     setSelectedFilters(createEmptyFilterState());
@@ -1045,6 +1053,7 @@ export function MapPage() {
       applyEnglishLabelOverrides(map);
       try {
         await ensureVendorLayers(map);
+        setMapBounds(map.getBounds());
         setIsMapReady(true);
       } catch (error) {
         console.error('Unable to load the vendor map pin:', error);
@@ -1244,23 +1253,25 @@ export function MapPage() {
           <div className="shrink-0 border-b border-[#e5e7eb] px-3 py-3">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
+                <label htmlFor="menders-search-desktop" className="sr-only">Search menders</label>
                 <Search
                   className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
                   aria-hidden="true"
                 />
                 <input
+                  id="menders-search-desktop"
                   type="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search menders..."
+                  placeholder="Search menders…"
                   aria-label="Search menders"
-                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                 />
                 {searchQuery ? (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[var(--mm-faint)] transition-colors hover:bg-[var(--mm-panel-muted)] hover:text-[var(--mm-text)]"
+                    className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[var(--mm-faint)] transition-[background-color,color] hover:bg-[var(--mm-panel-muted)] hover:text-[var(--mm-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     aria-label="Clear search"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1272,7 +1283,7 @@ export function MapPage() {
                 ref={filterButtonRef}
                 type="button"
                 onClick={() => setIsFilterDrawerOpen((value) => !value)}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
                     : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
@@ -1307,6 +1318,21 @@ export function MapPage() {
                 ))}
               </div>
             ) : null}
+
+            <div className="mt-3 flex items-center justify-between gap-3" role="status" aria-live="polite">
+              <p className="text-xs text-[var(--mm-muted)]">
+                {isLoading ? 'Loading menders…' : `${displayedVendorsWithDistance.length} ${resultLabel} in view`}
+              </p>
+              {hasSearchOrFilters ? (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="shrink-0 text-xs text-[var(--mm-muted)] underline decoration-[var(--mm-border-strong)] underline-offset-2 transition-[color] hover:text-[var(--mm-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  Clear search and filters
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div
@@ -1317,6 +1343,21 @@ export function MapPage() {
           >
             {isLoading ? (
               <VendorListSkeleton />
+            ) : loadError ? (
+              <div className="mymenders-map-empty-state m-3">
+                <p className="font-medium text-[var(--mm-text)]">Menders are temporarily unavailable</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--mm-muted)]">Check your connection and try again.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLoading(true);
+                    setReloadKey((key) => key + 1);
+                  }}
+                  className="mymenders-map-empty-state__action mt-3"
+                >
+                  Try again
+                </button>
+              </div>
             ) : displayedVendorsWithDistance.length ? (
               displayedVendorsWithDistance.map(({ vendor, distanceKm }) => {
                 const coordinates = getVendorCoordinates(vendor);
@@ -1335,7 +1376,7 @@ export function MapPage() {
                       openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
                     }}
                     disabled={!isClickable}
-                    className={`group relative w-full border-b border-[var(--mm-border)] last:border-b-0 py-3 pl-3 pr-3 text-left transition ${
+                    className={`group relative w-full border-b border-[var(--mm-border)] last:border-b-0 py-3 pl-3 pr-3 text-left transition-[background-color,opacity] ${
                       isActive
                         ? 'bg-[var(--mm-border)]'
                         : isClickable
@@ -1397,8 +1438,28 @@ export function MapPage() {
                 );
               })
             ) : (
-              <div className="rounded-xl border border-[var(--mm-border)] bg-[var(--mm-panel)] py-4 pl-3 pr-12 text-sm text-[var(--mm-muted)]">
-                No menders match your search or filters.
+              <div className="mymenders-map-empty-state m-3">
+                <p className="font-medium text-[var(--mm-text)]">
+                  {hasSearchOrFilters ? 'No menders match this search' : 'No menders have been added yet'}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-[var(--mm-muted)]">
+                  {hasSearchOrFilters
+                    ? 'Try a different search or clear the current filters.'
+                    : 'Menders added to the directory will appear here.'}
+                </p>
+                {hasSearchOrFilters ? (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="mymenders-map-empty-state__action mt-3"
+                  >
+                    Clear search and filters
+                  </button>
+                ) : (
+                  <a href="/add" className="mymenders-map-empty-state__action mt-3">
+                    Add a mender
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -1410,23 +1471,25 @@ export function MapPage() {
           {/* Mobile search + filters (below md) */}
           <div className="absolute left-4 right-4 top-20 z-10 flex items-center gap-2 md:hidden">
             <div className="relative flex-1">
+              <label htmlFor="menders-search-mobile" className="sr-only">Search menders</label>
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
                 aria-hidden="true"
               />
               <input
+                id="menders-search-mobile"
                 type="search"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search menders..."
+                placeholder="Search menders…"
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
               />
             </div>
             <button
               type="button"
               onClick={() => setIsFilterDrawerOpen((value) => !value)}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="mymenders-map-control relative h-11 w-11 shrink-0"
               aria-label="Filter menders"
               aria-expanded={isFilterDrawerOpen}
               aria-controls="vendor-filter-drawer"
@@ -1440,16 +1503,22 @@ export function MapPage() {
             </button>
           </div>
 
+          <div className="mymenders-map-status absolute bottom-6 left-4 z-10 md:hidden" role="status" aria-live="polite">
+            {isLoading ? 'Loading menders…' : `${displayedVendorsWithDistance.length} ${resultLabel} in view`}
+          </div>
+
           {isFilterDrawerOpen && (
             <div
               id="vendor-filter-drawer"
               ref={filterDrawerRef}
               className="fixed inset-x-0 bottom-0 z-20 flex max-h-[70vh] flex-col rounded-t-2xl border-t border-[#e5e7eb] bg-[#fafafa] shadow-[0_-8px_32px_rgba(15,23,42,0.12)] backdrop-blur-sm md:absolute md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[min(340px,calc(100vw-25vw))] md:rounded-none md:border-r md:border-t-0 md:shadow-[18px_0_34px_rgba(15,23,42,0.12)]"
+              aria-labelledby="vendor-filter-drawer-title"
               onWheel={(event) => {
                 event.stopPropagation();
               }}
             >
-              <div className="flex shrink-0 items-center justify-end border-b border-[#e5e7eb] px-3 py-2">
+              <div className="flex shrink-0 items-center justify-between border-b border-[#e5e7eb] px-4 py-3">
+                <h2 id="vendor-filter-drawer-title" className="text-sm font-medium text-[var(--mm-text)]">Filter menders</h2>
                 <button
                   type="button"
                   onClick={() => setIsFilterDrawerOpen(false)}
@@ -1504,10 +1573,10 @@ export function MapPage() {
                 <button
                   type="button"
                   onClick={clearAllFilters}
-                  disabled={!hasActiveFilters}
+                  disabled={!hasSearchOrFilters}
                   className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  Clear all
+                  Clear search and filters
                 </button>
               </div>
             </div>
@@ -1515,9 +1584,10 @@ export function MapPage() {
 
           <div className="absolute right-6 top-6 z-10 flex items-center gap-2">
             <button
+              type="button"
               onClick={locateUser}
               disabled={findingLocation}
-              className="flex h-11 w-[116px] items-center justify-center rounded-full border-[0.5px] border-black bg-brand px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="mymenders-map-control w-[116px] px-4"
               title="Near me"
               aria-label="Find nearby menders"
             >
@@ -1527,14 +1597,15 @@ export function MapPage() {
           </div>
 
           <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
-            <div className="flex w-11 flex-col overflow-hidden rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)]">
+            <div className="mymenders-map-control-group">
               <button
+                type="button"
                 onClick={() => {
                   const map = mapInstanceRef.current;
                   if (!map) return;
                   map.zoomIn();
                 }}
-                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-brand-hover"
+                className="mymenders-map-control h-11 w-11 rounded-none shadow-none"
                 aria-label="Zoom in"
               >
                 <Plus className="w-5 h-5" />
@@ -1543,12 +1614,13 @@ export function MapPage() {
               <div className="h-px bg-brand-dark-text/15" />
 
               <button
+                type="button"
                 onClick={() => {
                   const map = mapInstanceRef.current;
                   if (!map) return;
                   map.zoomOut();
                 }}
-                className="flex h-11 w-11 items-center justify-center transition-colors hover:bg-brand-hover"
+                className="mymenders-map-control h-11 w-11 rounded-none shadow-none"
                 aria-label="Zoom out"
               >
                 <Minus className="w-5 h-5" />
@@ -1556,6 +1628,7 @@ export function MapPage() {
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 const map = mapInstanceRef.current;
                 if (!map) return;
@@ -1567,7 +1640,7 @@ export function MapPage() {
                   duration: 700,
                 });
               }}
-              className="flex h-11 w-11 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+              className="mymenders-map-control h-11 w-11"
               aria-label="Reset to globe view"
             >
               <Globe className="w-5 h-5" />
@@ -1575,8 +1648,9 @@ export function MapPage() {
 
             <div className="relative" ref={styleMenuRef}>
               <button
+                type="button"
                 onClick={() => setIsStyleMenuOpen((value) => !value)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-brand-hover"
+                className="mymenders-map-control h-11 w-11"
                 aria-label="Map style"
                 aria-expanded={isStyleMenuOpen}
               >
@@ -1584,9 +1658,10 @@ export function MapPage() {
               </button>
 
               {isStyleMenuOpen && (
-                <div className="mymenders-cloth-panel absolute bottom-full right-0 z-20 mb-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
+                <div className="mymenders-map-menu mymenders-cloth-panel absolute bottom-full right-0 z-20 mb-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
                   {BASEMAP_STYLES.map((style) => (
                     <button
+                      type="button"
                       key={style.id}
                       onClick={() => {
                         setSelectedBasemapStyleId(style.id);

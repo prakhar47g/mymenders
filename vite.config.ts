@@ -94,7 +94,7 @@ export default defineConfig(({ mode }) => {
 
             try {
               if (req.method === 'GET') {
-                const result = await pool.query("SELECT * FROM vendors WHERE status = 'active' ORDER BY id");
+                const result = await pool.query("SELECT * FROM vendors WHERE status = 'active' AND is_deleted = false ORDER BY id");
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(result.rows.map(publicVendor)));

@@ -268,9 +268,9 @@ export async function insertVendor(pool, data) {
 export async function updateVendor(pool, id, data) {
   const vendorId = Number(id);
   if (!Number.isInteger(vendorId) || vendorId <= 0) throw new ValidationError('Valid vendor id is required');
-  const currentResult = await pool.query('SELECT * FROM vendors WHERE id=$1', [vendorId]);
+  const currentResult = await pool.query('SELECT * FROM vendors WHERE id=$1 AND is_deleted = false', [vendorId]);
   const current = currentResult.rows[0];
-  if (!current) throw new ValidationError('Vendor not found');
+  if (!current) throw new ValidationError('Mender not found');
 
   const name = String(data.name || '').trim();
   const latitude = Number(data.latitude);
@@ -326,20 +326,20 @@ export async function updateVendor(pool, id, data) {
       phone=$7, website=$8, social=$9, email=$10, hours=$11, photo_url=$12, photos=$13,
       status=COALESCE($14, status), location_visibility=$15, public_address=$16,
       public_latitude=$17, public_longitude=$18, public_radius_km=$19
-     WHERE id=$1 RETURNING *`,
+     WHERE id=$1 AND is_deleted = false RETURNING *`,
     [vendorId, name, data.address || null, latitude, longitude, entryLevel,
       normalizeOptionalContact(data.phone), normalizedWebsite, normalizedSocial, normalizedEmail,
       normalizeOptionalContact(data.hours), data.photo_url || null, JSON.stringify(nextPhotos), status,
       locationVisibility, approximateLocation?.address || null, approximateLocation?.latitude ?? null,
       approximateLocation?.longitude ?? null, approximateLocation?.radiusKm || APPROXIMATE_RADIUS_KM],
   );
-  if (!result.rows[0]) throw new ValidationError('Vendor not found');
+  if (!result.rows[0]) throw new ValidationError('Mender not found');
   return result.rows[0];
 }
 
 export async function activateVendor(pool, id) {
-  const result = await pool.query(`UPDATE vendors SET status='active' WHERE id=$1 RETURNING *`, [Number(id)]);
-  if (!result.rows[0]) throw new ValidationError('Vendor not found');
+  const result = await pool.query(`UPDATE vendors SET status='active' WHERE id=$1 AND is_deleted = false RETURNING *`, [Number(id)]);
+  if (!result.rows[0]) throw new ValidationError('Mender not found');
   return result.rows[0];
 }
 

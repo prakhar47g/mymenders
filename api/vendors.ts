@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const result = await pool.query("SELECT * FROM vendors WHERE status = 'active' ORDER BY id");
+    const result = await pool.query("SELECT * FROM vendors WHERE status = 'active' AND is_deleted = false ORDER BY id");
     return new Response(JSON.stringify(result.rows.map(publicVendor)), {
       headers: { 'Content-Type': 'application/json' },
     });

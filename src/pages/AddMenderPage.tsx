@@ -874,6 +874,8 @@ export function AddMenderPage() {
                   <p className={FIELD_LABEL_CLASS}>Categories</p>
                   <Select
                     isMulti
+                    closeMenuOnSelect={false}
+                    blurInputOnSelect={false}
                     options={categoryOptions}
                     value={categoryOptions
                       .flatMap((group) => group.options)
@@ -893,6 +895,8 @@ export function AddMenderPage() {
                   </label>
                   <Select
                     isMulti
+                    closeMenuOnSelect={false}
+                    blurInputOnSelect={false}
                     options={techniqueOptions}
                     value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
                     onChange={(opts) => setRegionalTechniques(toValues(opts))}

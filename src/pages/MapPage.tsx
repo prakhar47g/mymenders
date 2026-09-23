@@ -965,7 +965,6 @@ export function MapPage() {
   );
   const hasActiveFilters = activeFilterCount > 0;
   const hasSearchOrFilters = Boolean(searchQuery.trim()) || hasActiveFilters;
-  const resultLabel = displayedVendorsWithDistance.length === 1 ? 'mender' : 'menders';
 
   const clearAllFilters = () => {
     setSelectedFilters(createEmptyFilterState());
@@ -1319,20 +1318,24 @@ export function MapPage() {
               </div>
             ) : null}
 
-            <div className="mt-3 flex items-center justify-between gap-3" role="status" aria-live="polite">
-              <p className="text-xs text-[var(--mm-muted)]">
-                {isLoading ? 'Loading menders…' : `${displayedVendorsWithDistance.length} ${resultLabel} in view`}
-              </p>
-              {hasSearchOrFilters ? (
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  className="shrink-0 text-xs text-[var(--mm-muted)] underline decoration-[var(--mm-border-strong)] underline-offset-2 transition-[color] hover:text-[var(--mm-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                >
-                  Clear search and filters
-                </button>
-              ) : null}
-            </div>
+            {(isLoading || hasSearchOrFilters) && (
+              <div className="mt-3 flex items-center justify-end gap-3">
+                {isLoading && (
+                  <p className="mr-auto text-xs text-[var(--mm-muted)]" role="status" aria-live="polite">
+                    Loading menders…
+                  </p>
+                )}
+                {hasSearchOrFilters && (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="shrink-0 text-xs text-[var(--mm-muted)] underline decoration-[var(--mm-border-strong)] underline-offset-2 transition-[color] hover:text-[var(--mm-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                  >
+                    Clear search and filters
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div
@@ -1503,9 +1506,11 @@ export function MapPage() {
             </button>
           </div>
 
-          <div className="mymenders-map-status absolute bottom-6 left-4 z-10 md:hidden" role="status" aria-live="polite">
-            {isLoading ? 'Loading menders…' : `${displayedVendorsWithDistance.length} ${resultLabel} in view`}
-          </div>
+          {isLoading && (
+            <div className="mymenders-map-status absolute bottom-6 left-4 z-10 md:hidden" role="status" aria-live="polite">
+              Loading menders…
+            </div>
+          )}
 
           {isFilterDrawerOpen && (
             <div

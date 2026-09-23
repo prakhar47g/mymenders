@@ -350,6 +350,10 @@ body {
   outline-offset: 2px;
 }
 
+#menders-search-desktop::-webkit-search-cancel-button {
+  display: none;
+}
+
 .mymenders-map-control {
   display: inline-flex;
   align-items: center;

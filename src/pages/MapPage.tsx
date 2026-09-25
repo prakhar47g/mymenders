@@ -1472,8 +1472,8 @@ export function MapPage() {
           <div ref={mapContainerRef} className="w-full h-full" />
 
           {/* Mobile search + filters (below md) */}
-          <div className="absolute left-4 right-4 top-20 z-10 flex items-center gap-2 md:hidden">
-            <div className="relative flex-1">
+          <div className="absolute left-4 right-4 top-4 z-10 flex items-center gap-2 md:hidden">
+            <div className="relative min-w-0 flex-1">
               <label htmlFor="menders-search-mobile" className="sr-only">Search menders</label>
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
@@ -1503,6 +1503,17 @@ export function MapPage() {
                   {activeFilterCount}
                 </span>
               ) : null}
+            </button>
+            <button
+              type="button"
+              onClick={locateUser}
+              disabled={findingLocation}
+              className="mymenders-map-control h-11 shrink-0 px-3 text-xs sm:px-4"
+              title="Near me"
+              aria-label="Find nearby menders"
+            >
+              {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
+              <span>Near me</span>
             </button>
           </div>
 
@@ -1587,7 +1598,7 @@ export function MapPage() {
             </div>
           )}
 
-          <div className="absolute right-6 top-6 z-10 flex items-center gap-2">
+          <div className="absolute right-6 top-6 z-10 hidden items-center gap-2 md:flex">
             <button
               type="button"
               onClick={locateUser}
@@ -1597,11 +1608,11 @@ export function MapPage() {
               aria-label="Find nearby menders"
             >
               {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
-              <span className="ml-2 text-xs ">Near me</span>
+              <span className="ml-2 text-xs">Near me</span>
             </button>
           </div>
 
-          <div className="absolute bottom-6 right-6 z-10 flex flex-col items-end gap-2">
+          <div className="absolute right-4 top-[4.5rem] z-10 flex flex-col items-end gap-2 md:bottom-6 md:right-6 md:top-auto">
             <div className="mymenders-map-control-group">
               <button
                 type="button"
@@ -1663,7 +1674,7 @@ export function MapPage() {
               </button>
 
               {isStyleMenuOpen && (
-                <div className="mymenders-map-menu mymenders-cloth-panel absolute bottom-full right-0 z-20 mb-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm">
+                <div className="mymenders-map-menu mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm md:bottom-full md:top-auto md:mb-2 md:mt-0">
                   {BASEMAP_STYLES.map((style) => (
                     <button
                       type="button"

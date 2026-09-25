@@ -123,11 +123,11 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
           <div className="flex min-h-[28rem] items-end px-[30px] pb-12 pt-20 sm:min-h-[34rem] sm:pb-16 lg:min-h-0 lg:pb-16 lg:pt-0">
             <h1
               id="about-hero-title"
-              className="font-display text-[42px] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
+              className="font-display text-[clamp(24px,7.6vw,42px)] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
               style={{ opacity: heroTextOpacity }}
             >
               <span className="block">The only antidote</span>
-              <span className="block">to a throwaway society</span>
+              <span className="block whitespace-nowrap">to a throwaway society</span>
               <span className="block">is to keep</span>
             </h1>
           </div>

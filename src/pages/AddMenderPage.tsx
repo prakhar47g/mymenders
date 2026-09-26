@@ -65,6 +65,22 @@ const coordinatesMatch = (
   second: [number, number] | null,
 ) => Boolean(first && second && first[0] === second[0] && first[1] === second[1]);
 
+const normalizeSocialProfile = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const isUrlOrDomainPath =
+    /^[a-z][a-z\d+.-]*:/i.test(trimmed) ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('/') ||
+    (!trimmed.startsWith('@') && /^[^\s.]+\.[a-z]{2,}(?:$|[?#])/i.test(trimmed));
+
+  if (isUrlOrDomainPath) return trimmed;
+
+  const handle = trimmed.replace(/^@/, '');
+  return handle ? `https://instagram.com/${handle}` : '';
+};
+
 // ---------------------------------------------------------------------------
 // react-select helpers
 // ---------------------------------------------------------------------------
@@ -195,6 +211,7 @@ export function AddMenderPage() {
   // ---- form fields ----
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneDialCode, setPhoneDialCode] = useState('');
   const [phoneCountry, setPhoneCountry] = useState<CountryIso2>(getBrowserCountry);
   const [address, setAddress] = useState('');
   const [website, setWebsite] = useState('');
@@ -566,6 +583,10 @@ export function AddMenderPage() {
       (addressManuallyEditedRef.current ? address.trim() : lookedUpAddress || address.trim()) ||
       'Location selected on map';
     const normalizedReview = Number.isFinite(reviewStars) ? Math.min(5, Math.max(0, reviewStars)) : 0;
+    const phoneDigits = phone.replace(/\D/g, '');
+    const dialCodeDigits = phoneDialCode.replace(/\D/g, '');
+    const submittedPhone = phoneDigits.length > dialCodeDigits.length ? phone : '';
+    const submittedSocial = normalizeSocialProfile(social);
 
     const payload = {
       name,
@@ -576,10 +597,9 @@ export function AddMenderPage() {
       latitude: selectedPosition[0],
       longitude: selectedPosition[1],
       location_visibility: entryLevel === 'Member of the public' ? 'approx' : locationVisibility,
-      phone,
-      contact: phone,
+      ...(submittedPhone ? { phone: submittedPhone } : {}),
       website: website || undefined,
-      social: social || undefined,
+      social: submittedSocial || undefined,
       email: email || undefined,
       categories,
       regional_techniques: regionalTechniques,
@@ -593,7 +613,7 @@ export function AddMenderPage() {
         categories,
         regional_techniques: regionalTechniques,
         website,
-        social,
+        social: submittedSocial,
         email,
         review_text: reviewText,
       }),
@@ -806,7 +826,10 @@ export function AddMenderPage() {
                         key={phoneCountry}
                         defaultCountry={phoneCountry}
                         value={phone}
-                        onChange={(nextPhone) => setPhone(nextPhone)}
+                        onChange={(nextPhone, metadata) => {
+                          setPhone(nextPhone);
+                          setPhoneDialCode(metadata.country.dialCode);
+                        }}
                         placeholder="Phone"
                         allowMaskOverflow
                         inputProps={{
@@ -851,6 +874,7 @@ export function AddMenderPage() {
                       id="website"
                       type="text"
                       value={website}
+                      placeholder="www.yourwebsite.com"
                       onChange={(e) => setWebsite(e.target.value)}
                       className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
                     />

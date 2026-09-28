@@ -169,40 +169,7 @@ const reviewRatingStyles = {
 };
 
 const FIELD_LABEL_CLASS =
-  'add-mender-modal-label mb-1.5 block text-[11px] uppercase';
-
-// Mirrors the shape of the form fields (labels + inputs) so the reveal
-// skeleton doesn't shift the layout when the real fields appear.
-const FormSkeleton = () => (
-  <div aria-hidden="true" className="space-y-4">
-    <div>
-      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-24 rounded" />
-      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-    </div>
-    <div className="grid gap-3 sm:grid-cols-2">
-      <div>
-        <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-20 rounded" />
-        <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-      </div>
-      <div>
-        <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-20 rounded" />
-        <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-      </div>
-    </div>
-    <div>
-      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-16 rounded" />
-      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-    </div>
-    <div>
-      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-24 rounded" />
-      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-    </div>
-    <div>
-      <div className="mymenders-shimmer-block mb-1.5 h-2.5 w-28 rounded" />
-      <div className="mymenders-shimmer-block h-10 w-full rounded-[0.625rem]" />
-    </div>
-  </div>
-);
+  'add-mender-modal-label mb-1.5 block text-[11px]';
 
 // ---------------------------------------------------------------------------
 // Component
@@ -224,7 +191,6 @@ export function AddMenderPage() {
   const [entryLevelSelection, setEntryLevelSelection] = useState<EntryLevelOption | null>(null);
   const [locationVisibility, setLocationVisibility] = useState<'exact' | 'approx'>('exact');
   const [locationVisibilityTouched, setLocationVisibilityTouched] = useState(false);
-  const [isRevealingForm, setIsRevealingForm] = useState(false);
   const [types, setTypes] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [regionalTechniques, setRegionalTechniques] = useState<string[]>([]);
@@ -249,7 +215,6 @@ export function AddMenderPage() {
   const googleAutocompleteRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestSelectedCoordinatesRef = useRef<[number, number] | null>(null);
   const phoneInputInteractedRef = useRef(false);
   const pendingReverseGeocodeRef = useRef<Promise<string | null> | null>(null);
@@ -523,23 +488,10 @@ export function AddMenderPage() {
     setLocationVisibilityTouched(false);
     if (level === 'Menders') resetReviewFields();
 
-    // Every role change gets the reveal choreography — a brief shimmer so
-    // the form swap doesn't feel instant.
-    setIsRevealingForm(true);
-    revealTimerRef.current = setTimeout(() => setIsRevealingForm(false), 1000);
   };
-
-  // Clear the reveal timer if the user leaves the page mid-reveal.
-  useEffect(() => {
-    return () => {
-      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    };
-  }, []);
 
   // Back to the role picker — the only place to choose who's adding this.
   const goBackToPicker = () => {
-    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    setIsRevealingForm(false);
     setEntryLevelSelection(ENTRY_LEVEL_OPTIONS.find((option) => option === entryLevel) ?? null);
     setEntryLevel(null);
     setLocationVisibility('exact');
@@ -742,9 +694,6 @@ export function AddMenderPage() {
                   Back
                 </button>
 
-                {isRevealingForm ? (
-                  <FormSkeleton />
-                ) : (
                 <div className="mymenders-fade-in space-y-4">
                 {/* Studio Name */}
                 <div>
@@ -966,7 +915,6 @@ export function AddMenderPage() {
                   </div>
                 )}
                 </div>
-                )}
               </div>
             </div>
 

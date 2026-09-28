@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, MapPin, VectorSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, MapPin, VectorSquare } from 'lucide-react';
 import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { PhoneInput, type CountryIso2 } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -28,18 +28,21 @@ const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
 
 type EntryLevelMeta = {
   title: string;
+  description: string;
   iconSrc: string;
   activePanelClasses: string;
 };
 
 const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
   Menders: {
-    title: 'Mender',
+    title: "I'm a mender",
+    description: 'List your own work so people can find you.',
     iconSrc: MENDER_ICON_URL,
     activePanelClasses: 'border-brand-hover bg-brand',
   },
   'Member of the public': {
-    title: 'Contributor',
+    title: 'I know a mender',
+    description: 'Recommend someone you trust to fix things.',
     iconSrc: CONTRIBUTOR_ICON_URL,
     activePanelClasses: 'border-brand-hover bg-brand',
   },
@@ -218,6 +221,7 @@ export function AddMenderPage() {
   const [social, setSocial] = useState('');
   const [email, setEmail] = useState('');
   const [entryLevel, setEntryLevel] = useState<string | null>(null);
+  const [entryLevelSelection, setEntryLevelSelection] = useState<EntryLevelOption | null>(null);
   const [locationVisibility, setLocationVisibility] = useState<'exact' | 'approx'>('exact');
   const [locationVisibilityTouched, setLocationVisibilityTouched] = useState(false);
   const [isRevealingForm, setIsRevealingForm] = useState(false);
@@ -536,6 +540,7 @@ export function AddMenderPage() {
   const goBackToPicker = () => {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     setIsRevealingForm(false);
+    setEntryLevelSelection(ENTRY_LEVEL_OPTIONS.find((option) => option === entryLevel) ?? null);
     setEntryLevel(null);
     setLocationVisibility('exact');
     setLocationVisibilityTouched(false);
@@ -645,50 +650,50 @@ export function AddMenderPage() {
   // Show the fallback text input when Places isn't available OR we hit an error
   const showFallbackInput = !placesReady;
 
-  // Shared by the standalone picker view and the form's entry-level section,
-  // so the role can be switched at any time.
+  // Role choice is staged in the picker and applied when Continue is pressed.
   const entryLevelCards = (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-3">
       {ENTRY_LEVEL_OPTIONS.map((level) => {
         const meta = ENTRY_LEVEL_META[level];
-        const isSelected = entryLevel === level;
+        const isSelected = entryLevelSelection === level;
 
         return (
           <label key={level} className="group block cursor-pointer">
             <input
               type="radio"
-              name="entry-level"
+              name="entry-level-picker"
               value={level}
               checked={isSelected}
-              onChange={() => onEntryLevelChange(level)}
+              onChange={() => setEntryLevelSelection(level)}
               className="peer sr-only"
             />
             <span
-              className={`relative flex aspect-[3/1] items-center gap-2.5 rounded-2xl border pl-4 pr-3 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 ${
+              className={`relative flex min-h-[112px] items-center gap-3 rounded-2xl border px-4 py-4 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 sm:min-h-[128px] sm:gap-4 sm:px-5 ${
                 isSelected
                   ? meta.activePanelClasses
-                  : 'border-[#e5e7eb] bg-white hover:-translate-y-0.5 hover:border-[#d1d5db] hover:bg-[#fafafa] hover:shadow-[var(--mm-shadow-subtle)]'
+                  : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db] hover:bg-[#fafafa]'
               }`}
             >
-              {/* Icon in a circular grey container */}
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] transition-transform duration-200 group-hover:scale-105">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f3f4f6] sm:h-14 sm:w-14">
                 <img
                   src={meta.iconSrc}
                   alt=""
                   aria-hidden="true"
-                  className={`h-6.5 w-6.5 object-contain transition-all duration-200 ${
+                  className={`h-7 w-7 object-contain transition-all duration-200 ${
                     isSelected ? '' : 'opacity-60 saturate-50'
                   }`}
                 />
               </span>
 
-              <span
-                className={`min-w-0 flex-1 text-sm leading-tight ${
-                  isSelected ? 'text-[#222222]' : 'text-[#171b17]'
-                }`}
-              >
-                {meta.title}
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold leading-tight text-[#171b17]">
+                  {meta.title}
+                </span>
+                <span className="mt-1 block text-sm leading-snug text-[var(--mm-muted)]">
+                  {meta.description}
+                </span>
               </span>
+
             </span>
           </label>
         );
@@ -702,21 +707,26 @@ export function AddMenderPage() {
 
   return (
     <div className="relative z-0 mt-20 h-[calc(100vh-80px)] w-full">
-      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[35%_65%]">
+      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[30%_70%]">
         {/* ==================== FORM SIDEBAR ==================== */}
         <aside className="order-2 flex h-[calc(60vh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full">
-          <div className="shrink-0 border-b border-[#e5e7eb] px-4 py-3">
-            <h1 className="mymenders-card-title-semi text-xl uppercase text-brand-dark-on">
-              Add a Mender
-            </h1>
-          </div>
-
           {entryLevel === null ? (
-            <div className="flex min-h-0 flex-1 flex-col justify-start px-4 py-6">
-              <h2 className="mymenders-card-title-semi mb-3 text-sm uppercase text-[var(--mm-muted)]">
-                Who is adding this?
+            <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto px-4 py-6">
+              <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on">
+                Add a mender
               </h2>
-              <fieldset>{entryLevelCards}</fieldset>
+              <fieldset>
+                <legend className="sr-only">Choose who is adding the mender</legend>
+                {entryLevelCards}
+              </fieldset>
+              <button
+                type="button"
+                disabled={entryLevelSelection === null}
+                onClick={() => entryLevelSelection && onEntryLevelChange(entryLevelSelection)}
+                className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-dark px-5 text-sm font-semibold text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
           ) : (
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -766,52 +776,43 @@ export function AddMenderPage() {
                   />
                 </div>
 
-                {/* Location privacy is relevant only to Home menders. */}
-                {types.includes('home') ? (
+                {/* Location visibility is configurable only for Home menders. */}
+                {types.includes('home') && entryLevel !== 'Member of the public' ? (
                   <div className="rounded-2xl border border-dashed border-[#e5e7eb] bg-white p-3" role="group" aria-labelledby="location-visibility-label">
                     <p id="location-visibility-label" className={FIELD_LABEL_CLASS}>Location visibility</p>
-                    {entryLevel === 'Member of the public' ? (
-                      <div className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-xs leading-[1.4] text-[var(--mm-text-soft)]">
-                        <p className="font-bold text-[var(--mm-text)]">Approximate zone</p>
-                        <p className="mt-0.5">Contributor locations are always shown as a nearby point within a 200 m zone.</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Location visibility">
-                          {([
-                            ['exact', 'Exact', 'Show your submitted address and pin.'],
-                            ['approx', 'Approximate', 'Show a nearby point within a 200 m zone.'],
-                          ] as const).map(([value, label, description]) => (
-                            <label key={value} className="flex h-full cursor-pointer">
-                              <input
-                                type="radio"
-                                name="location-visibility"
-                                value={value}
-                                checked={locationVisibility === value}
-                                onChange={() => {
-                                  setLocationVisibility(value);
-                                  setLocationVisibilityTouched(true);
-                                }}
-                                className="peer sr-only"
-                              />
-                              <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[#171b17] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
-                                <span className="flex items-start gap-2">
-                                  {value === 'exact' ? (
-                                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
-                                  ) : (
-                                    <VectorSquare className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
-                                  )}
-                                  <span className="min-w-0">
-                                    <span className="block text-xs font-bold text-[var(--mm-text)]">{label}</span>
-                                    <span className="mt-0.5 block text-[11px] leading-[1.35] text-[var(--mm-muted)]">{description}</span>
-                                  </span>
-                                </span>
+                    <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Location visibility">
+                      {([
+                        ['exact', 'Exact', 'Show your submitted address and pin.'],
+                        ['approx', 'Approximate', 'Show a nearby point within a 200 m zone.'],
+                      ] as const).map(([value, label, description]) => (
+                        <label key={value} className="flex h-full cursor-pointer">
+                          <input
+                            type="radio"
+                            name="location-visibility"
+                            value={value}
+                            checked={locationVisibility === value}
+                            onChange={() => {
+                              setLocationVisibility(value);
+                              setLocationVisibilityTouched(true);
+                            }}
+                            className="peer sr-only"
+                          />
+                          <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[#171b17] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
+                            <span className="flex items-start gap-2">
+                              {value === 'exact' ? (
+                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                              ) : (
+                                <VectorSquare className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                              )}
+                              <span className="min-w-0">
+                                <span className="block text-xs font-bold text-[var(--mm-text)]">{label}</span>
+                                <span className="mt-0.5 block text-[11px] leading-[1.35] text-[var(--mm-muted)]">{description}</span>
                               </span>
-                            </label>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
 

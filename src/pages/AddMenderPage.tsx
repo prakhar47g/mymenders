@@ -221,6 +221,14 @@ export function AddMenderPage() {
   const reverseGeocodeRequestIdRef = useRef(0);
   const addressManuallyEditedRef = useRef(false);
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      console.log('[Add mender] Current address field value:', address);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [address]);
+
   // Keep a ref copy of position so GMaps callbacks always read the latest value
   const positionRef = useRef(position);
   positionRef.current = position;
@@ -233,7 +241,7 @@ export function AddMenderPage() {
     const map = mapRef.current;
     if (!map) return;
     map.setCenter({ lat, lng });
-    map.setZoom(16);
+    map.setZoom(19);
   }, []);
 
   const enableAddressSuggestions = useCallback(() => {
@@ -325,7 +333,12 @@ export function AddMenderPage() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setPosition([pos.coords.latitude, pos.coords.longitude]);
+          const coordinates: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+          if (!latestSelectedCoordinatesRef.current) {
+            latestSelectedCoordinatesRef.current = coordinates;
+            setPosition(coordinates);
+            pendingReverseGeocodeRef.current = reverseGeocode(...coordinates);
+          }
           setGeoResolved(true);
           void getCountryFromCoordinates(pos.coords.latitude, pos.coords.longitude).then((country) => {
             if (!country || phoneInputInteractedRef.current) return;
@@ -334,7 +347,7 @@ export function AddMenderPage() {
           });
         },
         () => {
-          setPosition(DEFAULT_CENTER);
+          if (!latestSelectedCoordinatesRef.current) setPosition(DEFAULT_CENTER);
           setGeoResolved(true);
         },
       );
@@ -342,7 +355,7 @@ export function AddMenderPage() {
       setPosition(DEFAULT_CENTER);
       setGeoResolved(true);
     }
-  }, []);
+  }, [reverseGeocode]);
 
   // ------------------------------------------------------------------
   // Effect 1b — centre the map on the user's location once geolocation
@@ -384,7 +397,10 @@ export function AddMenderPage() {
         const initial = positionRef.current || DEFAULT_CENTER;
         const map = new g.maps.Map(mapContainerRef.current, {
           center: { lat: initial[0], lng: initial[1] },
-          zoom: 13,
+          zoom: 19,
+          styles: [
+            { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+          ],
           mapTypeControl: false,
           streetViewControl: false,
         });
@@ -418,7 +434,7 @@ export function AddMenderPage() {
         const marker = new g.maps.Marker({
           map,
           position: { lat: initial[0], lng: initial[1] },
-          icon: createLocationPinIcon(g.maps, getStudioTypeColor(types), '#ffffff'),
+          icon: createLocationPinIcon(g.maps, getStudioTypeColor(types), '#ffffff', 1.3),
           draggable: true,
         });
         markerRef.current = marker;
@@ -468,7 +484,7 @@ export function AddMenderPage() {
     const latLng = { lat: position[0], lng: position[1] };
     markerRef.current.setPosition(latLng);
     markerRef.current.setIcon(
-      createLocationPinIcon(g.maps, getStudioTypeColor(types), '#ffffff'),
+      createLocationPinIcon(g.maps, getStudioTypeColor(types), '#ffffff', 1.3),
     );
   }, [position, types]);
 
@@ -675,7 +691,7 @@ export function AddMenderPage() {
                 type="button"
                 disabled={entryLevelSelection === null}
                 onClick={() => entryLevelSelection && onEntryLevelChange(entryLevelSelection)}
-                className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-dark px-5 text-sm font-semibold text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-brand-dark px-5 text-sm font-semibold text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -688,7 +704,7 @@ export function AddMenderPage() {
                 <button
                   type="button"
                   onClick={goBackToPicker}
-                  className="inline-flex items-center gap-1.5 text-xs text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
+                  className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-[var(--mm-muted)] transition-colors hover:text-[var(--mm-text)]"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                   Back
@@ -723,6 +739,43 @@ export function AddMenderPage() {
                     menuPosition="fixed"
                     styles={selectStyles}
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="address" className={FIELD_LABEL_CLASS}>Address</label>
+                  {!showFallbackInput ? (
+                    <input
+                      id="address"
+                      ref={addressInputRef}
+                      type="text"
+                      value={address}
+                      onFocus={enableAddressSuggestions}
+                      onChange={(e) => {
+                        enableAddressSuggestions();
+                        addressManuallyEditedRef.current = true;
+                        setAddress(e.target.value);
+                      }}
+                      placeholder="Search an address to place the pin"
+                      autoComplete="off"
+                      className="mymenders-field w-full border px-3 py-2.5 text-sm text-[#171b17] outline-none"
+                    />
+                  ) : (
+                    <GeoAutocomplete
+                      id="address"
+                      value={address}
+                      onChange={(val) => {
+                        addressManuallyEditedRef.current = true;
+                        setAddress(val);
+                      }}
+                      onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
+                      suggestionsEnabled={addressSuggestionsEnabled}
+                      onManualInputFocus={enableAddressSuggestions}
+                      onManualInputChange={enableAddressSuggestions}
+                      onSuggestionsClose={disableAddressSuggestions}
+                      placeholder="Search an address to place the pin"
+                    />
+                  )}
+                  {mapError && <p className="mt-1.5 text-xs text-[#9b5f1d]">{mapError}</p>}
                 </div>
 
                 {/* Location visibility is configurable only for Home menders. */}
@@ -924,14 +977,14 @@ export function AddMenderPage() {
                   type="button"
                   onClick={() => navigate(-1)}
                   disabled={submitting || submissionComplete}
-                  className="h-10 flex-1 rounded-full border border-[#e5e7eb] bg-white px-5 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6]"
+                  className="h-10 flex-1 cursor-pointer rounded-full border border-[#e5e7eb] bg-white px-5 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || submissionComplete}
-                  className={`flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-5 text-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-5 text-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
                     submissionComplete
                       ? 'bg-[#5d8b61] text-white'
                       : 'bg-brand-dark text-brand-dark-on hover:bg-brand-dark-hover'
@@ -954,43 +1007,6 @@ export function AddMenderPage() {
         {/* ==================== MAP ==================== */}
         <div className="relative order-1 h-[40vh] min-h-0 md:order-2 md:h-full">
           <div ref={mapContainerRef} className="h-full w-full" />
-
-          {/* Floating address search */}
-          <div className="absolute left-4 right-4 top-4 z-10 mx-auto max-w-lg">
-            <div className="mymenders-cloth-panel rounded-2xl border p-1.5">
-              {!showFallbackInput ? (
-                <input
-                  ref={addressInputRef}
-                  type="text"
-                  value={address}
-                  onFocus={enableAddressSuggestions}
-                  onChange={(e) => {
-                    enableAddressSuggestions();
-                    addressManuallyEditedRef.current = true;
-                    setAddress(e.target.value);
-                  }}
-                  placeholder="Search an address to place the pin"
-                  autoComplete="off"
-                  className="mymenders-field w-full border px-3 py-2.5 text-sm text-[#171b17] outline-none"
-                />
-              ) : (
-                <GeoAutocomplete
-                  value={address}
-                  onChange={(val) => {
-                    addressManuallyEditedRef.current = true;
-                    setAddress(val);
-                  }}
-                  onSelect={(s) => goToLocation(s.lat, s.lng, s.formatted)}
-                  suggestionsEnabled={addressSuggestionsEnabled}
-                  onManualInputFocus={enableAddressSuggestions}
-                  onManualInputChange={enableAddressSuggestions}
-                  onSuggestionsClose={disableAddressSuggestions}
-                  placeholder="Search an address to place the pin"
-                />
-              )}
-            </div>
-            {mapError && <p className="mt-1.5 px-2 text-xs text-[#9b5f1d]">{mapError}</p>}
-          </div>
         </div>
       </div>
 
@@ -1014,7 +1030,7 @@ export function AddMenderPage() {
             <button
               type="button"
               onClick={() => navigate('/map')}
-              className="mt-7 h-10 w-full rounded-full bg-brand-dark px-5 text-sm text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+              className="mt-7 h-10 w-full cursor-pointer rounded-full bg-brand-dark px-5 text-sm text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
             >
               Go back to Map
             </button>

@@ -10,11 +10,19 @@ const buildMarkerSvg = (fillColor: string, strokeColor: string) => {
   return `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24' fill='none' stroke='${strokeColor}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0' fill='${fillColor}'/><circle cx='12' cy='10' r='3' fill='${strokeColor}'/></svg>`;
 };
 
-export const createLocationPinIcon = (googleMaps: any, fillColor = '#99C4CB', strokeColor = '#ffffff') => ({
-  url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(buildMarkerSvg(fillColor, strokeColor))}`,
-  scaledSize: new googleMaps.Size(36, 36),
-  anchor: new googleMaps.Point(18, 36),
-});
+export const createLocationPinIcon = (
+  googleMaps: any,
+  fillColor = '#99C4CB',
+  strokeColor = '#ffffff',
+  scale = 1,
+) => {
+  const size = 36 * scale;
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(buildMarkerSvg(fillColor, strokeColor))}`,
+    scaledSize: new googleMaps.Size(size, size),
+    anchor: new googleMaps.Point(size / 2, size),
+  };
+};
 
 export const loadGoogleMapsScript = (apiKey: string): Promise<void> => {
   if (typeof window === 'undefined') {

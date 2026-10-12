@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { autocomplete, type GeoapifySuggestion } from '../utils/geoapify';
 
 interface GeoAutocompleteProps {
+  id?: string;
   value: string;
   onChange: (address: string) => void;
   onSelect: (suggestion: GeoapifySuggestion) => void;
@@ -13,6 +14,7 @@ interface GeoAutocompleteProps {
 }
 
 export function GeoAutocomplete({
+  id,
   value,
   onChange,
   onSelect,
@@ -28,10 +30,12 @@ export function GeoAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autocompleteRequestIdRef = useRef(0);
 
   // Fetch suggestions when value changes (debounced)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const requestId = ++autocompleteRequestIdRef.current;
 
     if (!suggestionsEnabled || value.trim().length < 3) {
       setSuggestions([]);
@@ -42,6 +46,7 @@ export function GeoAutocomplete({
 
     debounceRef.current = setTimeout(async () => {
       const results = await autocomplete(value);
+      if (requestId !== autocompleteRequestIdRef.current) return;
       setSuggestions(results);
       setOpen(results.length > 0);
       setActiveIndex(-1);
@@ -49,6 +54,9 @@ export function GeoAutocomplete({
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (requestId === autocompleteRequestIdRef.current) {
+        autocompleteRequestIdRef.current += 1;
+      }
     };
   }, [suggestionsEnabled, value]);
 
@@ -67,8 +75,10 @@ export function GeoAutocomplete({
   }, [onSuggestionsClose, open]);
 
   const pickSuggestion = (s: GeoapifySuggestion) => {
+    autocompleteRequestIdRef.current += 1;
     onChange(s.formatted);
     onSelect(s);
+    setSuggestions([]);
     setOpen(false);
     setActiveIndex(-1);
     inputRef.current?.blur();
@@ -120,6 +130,7 @@ export function GeoAutocomplete({
   return (
     <div className="relative w-full">
       <input
+        id={id}
         ref={inputRef}
         type="text"
         value={value}

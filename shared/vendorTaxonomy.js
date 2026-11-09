@@ -180,12 +180,12 @@ export const getTaxonomyLabel = (group, value) => {
 // The first type on a vendor determines its marker color.
 export const STUDIO_TYPE_COLORS = Object.freeze({
   shop_workshop: '#7F00FF',
-  home: '#4B0082',
+  home: '#DC2626',
   brand_in_store_services: '#2563EB',
   mobile_itinerant: '#16A34A',
   chains_networks: '#EAB308',
-  dry_cleaners: '#F97316',
-  shoe_leather_accessories: '#DC2626',
+  dry_cleaners: '#F9A8D4',
+  shoe_leather_accessories: '#8B4513',
 });
 
 export const STUDIO_TYPE_FALLBACK_COLOR = '#64748B';

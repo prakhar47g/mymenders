@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Footer } from '../components/layout/Footer';
 
 const initiatives = [
@@ -11,9 +11,9 @@ const initiatives = [
   },
   {
     name: 'Iro Iro',
-    url: 'https://framerusercontent.com/images/I832b7iZYGhar08MeqXTnrXE0TA.png',
-    href: 'https://iroirozerowaste.com',
-    imageClassName: 'h-12 w-auto max-w-16',
+    url: '/images/about/iroiro-logo.png',
+    href: 'https://iroiro.in',
+    imageClassName: 'h-auto w-24 max-w-full',
   },
 ];
 
@@ -48,10 +48,21 @@ const howItWorks = [
 const logoClassName =
   'object-contain mix-blend-multiply grayscale opacity-60 transition-[filter,opacity] duration-300 hover:grayscale-0 hover:opacity-100';
 
+const missionText = 'My Mender is a map-based digital platform designed to extend the life of garments by reconnecting people with their local menders, making repair services visible, searchable and trustworthy, while documenting the cultural knowledge and everyday practices that already exist but remain undervalued and undocumented.';
+
+const heroSlides = [
+  { src: '/images/about/hero-3.webp', alt: 'A close-up of pale floral fabric with a button' },
+  { src: '/images/about/hero-4.webp', alt: 'A mender working on a light-colored garment by hand' },
+  { src: '/images/about/hero-1.webp', alt: 'Colorful visible mending on fabric, with the words care through mending' },
+  { src: '/images/about/hero-2.webp', alt: 'A close-up of a neatly mended area on blue fabric' },
+];
+
 export function AboutPage({ homepage = false }: { homepage?: boolean }) {
   const heroRef = useRef<HTMLElement>(null);
   const [heroTextOpacity, setHeroTextOpacity] = useState(1);
-  const { hash } = useLocation();
+  const [activeSlide, setActiveSlide] = useState(0);
+  const { hash, pathname } = useLocation();
+  const isHomepage = pathname === '/';
   const heroImage = homepage
     ? {
         src: '/images/about/red-patched-top.webp',
@@ -65,6 +76,37 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
         width: 726,
         height: 1024,
       };
+
+  useEffect(() => {
+    if (!isHomepage) return;
+
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let inView = true;
+    let timer: number | undefined;
+    const syncPlayback = () => {
+      window.clearInterval(timer);
+      if (inView && !document.hidden && !motion.matches) {
+        timer = window.setInterval(() => {
+          setActiveSlide((current) => (current + 1) % heroSlides.length);
+        }, 10000);
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      syncPlayback();
+    });
+    if (heroRef.current) observer.observe(heroRef.current);
+    document.addEventListener('visibilitychange', syncPlayback);
+    motion.addEventListener('change', syncPlayback);
+    syncPlayback();
+
+    return () => {
+      window.clearInterval(timer);
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', syncPlayback);
+      motion.removeEventListener('change', syncPlayback);
+    };
+  }, [isHomepage]);
 
   useEffect(() => {
     if (hash !== '#about-mission') return;
@@ -117,50 +159,96 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
       <main>
         <section
           ref={heroRef}
-          aria-labelledby="about-hero-title"
-          className="grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12"
+          aria-label={isHomepage ? 'Our Mission' : undefined}
+          aria-labelledby={isHomepage ? undefined : 'about-hero-title'}
+          className={isHomepage
+            ? 'grid w-full bg-brand-dark/95 lg:min-h-[calc(100svh-5rem)] lg:grid-cols-6'
+            : 'grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12'}
         >
-          <div className="flex min-h-[28rem] items-end px-[30px] pb-12 pt-20 sm:min-h-[34rem] sm:pb-16 lg:min-h-0 lg:pb-16 lg:pt-0">
-            <h1
-              id="about-hero-title"
-              className="font-display text-[clamp(24px,7.6vw,42px)] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
-              style={{ opacity: heroTextOpacity }}
-            >
-              <span className="block">The only antidote</span>
-              <span className="block whitespace-nowrap">to a throwaway society</span>
-              <span className="block">is to keep</span>
-            </h1>
-          </div>
+          {isHomepage ? (
+            <div id="about-mission" className="flex min-w-0 scroll-mt-20 flex-col justify-end pb-8 pl-[30px] pr-8 text-left lg:col-span-3 xl:pb-12 xl:pr-12">
+              <p className="text-[20px] leading-[1.55] text-[var(--mm-text-soft)]">
+                {missionText}
+              </p>
+              <div className="mt-8 flex items-center gap-3">
+                <Link
+                  to="/map"
+                  className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 text-sm text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mm-text)]"
+                >
+                  Browse Map
+                </Link>
+                <Link
+                  to="/add"
+                  className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 text-sm text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mm-text)]"
+                >
+                  Add Mender
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-h-[28rem] items-end px-[30px] pb-12 pt-20 sm:min-h-[34rem] sm:pb-16 lg:min-h-0 lg:pb-16 lg:pt-0">
+              <div>
+                <h1
+                  id="about-hero-title"
+                  className="font-display text-[clamp(24px,7.6vw,42px)] leading-[0.98] text-[var(--mm-text)] sm:text-[56px] lg:text-[clamp(48px,4.45vw,76px)]"
+                  style={{ opacity: heroTextOpacity }}
+                >
+                  <span className="block">The only antidote</span>
+                  <span className="block whitespace-nowrap">to a throwaway society</span>
+                  <span className="block">is to keep</span>
+                </h1>
+              </div>
+            </div>
+          )}
 
-          <figure className="w-full overflow-hidden">
+          <figure className={isHomepage ? 'relative mr-[10px] min-w-0 w-[calc(100%-10px)] overflow-hidden py-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
+            {isHomepage ? (
+              <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:top-[10px] lg:h-[calc(100%-20px)] lg:aspect-auto">
+                {heroSlides.map((slide, index) => (
+                  <img
+                    key={slide.src}
+                    src={slide.src}
+                    alt={slide.alt}
+                    aria-hidden={index !== activeSlide}
+                    className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ease-linear motion-reduce:transition-none ${index === activeSlide ? 'opacity-100' : 'opacity-0'}`}
+                    decoding="async"
+                  />
+                ))}
+              </div>
+            ) : (
             <img
               src={heroImage.src}
               alt={heroImage.alt}
-              className="block h-auto w-full lg:h-full lg:object-cover lg:object-center"
+              className={isHomepage
+                ? 'block h-auto w-full lg:absolute lg:inset-x-0 lg:top-[10px] lg:h-[calc(100%-20px)] lg:object-cover lg:object-center'
+                : 'block h-auto w-full lg:h-full lg:object-cover lg:object-center'}
               width={heroImage.width}
               height={heroImage.height}
               decoding="async"
             />
+            )}
           </figure>
         </section>
 
-        <section
-          id="about-mission"
-          aria-labelledby="about-mission-title"
-          className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
-        >
-          <div className="mx-auto max-w-3xl">
-            <h2
-              id="about-mission-title"
-              className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
-            >
-              Our Mission
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
-              My Mender is a map-based digital platform designed to extend the life of garments by reconnecting people with their local menders, making repair services visible, searchable and trustworthy, while documenting the cultural knowledge and everyday practices that already exist but remain undervalued and undocumented.
-            </p>
-          </div>
-        </section>
+        {!isHomepage && (
+          <section
+            id="about-mission"
+            aria-labelledby="about-mission-title"
+            className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
+          >
+            <div className="mx-auto max-w-3xl">
+              <h2
+                id="about-mission-title"
+                className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
+              >
+                Our Mission
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
+                {missionText}
+              </p>
+            </div>
+          </section>
+        )}
 
         <section
           aria-labelledby="how-it-works-title"

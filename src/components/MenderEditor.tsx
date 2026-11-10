@@ -21,7 +21,7 @@ const selectStyles = {
   menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
   multiValue: (base: any) => ({ ...base, backgroundColor: '#f5f5f5', border: '1px solid #e0e0e0', borderRadius: '999px' }),
   multiValueLabel: (base: any) => ({ ...base, color: '#555', fontSize: '0.75rem', padding: '0.125rem 0.5rem' }),
-  multiValueRemove: (base: any) => ({ ...base, '&:hover': { backgroundColor: '#0a0a0a', color: '#ffffff' } }),
+  multiValueRemove: (base: any) => ({ ...base, '&:hover': { backgroundColor: 'var(--mm-black)', color: '#ffffff' } }),
   placeholder: (base: any) => ({ ...base, color: '#999' }),
   option: (base: any, state: any) => ({ ...base, backgroundColor: state.isFocused || state.isSelected ? '#f5f5f5' : '#ffffff', color: '#111', '&:active': { backgroundColor: '#e0e0e0' } }),
 };
@@ -55,7 +55,7 @@ export function MenderEditor({ value, saving, onSave, onVisibilityChange, onCanc
       </div>
     </div>
     <Field label="Review / notes"><textarea rows={4} className={inputClass} value={form.review_text || ''} onChange={(e) => set('review_text', e.target.value)} /></Field>
-    <div className="flex gap-3 border-t border-[#e5e5e5] pt-5"><button type="submit" disabled={saving} className="admin-action rounded-full bg-[#0a0a0a] px-5 py-2.5 text-sm text-white hover:bg-black disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="admin-action rounded-full border border-[#d5d5d5] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
+    <div className="flex gap-3 border-t border-[#e5e5e5] pt-5"><button type="submit" disabled={saving} className="admin-action rounded-full bg-[var(--mm-black)] px-5 py-2.5 text-sm text-white hover:bg-[var(--mm-black)] disabled:opacity-50">{saving ? 'Saving…' : 'Save changes'}</button>{onCancel && <button type="button" onClick={onCancel} className="admin-action rounded-full border border-[#d5d5d5] bg-white px-5 py-2.5 text-sm">Cancel</button>}</div>
   </form>;
 }
 

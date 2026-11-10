@@ -978,7 +978,7 @@ export function MapPage() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search menders…"
                   aria-label="Search menders"
-                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[#171b17] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[var(--mm-black)] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                 />
                 {searchQuery ? (
                   <button
@@ -1008,7 +1008,7 @@ export function MapPage() {
                 <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
                 Filters
                 {hasActiveFilters ? (
-                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[#171b17]">
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[var(--mm-black)]">
                     {activeFilterCount}
                   </span>
                 ) : null}
@@ -1182,7 +1182,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders…"
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[#171b17] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[var(--mm-black)] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
               />
             </div>
             <button
@@ -1195,7 +1195,7 @@ export function MapPage() {
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
               {hasActiveFilters ? (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[#171b17]">
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[var(--mm-black)]">
                   {activeFilterCount}
                 </span>
               ) : null}
@@ -1234,7 +1234,7 @@ export function MapPage() {
                 <button
                   type="button"
                   onClick={() => setIsFilterDrawerOpen(false)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[#171b17]"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[var(--mm-black)]"
                   aria-label="Close filters"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />

@@ -119,7 +119,7 @@ const selectStyles = {
     minHeight: '2.5rem',
     fontSize: '0.8125rem',
     boxShadow: 'none',
-    color: '#171b17',
+    color: 'var(--mm-black)',
     '&:hover': { borderColor: '#d1d5db' },
   }),
   menu: (base: any) => ({
@@ -150,11 +150,11 @@ const selectStyles = {
     '&:hover': { backgroundColor: '#1a2e45', color: '#ffffff' },
   }),
   placeholder: (base: any) => ({ ...base, color: '#8a877d' }),
-  singleValue: (base: any) => ({ ...base, color: '#171b17' }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--mm-black)' }),
   option: (base: any, state: any) => ({
     ...base,
     backgroundColor: state.isFocused || state.isSelected ? '#f3f4f6' : '#ffffff',
-    color: '#171b17',
+    color: 'var(--mm-black)',
     '&:active': { backgroundColor: '#e5e7eb' },
   }),
 };
@@ -654,7 +654,7 @@ export function AddMenderPage() {
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold leading-tight text-[#171b17]">
+                <span className="block text-sm font-bold leading-tight text-[var(--mm-black)]">
                   {meta.title}
                 </span>
                 <span className="mt-1 block text-sm leading-snug text-[var(--mm-muted)]">
@@ -757,7 +757,7 @@ export function AddMenderPage() {
                       }}
                       placeholder="Search an address to place the pin"
                       autoComplete="off"
-                      className="mymenders-field w-full border px-3 py-2.5 text-sm text-[#171b17] outline-none"
+                      className="mymenders-field w-full border px-3 py-2.5 text-sm text-[var(--mm-black)] outline-none"
                     />
                   ) : (
                     <GeoAutocomplete
@@ -799,7 +799,7 @@ export function AddMenderPage() {
                             }}
                             className="peer sr-only"
                           />
-                          <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[#171b17] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
+                          <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[var(--mm-black)] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
                             <span className="flex items-start gap-2">
                               {value === 'exact' ? (
                                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
@@ -1007,7 +1007,7 @@ export function AddMenderPage() {
       </div>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-[#171b17]/30 p-5 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-[var(--mm-black)]/30 p-5 backdrop-blur-[2px]">
           <section
             role="dialog"
             aria-modal="true"

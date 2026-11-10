@@ -139,7 +139,7 @@ export function GeoAutocomplete({
         onFocus={handleFocus}
         placeholder={placeholder}
         autoComplete="off"
-        className="mymenders-field w-full border px-3 py-2 text-sm text-[#171b17] outline-none"
+        className="mymenders-field w-full border px-3 py-2 text-sm text-[var(--mm-black)] outline-none"
       />
       {open && suggestions.length > 0 && (
         <ul
@@ -150,7 +150,7 @@ export function GeoAutocomplete({
             <li
               key={`${s.lat}-${s.lng}-${i}`}
               className={`cursor-pointer border-b border-[#e5e7eb] px-3 py-2 text-sm last:border-b-0 ${
-                i === activeIndex ? 'bg-[#f3f4f6] text-[#171b17]' : 'text-[#4f4a43] hover:bg-[#f3f4f6]'
+                i === activeIndex ? 'bg-[#f3f4f6] text-[var(--mm-black)]' : 'text-[#4f4a43] hover:bg-[#f3f4f6]'
               }`}
               onMouseDown={() => pickSuggestion(s)}
               onMouseEnter={() => setActiveIndex(i)}

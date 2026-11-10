@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
@@ -6,29 +6,16 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   Cog,
   Globe,
-  Globe2,
-  Info,
-  Instagram,
-  Linkedin,
-  Mail,
   MapPin,
-  MessageSquareQuote,
   Minus,
   Navigation,
-  Phone,
   Loader2,
   Plus,
-  Route,
   Search,
   SlidersHorizontal,
-  SquareArrowOutUpRight,
-  Star,
-  Store,
-  Twitter,
   X,
-  X as XBrand,
 } from 'lucide-react';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { MenderDetailsPanel } from '../components/MenderDetailsPanel';
 import { Vendor } from '../types';
 import {
   getTaxonomyLabel,
@@ -51,7 +38,6 @@ const UNCLUSTERED_LAYER_ID = 'vendor-points';
 const VENDOR_ZONE_SOURCE_ID = 'vendor-zones';
 const VENDOR_ZONE_FILL_LAYER_ID = 'vendor-zone-fill';
 const VENDOR_ZONE_LINE_LAYER_ID = 'vendor-zone-line';
-const MAP_CARD_WIDTH_PX = 360;
 const BASEMAP_STYLES = [
   { id: 'positron', label: 'Positron', styleUrl: 'https://tiles.openfreemap.org/styles/positron' },
   { id: 'bright', label: 'Bright', styleUrl: 'https://tiles.openfreemap.org/styles/bright' },
@@ -120,19 +106,6 @@ const normalizeEntryLevel = (entryLevel?: string) => {
   return entryLevel;
 };
 
-const renderIconMarkup = (icon: React.ReactElement) => renderToStaticMarkup(icon);
-
-const DETAILS_BUTTON_ICON = renderIconMarkup(<Info className="w-4 h-4" aria-hidden="true" />);
-const DIRECTIONS_BUTTON_ICON = renderIconMarkup(<Route className="w-4 h-4" aria-hidden="true" />);
-const ADDRESS_ICON = renderIconMarkup(<MapPin className="w-4 h-4" aria-hidden="true" />);
-const PHONE_ICON = renderIconMarkup(<Phone className="w-4 h-4" aria-hidden="true" />);
-const ONLINE_ICON = renderIconMarkup(<Globe2 className="w-4 h-4" aria-hidden="true" />);
-const EMAIL_ICON = renderIconMarkup(<Mail className="w-4 h-4" aria-hidden="true" />);
-const SOCIAL_ICON = renderIconMarkup(<SquareArrowOutUpRight className="w-4 h-4" aria-hidden="true" />);
-const REVIEW_ICON = renderIconMarkup(<MessageSquareQuote className="w-4 h-4" aria-hidden="true" />);
-const RATING_ICON = renderIconMarkup(<Star className="w-4 h-4 fill-current" aria-hidden="true" />);
-const STORE_ICON = renderIconMarkup(<Store className="w-4 h-4" aria-hidden="true" />);
-
 const toDisplayName = (name?: string) => (name || '').trim();
 const EARTH_RADIUS_KM = 6371;
 const MAX_LIST_DISTANCE_KM = 100;
@@ -167,49 +140,6 @@ const formatDistance = (distanceKm?: number) => {
   if (distanceKm < 1) return `${Math.max(1, Math.round(distanceKm * 1000))} m`;
   if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
   return `${Math.round(distanceKm)} km`;
-};
-
-const buildGoogleMapsDirectionsUrl = (vendor: Vendor) => {
-  const latitude = parseCoordinate(vendor.latitude);
-  const longitude = parseCoordinate(vendor.longitude);
-  const destination =
-    latitude !== undefined && longitude !== undefined
-      ? `${latitude},${longitude}`
-      : [toDisplayName(vendor.name), vendor.address].filter(Boolean).join(' ');
-
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-};
-
-const toExternalWebsiteUrl = (value?: string) => {
-  const trimmed = (value || '').trim();
-  if (!trimmed) return null;
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-};
-
-const getSocialIconMarkup = (value?: string) => {
-  const normalized = (value || '').trim().toLowerCase();
-  let host = normalized;
-
-  try {
-    host = new URL(/^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`).hostname
-      .replace(/^www\./, '');
-  } catch {
-    // Keep the raw value for a conservative substring fallback.
-  }
-
-  if (host === 'instagram.com' || host.endsWith('.instagram.com')) {
-    return renderIconMarkup(<Instagram className="w-4 h-4" aria-hidden="true" />);
-  }
-  if (host === 'twitter.com' || host.endsWith('.twitter.com')) {
-    return renderIconMarkup(<Twitter className="w-4 h-4" aria-hidden="true" />);
-  }
-  if (host === 'x.com' || host.endsWith('.x.com')) {
-    return renderIconMarkup(<XBrand className="w-4 h-4" aria-hidden="true" />);
-  }
-  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
-    return renderIconMarkup(<Linkedin className="w-4 h-4" aria-hidden="true" />);
-  }
-  return SOCIAL_ICON;
 };
 
 const emptyVendorFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point> = {
@@ -304,251 +234,6 @@ const normalizeVendor = (raw: any): Vendor => {
     review_text: raw.review_text || (metadata as any)?.review_text,
     entry_level: normalizeEntryLevel(raw.entry_level || (metadata as any)?.entry_level),
   };
-};
-
-const buildTagRow = (
-  container: HTMLDivElement,
-  label: string,
-  group: FilterGroupKey,
-  items: string[],
-) => {
-  if (!items.length) return;
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'mb-2 last:mb-0';
-
-  const title = document.createElement('div');
-  title.className = 'mb-1 text-[10px] text-[#68665f] mymenders-map-card-label';
-  title.textContent = label;
-  wrapper.append(title);
-
-  const tags = document.createElement('div');
-  tags.className = 'flex flex-wrap gap-1.5';
-  const chipVariant =
-    group === 'categories'
-      ? 'mymenders-cloth-chip--categories'
-      : group === 'regional_techniques'
-        ? 'mymenders-cloth-chip--techniques'
-        : '';
-  items.forEach((tag) => {
-    const chip = document.createElement('span');
-    chip.className = `mymenders-cloth-chip ${chipVariant} inline-flex items-center gap-1 px-2 py-0.5 text-[11px]`;
-    chip.textContent = getTaxonomyLabel(group, tag);
-    tags.append(chip);
-  });
-  wrapper.append(tags);
-  container.append(wrapper);
-};
-
-const appendTextRow = (container: HTMLDivElement, iconMarkup: string, value: string, label?: string) => {
-  const row = document.createElement('div');
-  row.className = 'mb-1.5 flex items-start gap-1.5 text-xs text-[var(--mm-text-soft)]';
-
-  const icon = document.createElement('div');
-  icon.className = 'mt-0.5 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[var(--mm-muted)]';
-  icon.innerHTML = iconMarkup;
-
-  const text = document.createElement('span');
-  text.className = 'min-w-0 flex-1 break-words leading-[1.35]';
-  if (label) {
-    const labelText = document.createElement('span');
-    labelText.className = 'mr-1 text-[10px] uppercase text-[var(--mm-muted)]';
-    labelText.textContent = `${label}:`;
-    text.append(labelText);
-  }
-  text.append(document.createTextNode(value));
-
-  row.append(icon, text);
-  container.append(row);
-};
-
-const buildPopoverContent = (vendor: Vendor, onDetails: (vendor: Vendor) => void) => {
-  const container = document.createElement('div');
-  container.className = 'box-border p-3 pr-4';
-  // Standard card width; only shrinks on narrow screens so it never overflows the viewport.
-  container.style.width = `min(${MAP_CARD_WIDTH_PX}px, calc(100vw - 40px))`;
-
-  const title = document.createElement('h3');
-  title.className =
-    'mymenders-card-title-semi mb-3 pr-8 text-base leading-[1.08] text-[var(--mm-text)] capitalize';
-  title.textContent = toDisplayName(vendor.name);
-  container.append(title);
-
-  const contactSection = document.createElement('div');
-  contactSection.className = 'space-y-0.5';
-  const primaryType = vendor.types?.[0]?.trim();
-  if (primaryType) appendTextRow(contactSection, STORE_ICON, getTaxonomyLabel('types', primaryType));
-  if (vendor.phone) appendTextRow(contactSection, PHONE_ICON, vendor.phone);
-  if (vendor.location_visibility !== 'approx' && vendor.address) {
-    appendTextRow(contactSection, ADDRESS_ICON, vendor.address);
-  }
-  if (contactSection.children.length) {
-    container.append(contactSection);
-  }
-
-  const expertiseSection = document.createElement('div');
-  expertiseSection.className = 'mt-3';
-  buildTagRow(expertiseSection, 'Categories', 'categories', vendor.categories || []);
-  buildTagRow(expertiseSection, 'Regional techniques', 'regional_techniques', vendor.regional_techniques || []);
-  if (expertiseSection.children.length) {
-    container.append(expertiseSection);
-  }
-
-  if (vendor.review_text) {
-    const review = document.createElement('div');
-    review.className = 'mt-3 text-xs leading-[1.4] text-[var(--mm-text-soft)]';
-    review.innerHTML = `
-      <div class="mb-1 flex items-center gap-1.5 text-[10px] uppercase text-[#68665f]">
-        <span class="inline-flex h-4 w-4 items-center justify-center">${REVIEW_ICON}</span>
-        Review
-      </div>
-    `;
-    const reviewText = document.createElement('div');
-    reviewText.textContent = vendor.review_text;
-    review.append(reviewText);
-    container.append(review);
-  }
-
-  if ((vendor.rating || 0) > 0) {
-    const rating = document.createElement('div');
-    rating.className = 'mt-2 inline-flex items-center gap-1.5 rounded-full border border-[#f1dcc1] bg-[#fff8ed] px-2.5 py-0.5 text-[11px] text-[#785531]';
-    rating.innerHTML = `
-      <span class="inline-flex h-5 w-5 items-center justify-center text-[#c9782f]">
-        ${RATING_ICON}
-      </span>
-      <span>${(vendor.rating || 0).toFixed(1)} (${vendor.rating_count || 0} review${vendor.rating_count === 1 ? '' : 's'})</span>
-    `;
-    container.append(rating);
-  }
-
-  const actionRow = document.createElement('div');
-  actionRow.className = 'mt-3 flex flex-wrap items-center gap-1.5';
-
-  const circleActiveClass =
-    'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[0.5px] border-black bg-brand text-brand-dark-on transition-colors hover:bg-brand-hover';
-  const circleDisabledClass =
-    'inline-flex h-8 w-8 shrink-0 cursor-not-allowed items-center justify-center rounded-full border border-[var(--mm-border-strong)] bg-[var(--mm-panel-muted)] text-[var(--mm-muted)]';
-
-  if (vendor.location_visibility === 'approx') {
-    const directionsButton = document.createElement('button');
-    directionsButton.type = 'button';
-    directionsButton.disabled = true;
-    directionsButton.className =
-      'inline-flex h-8 min-w-[108px] flex-1 cursor-not-allowed items-center justify-center gap-1.5 rounded-full bg-[var(--mm-panel-muted)] px-2.5 text-[11px] text-[var(--mm-muted)]';
-    directionsButton.title = 'Directions unavailable for approximate locations';
-    directionsButton.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${DIRECTIONS_BUTTON_ICON}
-      </span>
-      Directions
-    `;
-    actionRow.append(directionsButton);
-  } else {
-    const directionsLink = document.createElement('a');
-    directionsLink.href = buildGoogleMapsDirectionsUrl(vendor);
-    directionsLink.target = '_blank';
-    directionsLink.rel = 'noopener noreferrer';
-    directionsLink.className =
-      'inline-flex h-8 min-w-[108px] flex-1 items-center justify-center gap-1.5 rounded-full bg-brand-dark px-2.5 text-[11px] text-brand-dark-on transition-colors hover:bg-brand-dark-hover';
-    directionsLink.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${DIRECTIONS_BUTTON_ICON}
-      </span>
-      Directions
-    `;
-    actionRow.append(directionsLink);
-  }
-
-  const detailsButton = document.createElement('button');
-  detailsButton.type = 'button';
-  detailsButton.className = circleActiveClass;
-  detailsButton.title = 'Details';
-  detailsButton.setAttribute('aria-label', 'Details');
-  detailsButton.innerHTML = `
-    <span class="inline-flex items-center justify-center w-4 h-4">
-      ${DETAILS_BUTTON_ICON}
-    </span>
-  `;
-  detailsButton.addEventListener('click', () => {
-    onDetails(vendor);
-  });
-  actionRow.append(detailsButton);
-
-  const trimmedPhone = (vendor.phone || '').trim();
-  if (trimmedPhone) {
-    const phoneLink = document.createElement('a');
-    phoneLink.className = circleActiveClass;
-    phoneLink.href = `tel:${trimmedPhone}`;
-    phoneLink.title = `Call ${trimmedPhone}`;
-    phoneLink.setAttribute('aria-label', `Call ${trimmedPhone}`);
-    phoneLink.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${PHONE_ICON}
-      </span>
-    `;
-    actionRow.append(phoneLink);
-  } else {
-    const phoneButton = document.createElement('button');
-    phoneButton.type = 'button';
-    phoneButton.disabled = true;
-    phoneButton.className = circleDisabledClass;
-    phoneButton.title = 'No phone available';
-    phoneButton.setAttribute('aria-label', 'No phone available');
-    phoneButton.innerHTML = `
-      <span class="inline-flex items-center justify-center w-4 h-4">
-        ${PHONE_ICON}
-      </span>
-    `;
-    actionRow.append(phoneButton);
-  }
-
-  const appendContactAction = ({
-    value,
-    label,
-    iconMarkup,
-    href,
-    external = false,
-  }: {
-    value?: string;
-    label: string;
-    iconMarkup: string;
-    href: (value: string) => string | null;
-    external?: boolean;
-  }) => {
-    const trimmedValue = (value || '').trim();
-    const targetUrl = trimmedValue ? href(trimmedValue) : null;
-    if (targetUrl) {
-      const link = document.createElement('a');
-      link.className = circleActiveClass;
-      link.href = targetUrl;
-      if (external) {
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-      }
-      link.title = label;
-      link.setAttribute('aria-label', label);
-      link.innerHTML = `<span class="inline-flex items-center justify-center w-4 h-4">${iconMarkup}</span>`;
-      actionRow.append(link);
-      return;
-    }
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.disabled = true;
-    button.className = circleDisabledClass;
-    button.title = `No ${label.toLowerCase()} available`;
-    button.setAttribute('aria-label', `No ${label.toLowerCase()} available`);
-    button.innerHTML = `<span class="inline-flex items-center justify-center w-4 h-4">${iconMarkup}</span>`;
-    actionRow.append(button);
-  };
-
-  appendContactAction({ value: vendor.email, label: 'Email', iconMarkup: EMAIL_ICON, href: (value) => `mailto:${value}` });
-  appendContactAction({ value: vendor.website, label: 'Visit website', iconMarkup: ONLINE_ICON, href: toExternalWebsiteUrl, external: true });
-  appendContactAction({ value: vendor.social, label: 'Visit social profile', iconMarkup: getSocialIconMarkup(vendor.social), href: toExternalWebsiteUrl, external: true });
-
-  container.append(actionRow);
-
-  return container;
 };
 
 const englishLabelField = [
@@ -819,7 +504,8 @@ export function MapPage() {
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
-  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const selectionTriggerRef = useRef<HTMLElement | null>(null);
+  const selectedVendorRef = useRef<Vendor | null>(null);
   const styleMenuRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
   const filterDrawerRef = useRef<HTMLDivElement>(null);
@@ -859,39 +545,68 @@ export function MapPage() {
     vendorsRef.current = vendors;
   }, [vendors]);
 
-  const openVendorPopup = (vendor: Vendor, options: { focus?: boolean; zoom?: number } = {}) => {
+  const positionSelectedVendor = useCallback((vendor: Vendor, zoom?: number) => {
     const map = mapInstanceRef.current;
-    if (!map) return;
-
     const coordinates = getVendorCoordinates(vendor);
-    if (!coordinates) return;
+    if (!map || !coordinates) return;
 
-    if (options.focus !== false) {
-      map.flyTo({
-        center: coordinates,
-        zoom: options.zoom ?? DIRECTION_ZOOM,
-        duration: DIRECTION_FLY_DURATION_MS,
-      });
-    }
+    const { width, height } = map.getContainer().getBoundingClientRect();
+    const mobile = window.matchMedia('(max-width: 767px)').matches;
+    // Target the centre of the uncovered map without changing its dimensions
+    // or retaining camera padding after the panel closes.
+    const panelWidth = Math.min(380, Math.max(0, width - 96));
+    map.flyTo({
+      center: coordinates,
+      zoom: zoom ?? map.getZoom(),
+      offset: mobile ? [0, -height * 0.65 / 2] : [panelWidth / 2, 0],
+      duration: DIRECTION_FLY_DURATION_MS,
+    });
+  }, []);
 
+  const selectVendor = useCallback((vendor: Vendor, trigger: HTMLElement | null, zoom?: number) => {
+    selectionTriggerRef.current = trigger;
+    selectedVendorRef.current = vendor;
+    setIsFilterDrawerOpen(false);
     setSelectedVendorId(vendor.id);
+    positionSelectedVendor(vendor, zoom);
+  }, [positionSelectedVendor]);
 
-    popupRef.current?.remove();
-    popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: `${MAP_CARD_WIDTH_PX}px` })
-      .setLngLat(coordinates)
-      .setDOMContent(
-        buildPopoverContent(vendor, (selectedVendor) => {
-          const targetCoordinates = getVendorCoordinates(selectedVendor);
-          if (!targetCoordinates) return;
-          map.flyTo({
-            center: targetCoordinates,
-            zoom: DIRECTION_ZOOM,
-            duration: DIRECTION_FLY_DURATION_MS,
-          });
-        }),
-      )
-      .addTo(map);
+  const closeDetails = useCallback(() => {
+    selectedVendorRef.current = null;
+    setSelectedVendorId(null);
+    const trigger = selectionTriggerRef.current;
+    const visibleTrigger = trigger?.isConnected && trigger.getClientRects().length ? trigger : null;
+    (visibleTrigger ?? mapInstanceRef.current?.getCanvas())?.focus({ preventScroll: true });
+  }, []);
+
+  useEffect(() => {
+    selectedVendorRef.current = null;
+    setSelectedVendorId(null);
+  }, [searchQuery, selectedFilters]);
+
+  const toggleFilterDrawer = () => {
+    selectedVendorRef.current = null;
+    setSelectedVendorId(null);
+    setIsFilterDrawerOpen((value) => !value);
   };
+
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const vendor = selectedVendorRef.current;
+        if (vendor) positionSelectedVendor(vendor);
+      });
+    });
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [positionSelectedVendor]);
 
   const vendorsWithDistance = useMemo(
     () => {
@@ -1096,7 +811,7 @@ export function MapPage() {
       const vendorId = Number(vendorFeature.properties?.vendorId);
       const vendor = vendorsRef.current.find((item) => item.id === vendorId);
       if (!vendor) return;
-      await openVendorPopup(vendor, { focus: false });
+      selectVendor(vendor, map.getCanvas());
     };
 
     const handlePointerMove = (event: maplibregl.MapMouseEvent) => {
@@ -1124,8 +839,6 @@ export function MapPage() {
     mapInstanceRef.current = map;
 
     return () => {
-      popupRef.current?.remove();
-      popupRef.current = null;
       map.off('style.load', handleStyleLoad);
       map.off('click', handleMapClick);
       map.off('mousemove', handlePointerMove);
@@ -1160,8 +873,6 @@ export function MapPage() {
     }
 
     activeBasemapStyleIdRef.current = selectedBasemapStyle.id;
-    popupRef.current?.remove();
-    popupRef.current = null;
     setIsMapReady(false);
     map.setStyle(selectedBasemapStyle.styleUrl);
   }, [selectedBasemapStyle]);
@@ -1241,8 +952,10 @@ export function MapPage() {
     }
   };
 
+  const selectedVendor = vendors.find((vendor) => vendor.id === selectedVendorId);
+
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] mt-20 z-0">
+    <div className="relative w-full h-[calc(100dvh-80px)] mt-20 z-0">
       <div className="grid h-full min-h-0 overflow-visible grid-cols-1 md:grid-cols-[25%_75%]">
         <aside
           className="relative z-20 hidden md:flex md:flex-col min-h-0 overflow-visible bg-[#fafafa] border-r border-[#e5e7eb]"
@@ -1282,7 +995,7 @@ export function MapPage() {
               <button
                 ref={filterButtonRef}
                 type="button"
-                onClick={() => setIsFilterDrawerOpen((value) => !value)}
+                onClick={toggleFilterDrawer}
                 className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
                   isFilterDrawerOpen || hasActiveFilters
                     ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
@@ -1367,18 +1080,17 @@ export function MapPage() {
                 const coordinates = getVendorCoordinates(vendor);
                 const isActive = selectedVendorId === vendor.id;
                 const isClickable = Boolean(coordinates);
-                const categories = getVendorFilterValues(vendor, 'categories');
-                const techniques = getVendorFilterValues(vendor, 'regional_techniques');
                 const vendorName = toDisplayName(vendor.name) || 'Unnamed mender';
 
                 return (
                   <button
                     type="button"
                     key={vendor.id}
-                    onClick={() => {
+                    onClick={(event) => {
                       if (!isClickable) return;
-                      openVendorPopup(vendor, { focus: true, zoom: DIRECTION_ZOOM });
+                      selectVendor(vendor, event.currentTarget, DIRECTION_ZOOM);
                     }}
+                    aria-pressed={isActive}
                     disabled={!isClickable}
                     className={`group relative w-full border-b border-[var(--mm-border)] last:border-b-0 py-3 pl-3 pr-3 text-left transition-[background-color,opacity] ${
                       isActive
@@ -1412,30 +1124,6 @@ export function MapPage() {
                           <MapPin className="w-3 h-3 shrink-0" />
                           <span className="truncate">{vendor.address}</span>
                         </p>
-                      ) : null}
-                      {!!categories.length ? (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {categories.map((category) => (
-                            <span
-                              key={`${vendor.id}-category-${category}`}
-                              className="mymenders-cloth-chip--categories rounded-full px-2 py-0.5 text-[10px] "
-                            >
-                              {getTaxonomyLabel('categories', category)}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                      {!!techniques.length ? (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {techniques.map((technique) => (
-                            <span
-                              key={`${vendor.id}-technique-${technique}`}
-                              className="mymenders-cloth-chip--techniques rounded-full px-2 py-0.5 text-[10px] "
-                            >
-                              {getTaxonomyLabel('regional_techniques', technique)}
-                            </span>
-                          ))}
-                        </div>
                       ) : null}
                     </div>
                   </button>
@@ -1477,6 +1165,8 @@ export function MapPage() {
         <div className="relative z-0">
           <div ref={mapContainerRef} className="w-full h-full" />
 
+          {selectedVendor && <MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} />}
+
           {/* Mobile search + filters (below md) */}
           <div className="absolute left-4 right-4 top-4 z-10 flex items-center gap-2 md:hidden">
             <div className="relative min-w-0 flex-1">
@@ -1497,7 +1187,7 @@ export function MapPage() {
             </div>
             <button
               type="button"
-              onClick={() => setIsFilterDrawerOpen((value) => !value)}
+              onClick={toggleFilterDrawer}
               className="mymenders-map-control relative h-11 w-11 shrink-0"
               aria-label="Filter menders"
               aria-expanded={isFilterDrawerOpen}

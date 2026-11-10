@@ -54,7 +54,7 @@ export function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Follow My Mender on Instagram"
-          className="flex shrink-0 items-center gap-3 rounded-full border border-[rgba(23,27,23,0.55)] px-4 py-[11px] text-sm leading-[18px] text-[var(--mm-text)] transition-colors hover:bg-white/20"
+          className="mymenders-outline-button mymenders-outline-button--pill"
         >
           <Instagram aria-hidden="true" className="h-[17px] w-[17px] stroke-[1.7]" />
           <span>Follow @my.mender</span>
@@ -128,7 +128,7 @@ export function Footer() {
               <p className="mymenders-section-label text-[var(--mm-text)]">Stay in touch</p>
               <form onSubmit={handleSubscribe} className="mt-4">
                 <ButtonGroup className="w-full">
-                  <InputGroup className="h-11 min-w-0 flex-1 rounded-l-full border-[0.5px] border-black bg-white shadow-none focus-within:border-black focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
+                  <InputGroup className="h-11 min-w-0 flex-1 rounded-none border-0 bg-white shadow-none focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
                     <InputGroupInput
                       type="email"
                       required
@@ -143,7 +143,7 @@ export function Footer() {
                     type="submit"
                     disabled={status === 'submitting'}
                     size="lg"
-                    className="h-11 rounded-r-full border-[0.5px] border-black bg-[var(--color-brand)] px-4 text-sm text-brand-dark-on hover:bg-[var(--color-brand-hover)]"
+                    className="mymenders-outline-button mymenders-outline-button--compact h-11"
                   >
                     {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
                   </Button>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -1441,16 +1442,16 @@ export function MapPage() {
                 );
               })
             ) : (
-              <div className="mymenders-map-empty-state m-3">
+              <div className="m-3 p-4">
                 <p className="font-medium text-[var(--mm-text)]">
-                  {hasSearchOrFilters ? 'No menders match this search' : 'No menders have been added yet'}
+                  {hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you right now'}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-[var(--mm-muted)]">
-                  {hasSearchOrFilters
-                    ? 'Try a different search or clear the current filters.'
-                    : 'Menders added to the directory will appear here.'}
-                </p>
-                {hasSearchOrFilters ? (
+                {hasSearchOrFilters && (
+                  <p className="mt-1 text-xs leading-5 text-[var(--mm-muted)]">
+                    Try a different search or clear the current filters.
+                  </p>
+                )}
+                {hasSearchOrFilters && (
                   <button
                     type="button"
                     onClick={clearAllFilters}
@@ -1458,13 +1459,18 @@ export function MapPage() {
                   >
                     Clear search and filters
                   </button>
-                ) : (
-                  <a href="/add" className="mymenders-map-empty-state__action mt-3">
-                    Add a mender
-                  </a>
                 )}
               </div>
             )}
+          </div>
+          <div className="shrink-0 p-3">
+            <Link
+              to="/add"
+              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar w-full"
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Add Mender</span>
+            </Link>
           </div>
         </aside>
 

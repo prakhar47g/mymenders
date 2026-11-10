@@ -170,16 +170,16 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
               <p className="text-[20px] leading-[1.55] text-[var(--mm-text-soft)]">
                 {missionText}
               </p>
-              <div className="mt-8 flex items-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   to="/map"
-                  className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 text-sm text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mm-text)]"
+                  className="mymenders-outline-button"
                 >
                   Browse Map
                 </Link>
                 <Link
                   to="/add"
-                  className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-white px-4 text-sm text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mm-text)]"
+                  className="mymenders-outline-button"
                 >
                   Add Mender
                 </Link>

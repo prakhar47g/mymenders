@@ -691,7 +691,7 @@ export function AddMenderPage() {
                 type="button"
                 disabled={entryLevelSelection === null}
                 onClick={() => entryLevelSelection && onEntryLevelChange(entryLevelSelection)}
-                className="mt-6 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-brand-dark px-5 text-sm font-semibold text-brand-dark-on transition-colors hover:bg-brand-dark-hover disabled:cursor-not-allowed disabled:opacity-50"
+                className="mymenders-outline-button mt-6 w-full"
               >
                 Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -977,18 +977,14 @@ export function AddMenderPage() {
                   type="button"
                   onClick={() => navigate(-1)}
                   disabled={submitting || submissionComplete}
-                  className="h-10 flex-1 cursor-pointer rounded-full border border-[#e5e7eb] bg-white px-5 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed"
+                  className="mymenders-outline-button mymenders-outline-button--compact flex-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || submissionComplete}
-                  className={`flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-5 text-sm transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
-                    submissionComplete
-                      ? 'bg-[#5d8b61] text-white'
-                      : 'bg-brand-dark text-brand-dark-on hover:bg-brand-dark-hover'
-                  }`}
+                  className="mymenders-outline-button mymenders-outline-button--compact min-w-0 flex-1"
                 >
                   {submissionComplete ? (
                     <>
@@ -1030,7 +1026,7 @@ export function AddMenderPage() {
             <button
               type="button"
               onClick={() => navigate('/map')}
-              className="mt-7 h-10 w-full cursor-pointer rounded-full bg-brand-dark px-5 text-sm text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+              className="mymenders-outline-button mt-7 w-full"
             >
               Go back to Map
             </button>

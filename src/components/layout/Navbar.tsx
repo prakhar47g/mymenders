@@ -73,48 +73,34 @@ export function Navbar() {
             </NavLink>
           </div>
 
-          <div className="hidden md:flex h-20 items-stretch gap-2">
+          <div className="hidden h-20 items-center gap-2 md:flex">
             <NavLink
               to="/#about-mission"
-              className="group relative inline-flex items-center justify-center px-3 text-sm "
+              data-active={isAbout || undefined}
+              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase"
             >
-              {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive || isAbout ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
-                  About
-                </span>
-              )}
+              About
             </NavLink>
-            <NavLink
-              to="/map"
-              className="group relative inline-flex items-center justify-center px-3 text-sm "
-            >
-              {({ isActive }) => (
-                <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>
-                  Map
-                </span>
-              )}
+            <NavLink to="/map" className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase">
+              Map
             </NavLink>
             <a
               href="https://www.instagram.com/my.mender"
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative inline-flex items-center justify-center px-3 text-sm"
+              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase"
             >
-              <span className="border-b-2 border-transparent pb-0.5 transition-colors group-hover:border-[#d9dfdb]">
-                Instagram
-              </span>
+              Instagram
             </a>
-            <div className="flex items-center pl-3">
-              <button
-                onClick={() => navigate('/add')}
-                className="flex h-11 cursor-pointer items-center justify-center rounded-full bg-white px-4 text-brand-dark-on shadow-[var(--mm-shadow-subtle)] transition-colors hover:bg-[#d9dfdb]"
-                title="Add Mender"
-                aria-label="Add mender"
-              >
-                <Plus className="h-5 w-5 shrink-0" />
-                <span className="ml-2 text-sm">Add Mender</span>
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/add')}
+              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar"
+              title="Add Mender"
+              aria-label="Add mender"
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Add Mender</span>
+            </button>
           </div>
 
           <div className="flex md:hidden items-center">
@@ -164,32 +150,27 @@ export function Navbar() {
             <div className="mx-auto w-full max-w-sm space-y-1">
               <NavLink
                 to="/#about-mission"
+                data-active={isAbout || undefined}
                 onClick={closeMenu}
-                className="group flex min-h-16 items-center justify-center text-center text-[clamp(1.625rem,7vw,1.875rem)] hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--mm-text)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
               >
-                {({ isActive }) => (
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive || isAbout ? 'border-[#d9dfdb]' : 'border-transparent'}`}>About</span>
-                )}
+                About
               </NavLink>
               <NavLink
                 to="/map"
                 onClick={closeMenu}
-                className="group flex min-h-16 items-center justify-center text-center text-[clamp(1.625rem,7vw,1.875rem)] hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--mm-text)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
               >
-                {({ isActive }) => (
-                  <span className={`border-b-2 pb-0.5 transition-colors group-hover:border-[#d9dfdb] ${isActive ? 'border-[#d9dfdb]' : 'border-transparent'}`}>Map</span>
-                )}
+                Map
               </NavLink>
               <a
                 href="https://www.instagram.com/my.mender"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="group flex min-h-16 items-center justify-center text-center text-[clamp(1.625rem,7vw,1.875rem)] hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--mm-text)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
               >
-                <span className="border-b-2 border-transparent pb-0.5 transition-colors group-hover:border-[#d9dfdb]">
-                  Instagram
-                </span>
+                Instagram
               </a>
               <button
                 type="button"
@@ -197,7 +178,7 @@ export function Navbar() {
                   closeMenu();
                   navigate('/add');
                 }}
-                className="mx-auto mt-7 flex min-h-12 w-fit cursor-pointer items-center gap-2 rounded-full bg-[#171b17] px-6 text-base text-white transition-colors hover:bg-[#343a35] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mm-text)]"
+                className="mymenders-outline-button mx-auto mt-7 w-fit"
               >
                 <Plus className="h-4 w-4 shrink-0" />
                 Add Mender

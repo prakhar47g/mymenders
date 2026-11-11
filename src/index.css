@@ -1333,7 +1333,7 @@ body.mymenders-add-active .add-mender-suggestions li span + span { color: #c4c2b
 /* Homepage hero actions use a darker shade of the hero background. */
 .mymenders-outline-button.mymenders-hero-action {
   background: #d6d6d2; color: #111;
-  letter-spacing: normal; text-transform: none;
+  letter-spacing: normal; text-transform: uppercase;
 }
 .mymenders-outline-button.mymenders-hero-action:hover:not(:disabled) { background: #bfbfba; color: #111; }
 .mymenders-outline-button.mymenders-hero-action:focus-visible { outline-color: #626262; }

@@ -9,6 +9,7 @@ import { Vendor } from '../types';
 import { createLocationPinIcon, loadGoogleMapsScript } from '../utils/googleMaps';
 import { reverseGeocode as geoReverse, reverseGeocodeDetails } from '../utils/geoapify';
 import { GeoAutocomplete } from '../components/GeoAutocomplete';
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '../components/ui/input-group';
 import {
   getGroupedTaxonomyOptions,
   getStudioTypeColor,
@@ -745,7 +746,8 @@ export function AddMenderPage() {
                   />
                 </div>
 
-                {/* Studio Type */}
+                {/* Studio Type + Tel Number */}
+                <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="studio-type" className={FIELD_LABEL_CLASS}>Studio Type</label>
                   <Select
@@ -759,6 +761,30 @@ export function AddMenderPage() {
                     menuPosition="fixed"
                     styles={selectStyles}
                   />
+                </div>
+                <div>
+                  <label htmlFor="phone" className={FIELD_LABEL_CLASS}>Tel Number</label>
+                  <div onPointerDown={() => { phoneInputInteractedRef.current = true; }} onFocusCapture={positionPhoneMenu} onClickCapture={positionPhoneMenu}>
+                    <PhoneInput
+                      key={phoneCountry}
+                      defaultCountry={phoneCountry}
+                      value={phone}
+                      onChange={(nextPhone, metadata) => {
+                        setPhone(nextPhone);
+                        setPhoneDialCode(metadata.country.dialCode);
+                      }}
+                      placeholder="Phone"
+                      allowMaskOverflow
+                      inputProps={{ id: 'phone', name: 'phone', onInput: () => { phoneInputInteractedRef.current = true; } }}
+                      className="mymenders-phone-input"
+                      inputClassName="mymenders-phone-input__field"
+                      countrySelectorStyleProps={{
+                        buttonClassName: 'mymenders-phone-input__country-button',
+                        dropdownStyleProps: { className: 'mymenders-phone-input__dropdown', style: phoneMenuStyle },
+                      }}
+                    />
+                  </div>
+                </div>
                 </div>
 
                 <div>
@@ -839,43 +865,8 @@ export function AddMenderPage() {
                   </div>
                 ) : null}
 
-                {/* Tel Number + Email */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="phone" className={FIELD_LABEL_CLASS}>
-                      Tel Number
-                    </label>
-                    <div onPointerDown={() => { phoneInputInteractedRef.current = true; }} onFocusCapture={positionPhoneMenu} onClickCapture={positionPhoneMenu}>
-                      <PhoneInput
-                        key={phoneCountry}
-                        defaultCountry={phoneCountry}
-                        value={phone}
-                        onChange={(nextPhone, metadata) => {
-                          setPhone(nextPhone);
-                          setPhoneDialCode(metadata.country.dialCode);
-                        }}
-                        placeholder="Phone"
-                        allowMaskOverflow
-                        inputProps={{
-                          id: 'phone',
-                          name: 'phone',
-                          onInput: () => {
-                            phoneInputInteractedRef.current = true;
-                          },
-                        }}
-                        className="mymenders-phone-input"
-                        inputClassName="mymenders-phone-input__field"
-                        countrySelectorStyleProps={{
-                          buttonClassName: 'mymenders-phone-input__country-button',
-                          dropdownStyleProps: {
-                            className: 'mymenders-phone-input__dropdown',
-                            style: phoneMenuStyle,
-                          },
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
+                {/* Email address */}
+                <div>
                     <label htmlFor="email" className={FIELD_LABEL_CLASS}>
                       Email address
                     </label>
@@ -886,12 +877,10 @@ export function AddMenderPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
                     />
-                  </div>
                 </div>
 
-                {/* Website + Social */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
+                {/* Website */}
+                <div>
                     <label htmlFor="website" className={FIELD_LABEL_CLASS}>
                       Website
                     </label>
@@ -903,19 +892,26 @@ export function AddMenderPage() {
                       onChange={(e) => setWebsite(e.target.value)}
                       className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
                     />
-                  </div>
-                  <div>
+                </div>
+                {/* Instagram */}
+                <div>
                     <label htmlFor="social" className={FIELD_LABEL_CLASS}>
-                      Social
+                      Instagram
                     </label>
-                    <input
-                      id="social"
-                      type="text"
-                      value={social}
-                      onChange={(e) => setSocial(e.target.value)}
-                      className="mymenders-field w-full border px-3 py-2 text-sm outline-none"
-                    />
-                  </div>
+                    <InputGroup className="mymenders-field h-10 w-full rounded-md border bg-white shadow-none focus-within:border-[var(--mm-focus)] focus-within:ring-2 focus-within:ring-[var(--mm-focus)]/30">
+                      <InputGroupAddon align="inline-start" className="h-full px-3 text-sm text-[var(--mm-muted)]">
+                        <InputGroupText>instagram.com/</InputGroupText>
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="social"
+                        type="text"
+                        value={social}
+                        onChange={(e) => setSocial(e.target.value)}
+                        placeholder="yourhandle"
+                        aria-label="Instagram handle"
+                        className="h-full border-0 px-3 py-2 text-sm shadow-none focus-visible:ring-0"
+                      />
+                    </InputGroup>
                 </div>
 
                 {/* Categories */}

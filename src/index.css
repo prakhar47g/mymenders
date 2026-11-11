@@ -1209,8 +1209,21 @@ body {
 .mymenders-map input[type="search"]:focus-visible { outline: none; border-color: rgba(244,242,235,.72); background: rgba(255,255,255,.11); box-shadow: 0 0 0 3px rgba(244,242,235,.16); }
 .mymenders-map__results .mymenders-outline-button { background: #f4f2eb; color: #222; border-color: transparent; }
 .mymenders-map__results .mymenders-outline-button:hover { background: #fff; }
-.mymenders-map__adjacent { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: var(--adjacent-left); width: var(--results-width); min-height: 0; overflow: hidden; }
+.mymenders-map__adjacent { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: var(--adjacent-left); width: var(--results-width); min-height: 0; overflow: hidden; animation: mm-details-enter 288ms cubic-bezier(.2,.8,.2,1) both; }
 .mymenders-map .mymenders-details { position: static; width: 100%; height: 100%; background: transparent; box-shadow: none; border-radius: 0; }
+.mymenders-map__adjacent > .mymenders-details { animation: mm-details-content 216ms ease-out both; }
+@keyframes mm-details-enter {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes mm-details-content {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mymenders-map__adjacent,
+  .mymenders-map__adjacent > .mymenders-details { animation: none; }
+}
 .mymenders-map .mymenders-details__contact-action { background: transparent; color: var(--mm-text); border: 1px solid var(--mm-border-strong); }
 .mymenders-map .mymenders-details__contact-action:hover:not(:disabled) { background: var(--mm-panel-muted); }
 .mymenders-map .mymenders-details__contact-action:disabled { color: #999; background: transparent; opacity: .55; }

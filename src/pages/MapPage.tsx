@@ -1248,7 +1248,7 @@ export function MapPage() {
               onClose={closeDetails}
             />
           ) : (
-            <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} /></div>
+            <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel key={selectedVendor.id} vendor={selectedVendor} onClose={closeDetails} /></div>
           ))}
 
           {/* Mobile search + filters (below md) */}

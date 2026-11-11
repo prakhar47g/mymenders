@@ -41,8 +41,8 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-brand-dark text-[var(--mm-text)]">
-      <div className="flex min-h-[100px] flex-col items-center justify-center gap-5 bg-[var(--color-brand)] px-[30px] py-6 sm:flex-row sm:gap-6 sm:py-0">
+    <footer className="mymenders-footer">
+      <div className="mymenders-footer-instagram flex min-h-[100px] flex-col items-center justify-center gap-5 px-[30px] py-6 sm:flex-row sm:gap-6 sm:py-0">
         <div className="flex flex-col gap-1 text-center">
           <p className="text-[18px] leading-[23px] text-[var(--mm-text)]">Join our Instagram community</p>
           <p className="text-sm leading-5 text-[var(--mm-text-soft)]">
@@ -127,7 +127,7 @@ export function Footer() {
             <div className="w-full sm:col-span-2 lg:col-span-1 lg:w-[24rem] lg:max-w-full lg:justify-self-end">
               <p className="mymenders-section-label text-[var(--mm-text)]">Stay in touch</p>
               <form onSubmit={handleSubscribe} className="mt-4">
-                <ButtonGroup className="w-full">
+                <ButtonGroup className="mymenders-footer-subscribe w-full">
                   <InputGroup className="h-11 min-w-0 flex-1 rounded-none border-0 bg-white shadow-none focus-within:ring-[3px] focus-within:ring-[var(--mm-focus)]">
                     <InputGroupInput
                       type="email"
@@ -136,7 +136,7 @@ export function Footer() {
                       onChange={(event) => setEmail(event.target.value)}
                       aria-label="Email address"
                       placeholder="Enter your email"
-                      className="h-9 px-3 text-sm placeholder:text-[var(--mm-faint)] focus-visible:ring-0"
+                      className="h-9 px-3 text-sm text-[#29292b] placeholder:text-[#626262] focus-visible:ring-0"
                     />
                   </InputGroup>
                   <Button
@@ -152,7 +152,7 @@ export function Footer() {
               {message ? (
                 <p
                   role="status"
-                  className={`mt-2.5 text-xs ${status === 'error' ? 'text-[#c46a3d]' : 'text-[#567a58]'}`}
+                  className={`mt-2.5 text-xs ${status === 'error' ? 'text-[#ffd0b0]' : 'text-[#b9d7b6]'}`}
                 >
                   {message}
                 </p>

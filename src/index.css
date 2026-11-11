@@ -1022,7 +1022,7 @@ body {
 .mymenders-details__rating, .mymenders-details__review { margin: 0; }
 .mymenders-details__rating { color: var(--mm-text); }
 .mymenders-details__review { white-space: pre-wrap; }
-.mymenders-details__header h2 { margin: 0; font-size: 24px; line-height: 1.25; overflow-wrap: anywhere; }
+.mymenders-details__header h2 { margin: 0; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
 .mymenders-details__close {
   display: inline-flex;
   align-items: center;
@@ -1057,8 +1057,7 @@ body {
 .mymenders-details__list--regional_techniques { color: #567a58; }
 .mymenders-details__actions {
   flex-shrink: 0;
-  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--mm-border);
+  padding: 12px 12px max(12px, env(safe-area-inset-bottom));
 }
 .mymenders-details__directions {
   display: flex;
@@ -1072,6 +1071,7 @@ body {
   color: var(--color-brand-dark-on);
   background: var(--color-brand-dark);
   font-size: 13px;
+  text-transform: uppercase;
 }
 .mymenders-details__directions:disabled { background: var(--mm-panel-muted); color: var(--mm-muted); cursor: not-allowed; }
 .mymenders-details__contact-actions { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -1149,11 +1149,12 @@ body {
   --mm-map-status-bg: var(--map-surface);
   --results-width: clamp(240px,25vw,320px); --adjacent-left: calc(104px + var(--results-width));
   --sheet-height: min(65dvh, calc(100dvh - 264px));
-  position: relative; width: 100%; height: 100dvh; z-index: 0; color: var(--mm-text);
+  position: relative; width: 100%; height: 100dvh; z-index: 0; color: var(--mm-text); background: #000;
   color-scheme: dark; accent-color: #f4f2eb;
 }
 .mymenders-map[data-results-visible="false"] { --adjacent-left: 92px; }
 .mymenders-map__layout, .mymenders-map__canvas-wrap { position: absolute; inset: 0; }
+.mymenders-map__canvas-wrap { background: #000; }
 .mymenders-map__rail,
 .mymenders-map__results,
 .mymenders-map__adjacent,
@@ -1168,21 +1169,24 @@ body {
 .mymenders-map__badge { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; border-radius: 8px; background: #f4f2eb; color: #222; font-size: 10px; }
 .mymenders-map__results { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: 92px; width: var(--results-width); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .mymenders-map__results[hidden] { display: none; }
-.mymenders-map__title { display: flex; align-items: baseline; justify-content: space-between; margin: 2px 2px 16px; font-size: 22px; }
-.mymenders-map__title span { font-size: 13px; color: var(--mm-muted); font-variant-numeric: tabular-nums; }
-.mymenders-map input[type="search"] { background: rgba(255,255,255,.07); border: 1px solid var(--mm-border); border-radius: 12px; color: var(--mm-text); min-height: 44px; box-shadow: none; backdrop-filter: none; }
+.mymenders-map__results-header { margin: 10px 10px 0; padding: 12px !important; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; background: rgba(255,255,255,.055); }
+.mymenders-map__results-controls { margin: 10px 10px 0; padding-bottom: 12px; }
+.mymenders-map__title { display: flex; align-items: center; justify-content: space-between; margin: 0; font-size: 15px; }
+.mymenders-map__title span { display: inline-flex; min-width: 28px; min-height: 24px; align-items: center; justify-content: center; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,.08); color: var(--mm-text-soft); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.mymenders-map input[type="search"] { background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; color: var(--mm-text); height: 40px; min-height: 40px; box-shadow: none; backdrop-filter: blur(8px); transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease; }
 .mymenders-map input::placeholder { color: var(--mm-muted); }
-.mymenders-map input[type="search"]:focus-visible { outline: 2px solid var(--mm-text); outline-offset: -2px; }
+.mymenders-map input[type="search"]:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); }
+.mymenders-map input[type="search"]:focus-visible { outline: none; border-color: rgba(244,242,235,.72); background: rgba(255,255,255,.11); box-shadow: 0 0 0 3px rgba(244,242,235,.16); }
 .mymenders-map__results .mymenders-outline-button { background: #f4f2eb; color: #222; border-color: transparent; }
 .mymenders-map__results .mymenders-outline-button:hover { background: #fff; }
-.mymenders-map__adjacent { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: var(--adjacent-left); width: min(380px, calc(100% - var(--adjacent-left) - 160px)); min-height: 0; overflow: hidden; }
+.mymenders-map__adjacent { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: var(--adjacent-left); width: var(--results-width); min-height: 0; overflow: hidden; }
 .mymenders-map .mymenders-details { position: static; width: 100%; height: 100%; background: transparent; box-shadow: none; border-radius: 0; }
 .mymenders-map .mymenders-details__contact-action { background: transparent; color: var(--mm-text); border: 1px solid var(--mm-border-strong); }
 .mymenders-map .mymenders-details__contact-action:hover:not(:disabled) { background: var(--mm-panel-muted); }
 .mymenders-map .mymenders-details__contact-action:disabled { color: #999; background: transparent; opacity: .55; }
 .mymenders-map .mymenders-details__list { color: var(--mm-text-soft); }
 .mymenders-map .mymenders-details__close { background: transparent; }
-.mymenders-map .mymenders-details__directions { color: #222; background: #f4f2eb; border-radius: 12px; }
+.mymenders-map .mymenders-details__directions { color: #222; background: #f4f2eb; border-radius: 12px; text-transform: uppercase; }
 .mymenders-map .mymenders-details__directions:hover:not(:disabled) { background: #fff; }
 .mymenders-map .mymenders-details__directions:disabled { color: #bbb; background: var(--mm-panel-muted); }
 .mymenders-map__filters { display: flex; flex-direction: column; }
@@ -1206,12 +1210,13 @@ body {
 .mymenders-map-menu button:hover { background: var(--mm-panel-muted); }
 .mymenders-map-menu button[aria-pressed="true"] { color: #222; background: #f4f2eb; }
 .mymenders-map__mobile-search { top: 96px; }
+.mymenders-map__mobile-search > div:first-child { border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(22,22,24,.62); box-shadow: 0 8px 24px rgb(0 0 0 / 22%); backdrop-filter: blur(12px); }
 .mymenders-map__mobile-search svg { color: var(--mm-muted); }
 .mymenders-map .mymenders-map-empty-state { background: transparent; border: 0; color: var(--mm-text); }
 .mymenders-map .mymenders-map-empty-state__action { background: #f4f2eb; color: #222; }
 @media (max-width: 767px) {
   .mymenders-map__rail, .mymenders-map__results { display: none; }
-  .mymenders-map__mobile-search input[type="search"] { background: var(--map-surface); }
+  .mymenders-map__mobile-search input[type="search"] { background: rgba(255,255,255,.075); border-color: rgba(255,255,255,.18); }
   .mymenders-map__adjacent { inset: auto 0 0; width: 100%; height: var(--sheet-height); border-radius: 18px 18px 0 0; }
   .mymenders-map__navigation { bottom: max(56px, calc(16px + env(safe-area-inset-bottom))); display: flex; gap: 6px; }
   .mymenders-map[data-sheet-open="true"] .mymenders-map__navigation { bottom: calc(var(--sheet-height) + 12px); }
@@ -1226,3 +1231,117 @@ body {
 .mymenders-map__mobile-status { position: absolute; top: 152px; left: 16px; right: 16px; z-index: 10; padding: 16px; border-radius: 16px; background: var(--map-surface); font-size: 13px; }
 .mymenders-map__mobile-status button { min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
 .mymenders-map .mymenders-map-status { color: var(--mm-text); }
+
+/* /add contribution panel. Keep tokens off the success dialog and other routes. */
+.add-mender-layout { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.add-mender-map { order: 0; position: relative; height: calc(40dvh + 80px); flex-shrink: 0; }
+.add-mender-panel {
+  --mm-black: #f4f2eb; --mm-text: #f4f2eb; --mm-text-soft: #e2e0da;
+  --mm-muted: #c4c2bc; --mm-faint: #c4c2bc; --mm-border: rgba(255,255,255,.14);
+  --mm-focus: rgba(244,242,235,.22);
+  position: relative; z-index: 20; display: flex; flex-direction: column;
+  order: 1; min-height: 0; flex: 1; margin: 16px;
+  background: rgba(22,22,24,.88); color: var(--mm-text);
+  border: 1px solid var(--mm-border); border-radius: 18px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%); overflow: hidden;
+  color-scheme: dark; accent-color: #f4f2eb;
+}
+.add-mender-panel :is(div, ul) { scrollbar-width: thin; scrollbar-color: #777 transparent; }
+.add-mender-panel ::selection { background: #f4f2eb; color: #222; }
+.add-mender-panel .mymenders-card-title-semi { color: var(--mm-text); }
+.add-mender-panel .mymenders-field {
+  min-width: 0; background: #29292b; color: var(--mm-text); border-color: #5b5b5d;
+  border-radius: 10px; caret-color: #f4f2eb; box-shadow: none;
+}
+.add-mender-panel .mymenders-field::placeholder { color: var(--mm-muted); opacity: 1; }
+.add-mender-panel .mymenders-field:focus { border-color: #f4f2eb; box-shadow: 0 0 0 1px #f4f2eb; }
+.add-mender-panel :is(button,a):focus-visible { outline: 2px solid #f4f2eb; outline-offset: -3px; }
+.add-mender-panel .mymenders-outline-button {
+  min-height: 40px; border-radius: 12px; color: #222; background: #f4f2eb;
+  white-space: normal; text-align: center; border-color: transparent;
+}
+.add-mender-panel .mymenders-outline-button:hover:not(:disabled) { background: #fff; color: #222; }
+.add-mender-panel .mymenders-outline-button:disabled { opacity: .45; cursor: not-allowed; }
+.add-mender-panel .add-mender-role { background: #29292b; border-color: #5b5b5d; }
+.add-mender-panel .add-mender-role:hover { background: #353537; border-color: #c4c2bc; }
+.add-mender-panel .add-mender-role--selected { background: #48484a; border-color: #f4f2eb; }
+.add-mender-role > span:first-child { background: #e2e0da; }
+.add-mender-panel .add-mender-visibility { background: #29292b; border-color: #5b5b5d; }
+.add-mender-visibility label > span { border-color: #777; }
+.add-mender-visibility label:hover > span { background: #3a3a3c; }
+.add-mender-actions { border-top: 1px solid var(--mm-border); background: #242426; }
+.add-mender-panel .add-mender-cancel { background: #3a3a3c; color: var(--mm-text); }
+.add-mender-panel .add-mender-cancel:hover:not(:disabled) { background: #48484a; color: var(--mm-text); }
+.add-mender-panel .mymenders-phone-input {
+  --react-international-phone-background-color: #29292b;
+  --react-international-phone-border-color: #5b5b5d;
+  --react-international-phone-text-color: #f4f2eb;
+  --react-international-phone-country-selector-background-color: #29292b;
+  --react-international-phone-country-selector-background-color-hover: #48484a;
+  --react-international-phone-selected-dropdown-item-background-color: #48484a;
+  --react-international-phone-dropdown-item-text-color: #f4f2eb;
+  --react-international-phone-dropdown-item-dial-code-color: #c4c2bc;
+  --react-international-phone-country-selector-arrow-color: #c4c2bc;
+  min-width: 0;
+}
+.add-mender-panel .mymenders-phone-input .react-international-phone-input { min-width: 0; }
+.add-mender-panel .mymenders-phone-input__dropdown {
+  width: min(280px, calc(100vw - 68px)); max-height: 160px; overflow-y: auto;
+  border: 1px solid #5b5b5d; border-radius: 12px;
+}
+.add-mender-panel .mymenders-phone-input:focus-within :is(.react-international-phone-country-selector-button,.react-international-phone-input) {
+  border-color: #f4f2eb; box-shadow: 0 0 0 1px #f4f2eb;
+}
+/* Google renders its address menu in document.body. */
+body.mymenders-add-active .pac-container {
+  background: #29292b; color: #f4f2eb; border: 1px solid #5b5b5d;
+  border-radius: 12px; box-shadow: 0 12px 28px rgb(0 0 0 / 22%); z-index: 3300;
+}
+body.mymenders-add-active .pac-item { color: #c4c2bc; border-color: #5b5b5d; padding: 6px 10px; }
+body.mymenders-add-active .pac-item-query { color: #f4f2eb; }
+body.mymenders-add-active :is(.pac-item:hover,.pac-item-selected) { background: #48484a; }
+@media (min-width: 768px) {
+  .add-mender-map { position: absolute; inset: 0; height: 100%; }
+  .add-mender-panel { position: absolute; top: 96px; bottom: 16px; left: 16px; width: clamp(320px,30vw,440px); margin: 0; }
+}
+@media (max-width: 359px) {
+  .add-mender-panel .grid-cols-2 { grid-template-columns: minmax(0,1fr); }
+}
+/* Fixed country menus must not acquire a transformed containing block. */
+.add-mender-panel .mymenders-fade-in { animation-name: mm-add-fade-in; }
+@keyframes mm-add-fade-in { from { opacity: 0; } to { opacity: 1; } }
+body.mymenders-add-active .add-mender-suggestions {
+  margin: 0; background: #29292b; color: #f4f2eb; border-color: #5b5b5d;
+  border-radius: 12px; color-scheme: dark; scrollbar-width: thin; scrollbar-color: #777 transparent;
+}
+body.mymenders-add-active .add-mender-suggestions li { color: #f4f2eb; border-color: #5b5b5d; }
+body.mymenders-add-active .add-mender-suggestions li:is(:hover,[class*="bg-[#f3f4f6]"]) { background: #48484a; }
+body.mymenders-add-active .add-mender-suggestions li span + span { color: #c4c2bc; }
+
+.add-mender-panel .mymenders-phone-input__dropdown:focus-visible {
+  outline: 2px solid #f4f2eb; outline-offset: -2px;
+}
+
+/* Homepage hero actions and the complete public footer share the charcoal surface. */
+.mymenders-outline-button.mymenders-hero-action {
+  background: rgba(22,22,24,.88); color: #f4f2eb;
+}
+.mymenders-outline-button.mymenders-hero-action:hover { background: rgba(22,22,24,.96); color: #fff; }
+.mymenders-outline-button.mymenders-hero-action:focus-visible { outline-color: #f4f2eb; }
+.mymenders-footer {
+  --mm-text: #f4f2eb; --mm-text-soft: #e2e0da; --mm-muted: #c4c2bc; --mm-faint: #c4c2bc;
+  --mm-focus: rgba(244,242,235,.3);
+  background: rgba(22,22,24,.88); color: var(--mm-text);
+}
+.mymenders-footer a:focus-visible { outline: 2px solid #f4f2eb; outline-offset: 3px; }
+.mymenders-footer-instagram {
+  --mm-text: var(--mm-black); --mm-text-soft: #3d403b;
+  background: var(--color-brand);
+}
+.mymenders-footer-instagram a:focus-visible { outline-color: var(--mm-text); }
+.mymenders-footer .mymenders-footer-subscribe > [data-slot="input-group"] {
+  border-radius: 12px 0 0 12px;
+}
+.mymenders-footer .mymenders-footer-subscribe > button {
+  border-radius: 0 12px 12px 0;
+}

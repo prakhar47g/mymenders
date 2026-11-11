@@ -172,13 +172,13 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
               <div className="mt-8 inline-grid w-full max-w-full grid-cols-2 gap-3 sm:w-[374.5px]">
                 <Link
                   to="/map"
-                  className="mymenders-outline-button min-w-0 w-full max-sm:px-2! sm:whitespace-nowrap"
+                  className="mymenders-outline-button mymenders-hero-action min-w-0 w-full max-sm:px-2! sm:whitespace-nowrap"
                 >
                   Browse Map
                 </Link>
                 <Link
                   to="/add"
-                  className="mymenders-outline-button min-w-0 w-full bg-[#1e1e1e]! text-[#f3f5f9]! hover:bg-[#333333]! max-sm:px-2! sm:whitespace-nowrap"
+                  className="mymenders-outline-button mymenders-hero-action min-w-0 w-full max-sm:px-2! sm:whitespace-nowrap"
                 >
                   Add Mender
                 </Link>

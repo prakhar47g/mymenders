@@ -513,6 +513,10 @@ export function MapPage() {
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const selectionTriggerRef = useRef<HTMLElement | null>(null);
   const selectedVendorRef = useRef<Vendor | null>(null);
+  const selectionCameraFrameRef = useRef<number | null>(null);
+  const selectionZoomRef = useRef<number | null>(null);
+  const selectionCameraKeyRef = useRef<string | null>(null);
+  const selectionMoveEndRef = useRef<(() => void) | null>(null);
   const styleMenuRef = useRef<HTMLDivElement>(null);
   const filterDrawerRef = useRef<HTMLDivElement>(null);
   const vendorsRef = useRef<Vendor[]>([]);
@@ -551,78 +555,123 @@ export function MapPage() {
     vendorsRef.current = vendors;
   }, [vendors]);
 
-  const positionSelectedVendor = useCallback((vendor: Vendor, zoom?: number) => {
+  const cancelSelectionCamera = useCallback(() => {
+    if (selectionCameraFrameRef.current !== null) {
+      cancelAnimationFrame(selectionCameraFrameRef.current);
+      selectionCameraFrameRef.current = null;
+    }
     const map = mapInstanceRef.current;
-    const coordinates = getVendorCoordinates(vendor);
-    if (!map || !coordinates) return;
+    if (selectionMoveEndRef.current) {
+      map?.off('moveend', selectionMoveEndRef.current);
+      selectionMoveEndRef.current = null;
+      map?.stop();
+    }
+    selectionZoomRef.current = null;
+    selectionCameraKeyRef.current = null;
+  }, []);
 
-    const bounds = map.getContainer().getBoundingClientRect();
-    const mobile = window.matchMedia('(max-width: 767px)').matches;
-    const panel = overlayRef.current?.getBoundingClientRect();
-    const results = resultsRef.current?.getBoundingClientRect();
-    // Measure the committed layout, including the actual short-screen sheet height.
-    const left = mobile ? 0 : Math.max(76, panel?.right ?? 0, results?.right ?? 0) + 12;
-    const top = mobile ? 152 : 96;
-    const right = 16;
-    const navigation = mapNavigationRef.current?.getBoundingClientRect();
-    const bottom = mobile && panel ? bounds.bottom - (navigation?.top ?? panel.top) + 12 : 24;
-    map.flyTo({
-      center: coordinates,
-      zoom: zoom ?? map.getZoom(),
-      offset: [(left - right) / 2, (top - bottom) / 2],
-      duration: DIRECTION_FLY_DURATION_MS,
+  // Selection and layout notifications share one frame, after React commits the panels.
+  const scheduleSelectionCamera = useCallback(() => {
+    if (selectionCameraFrameRef.current !== null) return;
+    selectionCameraFrameRef.current = requestAnimationFrame(() => {
+      selectionCameraFrameRef.current = null;
+      const map = mapInstanceRef.current;
+      const vendor = selectedVendorRef.current;
+      const coordinates = vendor && getVendorCoordinates(vendor);
+      if (!map || !coordinates) return;
+
+      const bounds = map.getContainer().getBoundingClientRect();
+      const mobile = window.matchMedia('(max-width: 767px)').matches;
+      const panel = overlayRef.current?.getBoundingClientRect();
+      const results = resultsRef.current?.getBoundingClientRect();
+      // Keep the pin centered in the uncovered area, including short-screen sheets.
+      const left = mobile ? 0 : Math.max(76, panel?.right ?? 0, results?.right ?? 0) + 12;
+      const top = mobile ? 152 : 96;
+      const right = 16;
+      const navigation = mapNavigationRef.current?.getBoundingClientRect();
+      const bottom = mobile && panel ? bounds.bottom - (navigation?.top ?? panel.top) + 12 : 24;
+      const zoom = selectionZoomRef.current ?? map.getZoom();
+      // Camera round trips can change zoom by a floating-point epsilon.
+      const key = JSON.stringify([
+        vendor.id, coordinates, Number(zoom.toFixed(6)),
+        bounds.width, bounds.height, left, top, bottom,
+      ]);
+      if (selectionCameraKeyRef.current === key) return;
+      selectionCameraKeyRef.current = key;
+
+      if (selectionMoveEndRef.current) {
+        map.off('moveend', selectionMoveEndRef.current);
+      }
+      // Retain the destination across any resize that interrupts this flight.
+      selectionZoomRef.current = zoom;
+      map.stop();
+      const onMoveEnd = () => {
+        selectionZoomRef.current = null;
+        selectionMoveEndRef.current = null;
+        map.off('moveend', onMoveEnd);
+      };
+      selectionMoveEndRef.current = onMoveEnd;
+      map.on('moveend', onMoveEnd);
+      const camera = {
+        center: coordinates,
+        zoom,
+        offset: [(left - right) / 2, (top - bottom) / 2] as [number, number],
+      };
+      // flyTo's reduced-motion shortcut drops offset in this MapLibre version.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        map.easeTo({ ...camera, duration: 0 });
+      } else {
+        map.flyTo({ ...camera, duration: DIRECTION_FLY_DURATION_MS });
+      }
     });
   }, []);
 
   const selectVendor = useCallback((vendor: Vendor, trigger: HTMLElement | null, zoom?: number) => {
+    const destinationZoom = zoom ?? mapInstanceRef.current?.getZoom() ?? GLOBAL_ZOOM;
+    cancelSelectionCamera();
     selectionTriggerRef.current = trigger;
     selectedVendorRef.current = vendor;
+    selectionZoomRef.current = destinationZoom;
     setIsFilterDrawerOpen(false);
     setSelectedVendorId(vendor.id);
-    requestAnimationFrame(() => positionSelectedVendor(vendor, zoom));
-  }, [positionSelectedVendor]);
+    scheduleSelectionCamera();
+  }, [cancelSelectionCamera, scheduleSelectionCamera]);
+
+  const clearSelection = useCallback(() => {
+    selectedVendorRef.current = null;
+    cancelSelectionCamera();
+    setSelectedVendorId(null);
+  }, [cancelSelectionCamera]);
 
   const closeDetails = useCallback(() => {
-    selectedVendorRef.current = null;
-    setSelectedVendorId(null);
+    clearSelection();
     const trigger = selectionTriggerRef.current;
     const visibleTrigger = trigger?.isConnected && trigger.getClientRects().length ? trigger : null;
     (visibleTrigger ?? mapInstanceRef.current?.getCanvas())?.focus({ preventScroll: true });
-  }, []);
+  }, [clearSelection]);
 
   useEffect(() => {
-    selectedVendorRef.current = null;
-    setSelectedVendorId(null);
-  }, [searchQuery, selectedFilters]);
+    clearSelection();
+  }, [clearSelection, searchQuery, selectedFilters]);
+
+  useEffect(() => cancelSelectionCamera, [cancelSelectionCamera]);
 
   const toggleFilterDrawer = (event: React.MouseEvent<HTMLButtonElement>) => {
     filterTriggerRef.current = event.currentTarget;
-    selectedVendorRef.current = null;
-    setSelectedVendorId(null);
+    clearSelection();
     setIsFilterDrawerOpen((value) => !value);
   };
 
   useEffect(() => {
     const container = mapContainerRef.current;
     if (!container) return;
-    let frame = 0;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const vendor = selectedVendorRef.current;
-        if (vendor) positionSelectedVendor(vendor);
-      });
-    });
+    const observer = new ResizeObserver(scheduleSelectionCamera);
     observer.observe(container);
     if (overlayRef.current) observer.observe(overlayRef.current);
     if (resultsRef.current) observer.observe(resultsRef.current);
-    const vendor = selectedVendorRef.current;
-    if (vendor) positionSelectedVendor(vendor);
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-    };
-  }, [positionSelectedVendor, resultsVisible, selectedVendorId]);
+    scheduleSelectionCamera();
+    return () => observer.disconnect();
+  }, [scheduleSelectionCamera, resultsVisible, selectedVendorId]);
 
   const vendorsWithDistance = useMemo(
     () => {
@@ -830,7 +879,7 @@ export function MapPage() {
       const vendor = vendorsRef.current.find((item) => item.id === vendorId);
       if (!vendor) return;
       trackMenderClick(vendor.id, 'mender_open');
-      selectVendor(vendor, map.getCanvas());
+      selectVendor(vendor, map.getCanvas(), DIRECTION_ZOOM);
     };
 
     const handlePointerMove = (event: maplibregl.MapMouseEvent) => {
@@ -990,8 +1039,10 @@ export function MapPage() {
             event.stopPropagation();
           }}
         >
-          <div className="shrink-0 border-b border-[var(--mm-border)] px-3 py-3">
+          <div className="mymenders-map__results-header shrink-0 px-3 py-3">
             <h1 className="mymenders-map__title">Menders <span aria-live="polite">{isLoading ? '…' : displayedVendorsWithDistance.length}</span></h1>
+          </div>
+          <div className="mymenders-map__results-controls shrink-0">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <label htmlFor="menders-search-desktop" className="sr-only">Search menders</label>
@@ -1006,7 +1057,7 @@ export function MapPage() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search menders…"
                   aria-label="Search menders"
-                  className="w-full rounded-full border border-[#e5e7eb] bg-white py-2 pl-9 pr-8 text-sm text-[var(--mm-black)] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                  className="w-full py-2 pl-9 pr-8 text-sm placeholder:text-[#8a877d]"
                 />
                 {searchQuery ? (
                   <button
@@ -1021,7 +1072,6 @@ export function MapPage() {
               </div>
 
             </div>
-
             {activeFilterChips.length ? (
               <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {activeFilterChips.map((chip) => (
@@ -1190,7 +1240,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders…"
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[var(--mm-black)] shadow-[0_2px_12px_rgba(15,23,42,0.08)] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                className="w-full py-2.5 pl-9 pr-4 text-sm placeholder:text-[#8a877d]"
               />
             </div>
             <button

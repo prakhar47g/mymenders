@@ -83,19 +83,19 @@ export function Navbar() {
             <NavLink
               to="/#about-mission"
               data-active={isAbout || undefined}
-              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase"
+              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm"
             >
               About
             </NavLink>
-            <NavLink to="/map" className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase">
+            <NavLink to="/map" className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm">
               Map
             </NavLink>
-            <NavLink to="/add" className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase">Add Mender</NavLink>
+            <NavLink to="/add" className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm">Add Mender</NavLink>
             <a
               href="https://www.instagram.com/my.mender"
               target="_blank"
               rel="noopener noreferrer"
-              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm uppercase"
+              className="mymenders-navbar-link inline-flex h-11 items-center justify-center px-3 text-sm"
             >
               Instagram
             </a>
@@ -150,24 +150,24 @@ export function Navbar() {
                 to="/#about-mission"
                 data-active={isAbout || undefined}
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
               >
                 About
               </NavLink>
               <NavLink
                 to="/map"
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
               >
                 Map
               </NavLink>
-              <NavLink to="/add" onClick={closeMenu} className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]">Add Mender</NavLink>
+              <NavLink to="/add" onClick={closeMenu} className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm">Add Mender</NavLink>
               <a
                 href="https://www.instagram.com/my.mender"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center uppercase text-[clamp(1.625rem,7vw,1.875rem)]"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
               >
                 Instagram
               </a>

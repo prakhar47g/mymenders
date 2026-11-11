@@ -38,13 +38,13 @@ const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
     title: "I'm a mender",
     description: 'List your own work so people can find you.',
     iconSrc: MENDER_ICON_URL,
-    activePanelClasses: 'border-brand-hover bg-brand',
+    activePanelClasses: 'add-mender-role--selected',
   },
   'Member of the public': {
     title: 'I know a mender',
     description: 'Recommend someone you trust to fix things.',
     iconSrc: CONTRIBUTOR_ICON_URL,
-    activePanelClasses: 'border-brand-hover bg-brand',
+    activePanelClasses: 'add-mender-role--selected',
   },
 };
 
@@ -110,62 +110,45 @@ const reviewItemLabels = ['Rate 1 star', 'Rate 2 stars', 'Rate 3 stars', 'Rate 4
 const toValues = (opts: MultiValue<Option>): string[] => opts.map((o) => o.value);
 const toSingleValue = (opt: SingleValue<Option>): string[] => (opt ? [opt.value] : []);
 
+// Inline styles also theme menus portalled to document.body, only for /add.
 const selectStyles = {
-  control: (base: any) => ({
-    ...base,
-    backgroundColor: '#ffffff',
-    borderColor: '#e5e7eb',
-    borderRadius: '0.625rem',
-    minHeight: '2.5rem',
-    fontSize: '0.8125rem',
-    boxShadow: 'none',
-    color: 'var(--mm-black)',
-    '&:hover': { borderColor: '#d1d5db' },
+  control: (base: any, state: any) => ({
+    ...base, backgroundColor: '#29292b', borderColor: state.isFocused ? '#f4f2eb' : '#5b5b5d',
+    borderRadius: '10px', minHeight: '40px', fontSize: '0.8125rem',
+    boxShadow: state.isFocused ? '0 0 0 1px #f4f2eb' : 'none',
+    color: '#f4f2eb', '&:hover': { borderColor: '#c4c2bc' },
   }),
+  input: (base: any) => ({ ...base, color: '#f4f2eb' }),
   menu: (base: any) => ({
-    ...base,
-    backgroundColor: '#ffffff',
-    borderRadius: '0.75rem',
-    boxShadow: '0 12px 28px rgba(15, 23, 42, 0.12)',
-    fontSize: '0.875rem',
-    overflow: 'hidden',
-    zIndex: 50,
+    ...base, backgroundColor: '#29292b', color: '#f4f2eb', border: '1px solid #5b5b5d',
+    borderRadius: '12px', boxShadow: '0 12px 28px rgba(0,0,0,.22)',
+    fontSize: '0.875rem', overflow: 'hidden', zIndex: 50,
   }),
-  menuPortal: (base: any) => ({ ...base, zIndex: 3300 }),
-  multiValue: (base: any) => ({
-    ...base,
-    backgroundColor: '#f3f4f6',
-    border: '1px solid #e5e7eb',
-    borderRadius: '999px',
-  }),
-  multiValueLabel: (base: any) => ({
-    ...base,
-    color: '#3d403b',
-    fontSize: '0.75rem',
-    padding: '0.125rem 0.5rem',
-  }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 3300, colorScheme: 'dark' }),
+  multiValue: (base: any) => ({ ...base, backgroundColor: '#414143', borderRadius: '6px' }),
+  multiValueLabel: (base: any) => ({ ...base, color: '#f4f2eb', fontSize: '0.75rem' }),
   multiValueRemove: (base: any) => ({
-    ...base,
-    borderRadius: '0 999px 999px 0',
-    '&:hover': { backgroundColor: '#1a2e45', color: '#ffffff' },
+    ...base, color: '#f4f2eb', '&:hover': { backgroundColor: '#626264', color: '#fff' },
   }),
-  placeholder: (base: any) => ({ ...base, color: '#8a877d' }),
-  singleValue: (base: any) => ({ ...base, color: 'var(--mm-black)' }),
+  placeholder: (base: any) => ({ ...base, color: '#c4c2bc' }),
+  singleValue: (base: any) => ({ ...base, color: '#f4f2eb' }),
+  groupHeading: (base: any) => ({ ...base, color: '#c4c2bc' }),
+  indicatorSeparator: (base: any) => ({ ...base, backgroundColor: '#5b5b5d' }),
+  dropdownIndicator: (base: any) => ({ ...base, color: '#c4c2bc', '&:hover': { color: '#fff' } }),
+  clearIndicator: (base: any) => ({ ...base, color: '#c4c2bc', '&:hover': { color: '#fff' } }),
   option: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: state.isFocused || state.isSelected ? '#f3f4f6' : '#ffffff',
-    color: 'var(--mm-black)',
-    '&:active': { backgroundColor: '#e5e7eb' },
+    ...base, backgroundColor: state.isFocused || state.isSelected ? '#48484a' : '#29292b',
+    color: '#f4f2eb', '&:active': { backgroundColor: '#5b5b5d' },
   }),
 };
 
 const reviewRatingStyles = {
   itemShapes: ThinRoundedStar,
   itemStrokeWidth: 1.8,
-  activeFillColor: '#F4A261',
-  activeStrokeColor: '#F4A261',
-  inactiveFillColor: '#fff7ed',
-  inactiveStrokeColor: '#fdba74',
+  activeFillColor: '#f4f2eb',
+  activeStrokeColor: '#f4f2eb',
+  inactiveFillColor: '#29292b',
+  inactiveStrokeColor: '#c4c2bc',
 };
 
 const FIELD_LABEL_CLASS =
@@ -182,6 +165,7 @@ export function AddMenderPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneDialCode, setPhoneDialCode] = useState('');
+  const [phoneMenuStyle, setPhoneMenuStyle] = useState<React.CSSProperties>({});
   const [phoneCountry, setPhoneCountry] = useState<CountryIso2>(getBrowserCountry);
   const [address, setAddress] = useState('');
   const [website, setWebsite] = useState('');
@@ -213,6 +197,7 @@ export function AddMenderPage() {
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const googleAutocompleteRef = useRef<any>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const addressInputRef = useRef<HTMLInputElement>(null);
   const latestSelectedCoordinatesRef = useRef<[number, number] | null>(null);
@@ -237,12 +222,59 @@ export function AddMenderPage() {
   // Helpers that touch the map directly (not via state)
   // ------------------------------------------------------------------
 
-  const panMapTo = useCallback((lat: number, lng: number) => {
+  const centerInUncoveredMap = useCallback((lat: number, lng: number) => {
     const map = mapRef.current;
     if (!map) return;
     map.setCenter({ lat, lng });
-    map.setZoom(19);
+    if (window.matchMedia('(min-width: 768px)').matches && panelRef.current) {
+      // A negative pan moves the selected pin right, into the uncovered map.
+      const coveredWidth = panelRef.current.getBoundingClientRect().right;
+      map.panBy(-coveredWidth / 2, 0);
+    }
   }, []);
+
+  useEffect(() => {
+    document.body.classList.add('mymenders-add-active');
+    const observer = new ResizeObserver(() => {
+      const coordinates = positionRef.current;
+      if (coordinates) centerInUncoveredMap(...coordinates);
+    });
+    if (mapContainerRef.current) observer.observe(mapContainerRef.current);
+    if (panelRef.current) observer.observe(panelRef.current);
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove('mymenders-add-active');
+    };
+  }, [centerInUncoveredMap]);
+
+  const panMapTo = useCallback((lat: number, lng: number) => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setZoom(19);
+    centerInUncoveredMap(lat, lng);
+  }, [centerInUncoveredMap]);
+
+  const positionPhoneMenu = useCallback(() => {
+    const button = panelRef.current?.querySelector('.mymenders-phone-input__country-button');
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const height = Math.min(160, window.innerHeight - 112);
+    setPhoneMenuStyle({
+      position: 'fixed', left: rect.left,
+      top: rect.bottom + height + 8 <= window.innerHeight - 16
+        ? rect.bottom + 4 : Math.max(80, rect.top - height - 4),
+      maxHeight: height,
+    });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('resize', positionPhoneMenu);
+    window.addEventListener('scroll', positionPhoneMenu, true);
+    return () => {
+      window.removeEventListener('resize', positionPhoneMenu);
+      window.removeEventListener('scroll', positionPhoneMenu, true);
+    };
+  }, [positionPhoneMenu]);
 
   const enableAddressSuggestions = useCallback(() => {
     setAddressSuggestionsEnabled(true);
@@ -405,6 +437,7 @@ export function AddMenderPage() {
           streetViewControl: false,
         });
         mapRef.current = map;
+        centerInUncoveredMap(...initial);
 
         // ---- Place Autocomplete ----
         const hasPlaces = !!g.maps.places?.Autocomplete;
@@ -636,10 +669,10 @@ export function AddMenderPage() {
               className="peer sr-only"
             />
             <span
-              className={`relative flex min-h-[112px] items-center gap-3 rounded-2xl border px-4 py-4 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light peer-focus-visible:ring-offset-2 sm:min-h-[128px] sm:gap-4 sm:px-5 ${
+              className={`add-mender-role relative flex min-h-[112px] items-center gap-3 rounded-2xl border px-4 py-4 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-[#f4f2eb] sm:min-h-[128px] sm:gap-4 sm:px-5 ${
                 isSelected
                   ? meta.activePanelClasses
-                  : 'border-[#e5e7eb] bg-white hover:border-[#d1d5db] hover:bg-[#fafafa]'
+                  : 'add-mender-role--idle'
               }`}
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f3f4f6] sm:h-14 sm:w-14">
@@ -674,12 +707,13 @@ export function AddMenderPage() {
   // ------------------------------------------------------------------
 
   return (
-    <div className="relative z-0 h-[100dvh] w-full">
-      <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[30%_70%]">
+    <div className="add-mender-page relative z-0 h-[100dvh] w-full">
+      <div className="add-mender-layout">
         {/* ==================== FORM SIDEBAR ==================== */}
-        <aside className="order-2 flex h-[calc(60dvh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full md:pt-20">
+        <aside ref={panelRef} className="add-mender-panel">
           {entryLevel === null ? (
-            <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto px-4 py-6">
+            <>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
               <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on">
                 Add a mender
               </h2>
@@ -687,15 +721,18 @@ export function AddMenderPage() {
                 <legend className="sr-only">Choose who is adding the mender</legend>
                 {entryLevelCards}
               </fieldset>
+            </div>
+            <div className="add-mender-actions shrink-0 px-4 py-3">
               <button
                 type="button"
                 disabled={entryLevelSelection === null}
                 onClick={() => entryLevelSelection && onEntryLevelChange(entryLevelSelection)}
-                className="mymenders-outline-button mt-6 w-full"
+                className="mymenders-outline-button w-full"
               >
                 Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
+            </>
           ) : (
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">
@@ -728,8 +765,9 @@ export function AddMenderPage() {
 
                 {/* Studio Type */}
                 <div>
-                  <label className={FIELD_LABEL_CLASS}>Studio Type</label>
+                  <label htmlFor="studio-type" className={FIELD_LABEL_CLASS}>Studio Type</label>
                   <Select
+                    inputId="studio-type"
                     options={typeOptions}
                     value={typeOptions.find((o) => types.includes(o.value)) ?? null}
                     onChange={(opt) => onStudioTypeChange(toSingleValue(opt))}
@@ -761,6 +799,7 @@ export function AddMenderPage() {
                     />
                   ) : (
                     <GeoAutocomplete
+                      menuPortalTarget={selectMenuPortalTarget}
                       id="address"
                       value={address}
                       onChange={(val) => {
@@ -775,12 +814,12 @@ export function AddMenderPage() {
                       placeholder="Search an address to place the pin"
                     />
                   )}
-                  {mapError && <p className="mt-1.5 text-xs text-[#9b5f1d]">{mapError}</p>}
+                  {mapError && <p className="mt-1.5 text-xs text-[#ffd0b0]">{mapError}</p>}
                 </div>
 
                 {/* Location visibility is configurable only for Home menders. */}
                 {types.includes('home') && entryLevel !== 'Member of the public' ? (
-                  <div className="rounded-2xl border border-dashed border-[#e5e7eb] bg-white p-3" role="group" aria-labelledby="location-visibility-label">
+                  <div className="add-mender-visibility rounded-2xl border border-dashed p-3" role="group" aria-labelledby="location-visibility-label">
                     <p id="location-visibility-label" className={FIELD_LABEL_CLASS}>Location visibility</p>
                     <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Location visibility">
                       {([
@@ -799,12 +838,12 @@ export function AddMenderPage() {
                             }}
                             className="peer sr-only"
                           />
-                          <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[var(--mm-black)] peer-checked:bg-[#f5f6f8] peer-focus-visible:ring-2 peer-focus-visible:ring-brand-light">
+                          <span className="block h-full w-full rounded-xl border border-dashed border-[#e5e7eb] px-3 py-2.5 transition-colors peer-checked:border-[#f4f2eb] peer-checked:bg-[#48484a] peer-focus-visible:ring-2 peer-focus-visible:ring-[#f4f2eb]">
                             <span className="flex items-start gap-2">
                               {value === 'exact' ? (
-                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mm-text-soft)]" aria-hidden="true" />
                               ) : (
-                                <VectorSquare className="mt-0.5 h-4 w-4 shrink-0 text-[#d4a72c]" aria-hidden="true" />
+                                <VectorSquare className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mm-text-soft)]" aria-hidden="true" />
                               )}
                               <span className="min-w-0">
                                 <span className="block text-xs font-bold text-[var(--mm-text)]">{label}</span>
@@ -824,7 +863,7 @@ export function AddMenderPage() {
                     <label htmlFor="phone" className={FIELD_LABEL_CLASS}>
                       Tel Number
                     </label>
-                    <div onPointerDown={() => { phoneInputInteractedRef.current = true; }}>
+                    <div onPointerDown={() => { phoneInputInteractedRef.current = true; }} onFocusCapture={positionPhoneMenu} onClickCapture={positionPhoneMenu}>
                       <PhoneInput
                         key={phoneCountry}
                         defaultCountry={phoneCountry}
@@ -848,6 +887,7 @@ export function AddMenderPage() {
                           buttonClassName: 'mymenders-phone-input__country-button',
                           dropdownStyleProps: {
                             className: 'mymenders-phone-input__dropdown',
+                            style: phoneMenuStyle,
                           },
                         }}
                       />
@@ -898,11 +938,12 @@ export function AddMenderPage() {
 
                 {/* Categories */}
                 <div>
-                  <p className={FIELD_LABEL_CLASS}>Categories</p>
+                  <label htmlFor="categories" className={FIELD_LABEL_CLASS}>Categories</label>
                   <Select
                     isMulti
                     closeMenuOnSelect={false}
                     blurInputOnSelect={false}
+                    inputId="categories"
                     options={categoryOptions}
                     value={categoryOptions
                       .flatMap((group) => group.options)
@@ -917,13 +958,14 @@ export function AddMenderPage() {
 
                 {/* Regional Techniques */}
                 <div>
-                  <label className={FIELD_LABEL_CLASS}>
+                  <label htmlFor="regional-techniques" className={FIELD_LABEL_CLASS}>
                     Regional techniques
                   </label>
                   <Select
                     isMulti
                     closeMenuOnSelect={false}
                     blurInputOnSelect={false}
+                    inputId="regional-techniques"
                     options={techniqueOptions}
                     value={techniqueOptions.filter((o) => regionalTechniques.includes(o.value))}
                     onChange={(opts) => setRegionalTechniques(toValues(opts))}
@@ -971,13 +1013,13 @@ export function AddMenderPage() {
               </div>
             </div>
 
-            <div className="shrink-0 border-t border-[#e5e7eb] bg-[#f5f6f8] px-4 py-3">
+            <div className="add-mender-actions shrink-0 px-4 py-3">
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
                   disabled={submitting || submissionComplete}
-                  className="mymenders-outline-button mymenders-outline-button--compact flex-1"
+                  className="mymenders-outline-button mymenders-outline-button--compact add-mender-cancel flex-1"
                 >
                   Cancel
                 </button>
@@ -994,14 +1036,14 @@ export function AddMenderPage() {
                   ) : submitting ? 'Submitting…' : 'Submit for review'}
                 </button>
               </div>
-              {submitError && <p className="mt-3 text-xs text-[#8b4e16]">{submitError}</p>}
+              {submitError && <p className="mt-3 text-xs text-[#ffd0b0]">{submitError}</p>}
             </div>
           </form>
           )}
         </aside>
 
         {/* ==================== MAP ==================== */}
-        <div className="relative order-1 h-[calc(40dvh+80px)] min-h-0 md:order-2 md:h-full">
+        <div className="add-mender-map">
           <div ref={mapContainerRef} className="h-full w-full" />
         </div>
       </div>

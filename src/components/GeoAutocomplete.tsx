@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { autocomplete, type GeoapifySuggestion } from '../utils/geoapify';
 
 interface GeoAutocompleteProps {
   id?: string;
+  menuPortalTarget?: HTMLElement;
   value: string;
   onChange: (address: string) => void;
   onSelect: (suggestion: GeoapifySuggestion) => void;
@@ -15,6 +17,7 @@ interface GeoAutocompleteProps {
 
 export function GeoAutocomplete({
   id,
+  menuPortalTarget,
   value,
   onChange,
   onSelect,
@@ -27,6 +30,7 @@ export function GeoAutocomplete({
   const [suggestions, setSuggestions] = useState<GeoapifySuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,7 +68,7 @@ export function GeoAutocomplete({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (inputRef.current && !inputRef.current.parentElement?.contains(e.target as Node)) {
+      if (inputRef.current && !inputRef.current.parentElement?.contains(e.target as Node) && !listRef.current?.contains(e.target as Node)) {
         setOpen(false);
         setActiveIndex(-1);
         onSuggestionsClose?.();
@@ -127,24 +131,37 @@ export function GeoAutocomplete({
     item?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex]);
 
-  return (
-    <div className="relative w-full">
-      <input
-        id={id}
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        placeholder={placeholder}
-        autoComplete="off"
-        className="mymenders-field w-full border px-3 py-2 text-sm text-[var(--mm-black)] outline-none"
-      />
-      {open && suggestions.length > 0 && (
+  // /add can place suggestions outside its independently scrolling panel.
+  useLayoutEffect(() => {
+    if (!open || !menuPortalTarget) return;
+    const placeMenu = () => {
+      if (!inputRef.current) return;
+      const rect = inputRef.current.getBoundingClientRect();
+      const below = window.innerHeight - rect.bottom - 16;
+      const above = rect.top - 88;
+      const height = Math.min(192, Math.max(48, below, above));
+      const useBelow = below >= Math.min(192, above);
+      setMenuStyle({
+        position: 'fixed', left: rect.left, width: rect.width, maxHeight: height,
+        top: useBelow ? rect.bottom + 4 : undefined,
+        bottom: useBelow ? undefined : window.innerHeight - rect.top + 4,
+        zIndex: 3300,
+      });
+    };
+    placeMenu();
+    window.addEventListener('resize', placeMenu);
+    window.addEventListener('scroll', placeMenu, true);
+    return () => {
+      window.removeEventListener('resize', placeMenu);
+      window.removeEventListener('scroll', placeMenu, true);
+    };
+  }, [open, menuPortalTarget]);
+
+  const suggestionList = open && suggestions.length > 0 ? (
         <ul
           ref={listRef}
-          className="absolute left-0 right-0 top-full z-[2100] mt-2 max-h-48 overflow-y-auto rounded-2xl border border-[#e5e7eb] bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]"
+          style={menuPortalTarget ? menuStyle : undefined}
+          className={`${menuPortalTarget ? "add-mender-suggestions" : "absolute left-0 right-0 top-full mt-2"} z-[2100] max-h-48 overflow-y-auto rounded-2xl border border-[#e5e7eb] bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]`}
         >
           {suggestions.map((s, i) => (
             <li
@@ -164,7 +181,23 @@ export function GeoAutocomplete({
             </li>
           ))}
         </ul>
-      )}
+  ) : null;
+
+  return (
+    <div className="relative w-full">
+      <input
+        id={id}
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        placeholder={placeholder}
+        autoComplete="off"
+        className="mymenders-field w-full border px-3 py-2 text-sm text-[var(--mm-black)] outline-none"
+      />
+      {menuPortalTarget ? createPortal(suggestionList, menuPortalTarget) : suggestionList}
     </div>
   );
 }

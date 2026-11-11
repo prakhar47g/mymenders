@@ -351,6 +351,10 @@ body {
   min-height: 44px;
 }
 
+.admin-table-action {
+  min-height: 40px;
+}
+
 .admin-action:focus-visible {
   outline: 2px solid var(--mm-black);
   outline-offset: 2px;
@@ -358,6 +362,80 @@ body {
 
 .admin-shell header .admin-action:focus-visible {
   outline-color: #fff;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: calc(100vh - 4rem);
+}
+
+.admin-sidebar {
+  flex: 0 0 15rem;
+  border-right: 1px solid #e5e5e5;
+  background: #fff;
+}
+
+.admin-sidebar__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 0.75rem;
+}
+
+.admin-sidebar__item {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.375rem;
+  padding: 0 0.75rem;
+  color: #555;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.admin-sidebar__item:hover:not([data-active='true']) {
+  background: #f5f5f5;
+  color: #111;
+}
+
+.admin-sidebar__item[data-active='true'] {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.admin-sidebar__item:focus-visible {
+  outline: 2px solid #0a0a0a;
+  outline-offset: 2px;
+}
+
+.admin-content {
+  min-width: 0;
+  flex: 1;
+}
+
+@media (max-width: 767px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .admin-sidebar__menu {
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.625rem 1rem;
+  }
+
+  .admin-sidebar__item {
+    flex: 0 0 auto;
+  }
 }
 
 .admin-toast-viewport {
@@ -914,7 +992,7 @@ body {
   }
 }
 
-/* Keep the map card's typography, chips and actions in a scrollable pane. */
+/* Mender details: pinned heading and directions around a scrolling body. */
 .mymenders-details {
   position: absolute;
   inset: auto 0 0;
@@ -934,17 +1012,26 @@ body {
   flex-shrink: 0;
   align-items: flex-start;
   gap: 8px;
-  padding: 24px 20px 20px;
+  padding: 20px;
 }
-.mymenders-details__header h2 { margin: 0; overflow-wrap: anywhere; }
+.mymenders-details__heading { min-width: 0; flex: 1; }
+.mymenders-details__heading > p { margin: 8px 0 0; }
+.mymenders-details__tabs { display: flex; flex-shrink: 0; gap: 24px; padding: 0 20px; box-shadow: inset 0 -1px var(--mm-border); }
+.mymenders-details__tabs button { min-height: 44px; padding: 8px 0; color: var(--mm-muted); font-size: 14px; cursor: pointer; }
+.mymenders-details__tabs button[aria-selected="true"] { color: var(--mm-text); box-shadow: inset 0 -2px var(--mm-text); }
+.mymenders-details__body[hidden] { display: none; }
+.mymenders-details__rating, .mymenders-details__review { margin: 0; }
+.mymenders-details__rating { color: var(--mm-text); }
+.mymenders-details__review { white-space: pre-wrap; }
+.mymenders-details__header h2 { margin: 0; font-size: 24px; line-height: 1.25; overflow-wrap: anywhere; }
 .mymenders-details__close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  margin-top: -4px;
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
   border-radius: 9999px;
   color: var(--mm-muted);
   background: var(--mm-panel);
@@ -960,11 +1047,15 @@ body {
   scrollbar-color: var(--mm-border-strong) var(--mm-panel);
 
 }
-.mymenders-details__body { padding: 0 20px 28px; }
-.mymenders-details__photo { width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 24px; }
-.mymenders-details__contacts { display: flex; flex-direction: column; gap: 12px; }
-.mymenders-details__section { margin-top: 28px; }
-.mymenders-details__taxonomy .mymenders-details__section + .mymenders-details__section { margin-top: 24px; }
+.mymenders-details__body { display: flex; flex-direction: column; gap: 24px; padding: 24px 20px; font-size: 14px; line-height: 1.5; color: var(--mm-text-soft); }
+.mymenders-details__contacts { display: flex; flex-direction: column; gap: 16px; }
+.mymenders-details__section h3 { margin: 0 0 10px; }
+.mymenders-details__section p, .mymenders-details__contact-info { margin: 0; }
+.mymenders-details__contact-info { white-space: pre-wrap; }
+.mymenders-details__taxonomy { display: flex; flex-direction: column; gap: 24px; }
+.mymenders-details__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
+.mymenders-details__list--categories { color: #9c5a6f; }
+.mymenders-details__list--regional_techniques { color: #567a58; }
 .mymenders-details__actions {
   flex-shrink: 0;
   padding: 20px 20px max(20px, env(safe-area-inset-bottom));
@@ -984,35 +1075,29 @@ body {
   font-size: 13px;
 }
 .mymenders-details__directions:disabled { background: var(--mm-panel-muted); color: var(--mm-muted); cursor: not-allowed; }
-.mymenders-details__contact-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-.mymenders-details__contact-action { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--mm-text); }
-.mymenders-details__action-icon {
+.mymenders-details__contact-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.mymenders-details__contact-action {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0.5px solid #000;
   border-radius: 9999px;
   background: var(--color-brand);
   color: var(--color-brand-dark-on);
 }
-.mymenders-details__contact-action:disabled { cursor: not-allowed; color: var(--mm-muted); }
-.mymenders-details__contact-action:disabled .mymenders-details__action-icon { background: var(--mm-panel-muted); border-color: var(--mm-border-strong); color: var(--mm-muted); }
-@media (max-width: 767px) {
-  .mymenders-details__photo { max-height: 120px; }
-}
-@media (max-height: 640px) and (max-width: 767px) {
-  .mymenders-details__header { padding: 12px 20px; }
+.mymenders-details__contact-action:disabled { cursor: not-allowed; background: var(--mm-panel-muted); border-color: var(--mm-border-strong); color: var(--mm-muted); }
+@media (max-height: 640px) {
+  .mymenders-details__header { padding-top: 12px; padding-bottom: 12px; }
   .mymenders-details__actions { padding-top: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
-  .mymenders-details__contact-actions { margin-top: 8px; }
-  .mymenders-details__action-icon { width: 32px; height: 32px; }
 }
 .mymenders-details :is(a, button, h2):focus-visible { outline: 2px solid var(--mm-text); outline-offset: 2px; }
 @media (hover: hover) {
   .mymenders-details__close:hover { color: var(--mm-text); background: var(--mm-panel-muted); }
   .mymenders-details__directions:hover:not(:disabled) { background: var(--color-brand-dark-hover); }
-  .mymenders-details__contact-action:hover:not(:disabled) .mymenders-details__action-icon { background: var(--color-brand-hover); }
+  .mymenders-details__contact-action:hover:not(:disabled) { background: var(--color-brand-hover); }
 }
 @media (min-width: 768px) {
   .mymenders-details {

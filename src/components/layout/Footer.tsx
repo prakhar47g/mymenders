@@ -70,7 +70,7 @@ export function Footer() {
               <span />
             </div>
             <p className="mt-5 text-sm leading-relaxed text-[var(--mm-muted)]">
-              My mender is an initiative of Bhaavya Goenka and Orsola de Castro
+              My mender is an initiative of Orsola de Castro and Bhaavya Goenka
             </p>
           </div>
 

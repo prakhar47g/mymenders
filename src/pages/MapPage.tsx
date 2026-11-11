@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { MenderDetailsPanel } from '../components/MenderDetailsPanel';
+import { trackMenderClick } from '../lib/menderAnalytics';
 import { Vendor } from '../types';
 import {
   getTaxonomyLabel,
@@ -811,6 +812,7 @@ export function MapPage() {
       const vendorId = Number(vendorFeature.properties?.vendorId);
       const vendor = vendorsRef.current.find((item) => item.id === vendorId);
       if (!vendor) return;
+      trackMenderClick(vendor.id, 'mender_open');
       selectVendor(vendor, map.getCanvas());
     };
 
@@ -1088,6 +1090,7 @@ export function MapPage() {
                     key={vendor.id}
                     onClick={(event) => {
                       if (!isClickable) return;
+                      trackMenderClick(vendor.id, 'mender_open');
                       selectVendor(vendor, event.currentTarget, DIRECTION_ZOOM);
                     }}
                     aria-pressed={isActive}
@@ -1154,7 +1157,7 @@ export function MapPage() {
           <div className="shrink-0 p-3">
             <Link
               to="/add"
-              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar w-full"
+              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar w-full bg-[#1e1e1e]! text-[#f3f5f9]! hover:bg-[#333333]!"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Add Mender</span>

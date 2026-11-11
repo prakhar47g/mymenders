@@ -159,27 +159,26 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
       <main>
         <section
           ref={heroRef}
-          aria-label={isHomepage ? 'Our Mission' : undefined}
-          aria-labelledby={isHomepage ? undefined : 'about-hero-title'}
+          aria-labelledby="about-hero-title"
           className={isHomepage
             ? 'grid w-full bg-brand-dark/95 lg:min-h-[calc(100svh-5rem)] lg:grid-cols-6'
             : 'grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12'}
         >
           {isHomepage ? (
-            <div id="about-mission" className="flex min-w-0 scroll-mt-20 flex-col justify-end pb-8 pl-[30px] pr-8 text-left lg:col-span-3 xl:pb-12 xl:pr-12">
-              <p className="text-[20px] leading-[1.55] text-[var(--mm-text-soft)]">
-                {missionText}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="flex min-w-0 flex-col justify-end pb-8 pl-[30px] pr-8 pt-[100px] text-left lg:col-span-3 lg:pt-0 xl:pb-12 xl:pr-12">
+              <h1 id="about-hero-title" className="font-display text-[clamp(36px,4vw,72px)] leading-[1.05] text-[var(--mm-text-soft)] lg:whitespace-nowrap">
+                Find trusted menders
+              </h1>
+              <div className="mt-8 inline-grid w-full max-w-full grid-cols-2 gap-3 sm:w-[374.5px]">
                 <Link
                   to="/map"
-                  className="mymenders-outline-button"
+                  className="mymenders-outline-button min-w-0 w-full max-sm:px-2! sm:whitespace-nowrap"
                 >
                   Browse Map
                 </Link>
                 <Link
                   to="/add"
-                  className="mymenders-outline-button"
+                  className="mymenders-outline-button min-w-0 w-full bg-[#1e1e1e]! text-[#f3f5f9]! hover:bg-[#333333]! max-sm:px-2! sm:whitespace-nowrap"
                 >
                   Add Mender
                 </Link>
@@ -201,7 +200,7 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
             </div>
           )}
 
-          <figure className={isHomepage ? 'relative mr-[10px] min-w-0 w-[calc(100%-10px)] overflow-hidden py-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
+          <figure className={isHomepage ? 'relative min-w-0 w-full overflow-hidden py-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
             {isHomepage ? (
               <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:top-[10px] lg:h-[calc(100%-20px)] lg:aspect-auto">
                 {heroSlides.map((slide, index) => (
@@ -230,25 +229,23 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
           </figure>
         </section>
 
-        {!isHomepage && (
-          <section
-            id="about-mission"
-            aria-labelledby="about-mission-title"
-            className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
-          >
-            <div className="mx-auto max-w-3xl">
-              <h2
-                id="about-mission-title"
-                className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
-              >
-                Our Mission
-              </h2>
-              <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
-                {missionText}
-              </p>
-            </div>
-          </section>
-        )}
+        <section
+          id="about-mission"
+          aria-labelledby="about-mission-title"
+          className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
+        >
+          <div className="mx-auto max-w-3xl">
+            <h2
+              id="about-mission-title"
+              className="font-display text-[19.33px] uppercase text-[var(--mm-faint)]"
+            >
+              Our Mission
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-[1.55] text-[var(--mm-text-soft)] sm:text-[20px]">
+              {missionText}
+            </p>
+          </div>
+        </section>
 
         <section
           aria-labelledby="how-it-works-title"

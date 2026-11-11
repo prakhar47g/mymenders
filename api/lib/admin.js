@@ -71,6 +71,52 @@ export async function handleAdminRequest(request, path) {
   const admin = await requireAdmin(request);
   if (!admin) return json({ error: 'Unauthorized' }, 401);
   if (path === 'auth/me' && method === 'GET') return json({ username: admin.username });
+  if (path === 'email-subscribers' && method === 'GET') {
+    const result = await pool.query('SELECT email, created_at FROM email_subs ORDER BY created_at DESC, id DESC');
+    const items = result.rows.map(({ email, created_at }) => ({ email, createdAt: created_at }));
+    return json({ items, total: items.length });
+  }
+  if (path === 'analytics' && method === 'GET') {
+    const params = new URL(request.url).searchParams;
+    const from = params.get('from');
+    const to = params.get('to');
+    const hasFrom = params.has('from');
+    const hasTo = params.has('to');
+    const isMonth = (value) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value || '');
+    if (hasFrom !== hasTo) return json({ error: 'Select both a from month and a to month' }, 400);
+    if (hasFrom && (!isMonth(from) || !isMonth(to))) return json({ error: 'Months must use YYYY-MM format' }, 400);
+    if (from && from > to) return json({ error: 'From month must be on or before to month' }, 400);
+
+    const result = await pool.query(
+      `SELECT v.id, v.name,
+        COALESCE(SUM(a.click_count) FILTER (WHERE a.action = 'mender_open'), 0)::bigint AS profile_opens,
+        COALESCE(SUM(a.click_count) FILTER (WHERE a.action = 'phone_click'), 0)::bigint AS phone_clicks,
+        COALESCE(SUM(a.click_count) FILTER (WHERE a.action = 'email_click'), 0)::bigint AS email_clicks,
+        COALESCE(SUM(a.click_count) FILTER (WHERE a.action = 'social_click'), 0)::bigint AS social_clicks,
+        COALESCE(SUM(a.click_count) FILTER (WHERE a.action = 'website_click'), 0)::bigint AS website_clicks
+       FROM vendors v
+       LEFT JOIN mender_click_monthly_aggregates a
+         ON a.vendor_id = v.id
+        AND ($1::date IS NULL OR (a.month_start >= $1::date AND a.month_start < ($2::date + INTERVAL '1 month')))
+       WHERE v.status = 'active' AND v.is_deleted = false
+       GROUP BY v.id, v.name
+       ORDER BY
+         COALESCE(SUM(a.click_count), 0) DESC,
+         lower(v.name) ASC,
+         v.id ASC`,
+      [from ? `${from}-01` : null, to ? `${to}-01` : null],
+    );
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      profileOpens: Number(row.profile_opens),
+      phoneClicks: Number(row.phone_clicks),
+      emailClicks: Number(row.email_clicks),
+      socialClicks: Number(row.social_clicks),
+      websiteClicks: Number(row.website_clicks),
+    }));
+    return json({ items, from, to });
+  }
   if (path === 'menders' && method === 'GET') {
     const params = new URL(request.url).searchParams;
     const requestedPage = Number(params.get('page') || 1);

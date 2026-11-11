@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Plus, X } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { BrandLogo } from '../BrandLogo';
 
 export function Navbar() {
@@ -9,7 +9,6 @@ export function Navbar() {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
-  const navigate = useNavigate();
 
   const isAbout = pathname === '/' || pathname === '/about';
 
@@ -66,14 +65,14 @@ export function Navbar() {
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <NavLink to="/" className="flex items-center gap-3">
-              <BrandLogo className="h-6 w-6 shrink-0 md:h-[29px] md:w-[29px]" color="var(--color-brand-dark-text)" />
-              <span className="mymenders-logo-wordmark text-2xl mymenders-logo-font text-brand-dark-text md:text-[29px]">
+              <BrandLogo className="h-6 w-6 shrink-0 md:h-[29px] md:w-[29px]" color="#8E8E8E" />
+              <span className="mymenders-logo-wordmark text-2xl mymenders-logo-font text-[#8E8E8E] md:text-[29px]">
                 My Mender
               </span>
             </NavLink>
           </div>
 
-          <div className="hidden h-20 items-center gap-2 md:flex">
+          <div className="hidden h-20 items-center gap-4 md:flex">
             <NavLink
               to="/#about-mission"
               data-active={isAbout || undefined}
@@ -92,15 +91,6 @@ export function Navbar() {
             >
               Instagram
             </a>
-            <button
-              onClick={() => navigate('/add')}
-              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar"
-              title="Add Mender"
-              aria-label="Add mender"
-            >
-              <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Add Mender</span>
-            </button>
           </div>
 
           <div className="flex md:hidden items-center">
@@ -130,8 +120,8 @@ export function Navbar() {
         <div className="flex min-h-full flex-col">
           <div className="flex h-20 shrink-0 items-center justify-between px-[30px]">
             <NavLink to="/" onClick={closeMenu} className="flex items-center gap-3">
-              <BrandLogo className="h-6 w-6 shrink-0" color="var(--color-brand-dark-text)" />
-              <span className="mymenders-logo-wordmark text-2xl mymenders-logo-font text-brand-dark-text">
+              <BrandLogo className="h-6 w-6 shrink-0" color="#8E8E8E" />
+              <span className="mymenders-logo-wordmark text-2xl mymenders-logo-font text-[#8E8E8E]">
                 My Mender
               </span>
             </NavLink>
@@ -172,17 +162,6 @@ export function Navbar() {
               >
                 Instagram
               </a>
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  navigate('/add');
-                }}
-                className="mymenders-outline-button mx-auto mt-7 w-fit"
-              >
-                <Plus className="h-4 w-4 shrink-0" />
-                Add Mender
-              </button>
             </div>
           </div>
         </div>

@@ -200,9 +200,9 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
             </div>
           )}
 
-          <figure className={isHomepage ? 'relative min-w-0 w-full overflow-hidden py-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
+          <figure className={isHomepage ? 'relative min-w-0 w-full overflow-hidden pt-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
             {isHomepage ? (
-              <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:top-[10px] lg:h-[calc(100%-20px)] lg:aspect-auto">
+              <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:bottom-0 lg:top-[10px] lg:aspect-auto">
                 {heroSlides.map((slide, index) => (
                   <img
                     key={slide.src}

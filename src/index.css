@@ -93,18 +93,6 @@ html {
   opacity: 0.5;
 }
 
-.mymenders-outline-button.mymenders-hero-action {
-  background: #e2e2df;
-  color: #222;
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-.mymenders-outline-button.mymenders-hero-action:hover:not(:disabled) {
-  background: #d6d6d2;
-  color: #111;
-}
-
 .mymenders-outline-button--compact {
   min-height: 44px;
   padding: 10px 14px;
@@ -1342,12 +1330,13 @@ body.mymenders-add-active .add-mender-suggestions li span + span { color: #c4c2b
   outline: 2px solid #f4f2eb; outline-offset: -2px;
 }
 
-/* Homepage hero actions and the complete public footer share the charcoal surface. */
+/* Homepage hero actions use a darker shade of the hero background. */
 .mymenders-outline-button.mymenders-hero-action {
-  background: rgba(22,22,24,.88); color: #f4f2eb;
+  background: #d6d6d2; color: #111;
+  letter-spacing: normal; text-transform: none;
 }
-.mymenders-outline-button.mymenders-hero-action:hover { background: rgba(22,22,24,.96); color: #fff; }
-.mymenders-outline-button.mymenders-hero-action:focus-visible { outline-color: #f4f2eb; }
+.mymenders-outline-button.mymenders-hero-action:hover:not(:disabled) { background: #bfbfba; color: #111; }
+.mymenders-outline-button.mymenders-hero-action:focus-visible { outline-color: #626262; }
 .mymenders-footer {
   --mm-text: #f4f2eb; --mm-text-soft: #e2e0da; --mm-muted: #c4c2bc; --mm-faint: #c4c2bc;
   --mm-focus: rgba(244,242,235,.3);

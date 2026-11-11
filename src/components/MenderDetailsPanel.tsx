@@ -68,6 +68,20 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
     { label: socialLabel, destination: social, href: social, action: 'social_click' as const, icon: <SocialIcon href={social} />, external: true },
   ];
 
+  const renderContactActions = (placement: 'desktop' | 'mobile') => (
+    <nav className={`mymenders-details__contact-actions mymenders-details__contact-actions--${placement}`} aria-label="Contact this mender">
+      {actions.map(({ label, destination, href, action, icon, external }) => href ? (
+        <a key={label} href={href} aria-label={`${label}: ${destination}`} title={`${label}: ${destination}`} className="mymenders-details__contact-action" target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} onClick={() => trackMenderClick(vendor.id, action)}>
+          {icon}
+        </a>
+      ) : (
+        <button key={label} type="button" disabled aria-label={`${label}: No ${label.toLowerCase()} available`} title={`No ${label.toLowerCase()} available`} className="mymenders-details__contact-action">
+          {icon}
+        </button>
+      ))}
+    </nav>
+  );
+
   useEffect(() => {
     setActiveTab('about');
     scrollRef.current?.scrollTo(0, 0);
@@ -126,17 +140,7 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
                 <p>{approximate ? 'Approximate location. Contact the mender for the exact location.' : vendor.address}</p>
               </section>
             )}
-            <nav className="mymenders-details__contact-actions" aria-label="Contact this mender">
-              {actions.map(({ label, destination, href, action, icon, external }) => href ? (
-                <a key={label} href={href} aria-label={`${label}: ${destination}`} title={`${label}: ${destination}`} className="mymenders-details__contact-action" target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} onClick={() => trackMenderClick(vendor.id, action)}>
-                  {icon}
-                </a>
-              ) : (
-                <button key={label} type="button" disabled aria-label={`${label}: No ${label.toLowerCase()} available`} title={`No ${label.toLowerCase()} available`} className="mymenders-details__contact-action">
-                  {icon}
-                </button>
-              ))}
-            </nav>
+            {renderContactActions('desktop')}
             {vendor.contact?.trim() && <p className="mymenders-details__contact-info">{vendor.contact}</p>}
           </div>
           {groups.some(({ values }) => values?.length) && (
@@ -177,6 +181,7 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
             <Route className="h-4 w-4" aria-hidden="true" /> Directions
           </a>
         )}
+        {renderContactActions('mobile')}
       </footer>
     </section>
   );

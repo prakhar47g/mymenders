@@ -11,7 +11,13 @@ export async function GET() {
   try {
     const result = await pool.query("SELECT * FROM vendors WHERE status = 'active' AND is_deleted = false ORDER BY id");
     return new Response(JSON.stringify(result.rows.map(publicVendor)), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Share the public list at Vercel's edge for six hours. Browsers
+        // revalidate so they receive refreshed data once the CDN entry expires.
+        'Vercel-CDN-Cache-Control': 'max-age=21600',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
+      },
     });
   } catch (err) {
     console.error('Error fetching vendors:', err);

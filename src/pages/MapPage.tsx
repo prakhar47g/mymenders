@@ -502,6 +502,7 @@ export function MapPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(true);
   const resultsRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -1023,7 +1024,7 @@ export function MapPage() {
   const selectedVendor = vendors.find((vendor) => vendor.id === selectedVendorId);
 
   return (
-    <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen}>
+    <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen} data-mender-open={Boolean(selectedVendor)}>
       <div className="mymenders-map__layout">
         <div className="mymenders-map__rail" aria-label="Map tools">
           <button type="button" className="mymenders-map-control" aria-label={resultsVisible ? 'Hide results' : 'Show results'} aria-expanded={resultsVisible} aria-controls="menders-results" onClick={() => setResultsVisible(value => !value)}><PanelLeft className="h-5 w-5" /></button>
@@ -1226,7 +1227,7 @@ export function MapPage() {
           {selectedVendor && <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} /></div>}
 
           {/* Mobile search + filters (below md) */}
-          <div className="mymenders-map__mobile-search absolute left-4 right-4 z-10 flex items-center gap-2 md:hidden">
+          <div id="mobile-map-search" className={`mymenders-map__mobile-search absolute left-4 right-4 z-10 ${isMobileSearchOpen ? 'flex' : 'hidden'} items-center gap-2 md:hidden`}>
             <div className="relative min-w-0 flex-1">
               <label htmlFor="menders-search-mobile" className="sr-only">Search menders</label>
               <Search
@@ -1364,6 +1365,21 @@ export function MapPage() {
                 <Minus className="w-5 h-5" />
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileSearchOpen((open) => !open);
+                if (isMobileSearchOpen) setIsFilterDrawerOpen(false);
+              }}
+              className="mymenders-map-control mymenders-map__search-toggle relative h-11 w-11 md:hidden"
+              aria-label={isMobileSearchOpen ? 'Hide search and filters' : 'Show search and filters'}
+              aria-expanded={isMobileSearchOpen}
+              aria-controls="mobile-map-search"
+            >
+              <Search className="h-5 w-5" aria-hidden="true" />
+              {hasSearchOrFilters && <span className="mymenders-map__badge">{activeFilterCount || 1}</span>}
+            </button>
 
             <button
               type="button"

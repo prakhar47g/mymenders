@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Globe2, Instagram, Linkedin, Mail, Phone, Route, SquareArrowOutUpRight, Twitter, X } from 'lucide-react';
+import { Www, Instagram, Mail, Phone, RhombusArrowRight, Xmark as X } from 'iconoir-react';
 import type { Vendor } from '../types';
 import { trackMenderClick } from '../lib/menderAnalytics';
 import { getTaxonomyLabel } from '../../shared/vendorTaxonomy.js';
@@ -14,16 +14,6 @@ const externalUrl = (value?: string) => {
     return null;
   }
 };
-
-function SocialIcon({ href }: { href: string | null }) {
-  const host = href ? new URL(href).hostname.replace(/^www\./, '') : '';
-  const Icon = host === 'instagram.com' || host.endsWith('.instagram.com') ? Instagram
-    : host === 'twitter.com' || host.endsWith('.twitter.com') ? Twitter
-    : host === 'x.com' || host.endsWith('.x.com') ? X
-    : host === 'linkedin.com' || host.endsWith('.linkedin.com') ? Linkedin
-    : SquareArrowOutUpRight;
-  return <Icon className="h-4 w-4" aria-hidden="true" />;
-}
 
 interface MenderDetailsPanelProps {
   vendor: Vendor;
@@ -64,8 +54,8 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
   const actions = [
     { label: 'Call', destination: phone, href: phone ? `tel:${phone}` : null, action: 'phone_click' as const, icon: <Phone className="h-4 w-4" aria-hidden="true" />, external: false },
     { label: 'Email', destination: email, href: email ? `mailto:${email}` : null, action: 'email_click' as const, icon: <Mail className="h-4 w-4" aria-hidden="true" />, external: false },
-    { label: 'Website', destination: website, href: website, action: 'website_click' as const, icon: <Globe2 className="h-4 w-4" aria-hidden="true" />, external: true },
-    { label: socialLabel, destination: social, href: social, action: 'social_click' as const, icon: <SocialIcon href={social} />, external: true },
+    { label: 'Website', destination: website, href: website, action: 'website_click' as const, icon: <Www className="h-4 w-4" aria-hidden="true" />, external: true },
+    { label: socialLabel, destination: social, href: social, action: 'social_click' as const, icon: <Instagram className="h-4 w-4" aria-hidden="true" />, external: true },
   ];
 
   const renderContactActions = (placement: 'desktop' | 'mobile') => (
@@ -86,11 +76,11 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
     <footer className={`mymenders-details__actions mymenders-details__actions--${placement}`}>
       {approximate ? (
         <button type="button" disabled title="Directions unavailable for approximate locations" className="mymenders-details__directions">
-          <Route className="h-4 w-4" aria-hidden="true" /> Directions
+          <RhombusArrowRight className="h-4 w-4" aria-hidden="true" /> Directions
         </button>
       ) : (
         <a href={directions} target="_blank" rel="noopener noreferrer" className="mymenders-details__directions">
-          <Route className="h-4 w-4" aria-hidden="true" /> Directions
+          <RhombusArrowRight className="h-4 w-4" aria-hidden="true" /> Directions
         </a>
       )}
     </footer>

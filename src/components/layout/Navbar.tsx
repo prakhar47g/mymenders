@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, Xmark as X } from 'iconoir-react';
 import { BrandLogo } from '../BrandLogo';
 
 export function Navbar() {

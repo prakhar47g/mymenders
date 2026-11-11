@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { Toast as ToastPrimitive } from 'radix-ui';
-import { Check, X } from 'lucide-react';
+import { Check, Xmark as X } from 'iconoir-react';
 
 type ToastKind = 'success' | 'error';
 type ToastMessage = { id: number; message: string; kind: ToastKind };
@@ -27,9 +27,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         data-kind={item.kind}
         className="admin-toast"
       >
-        <span className="admin-toast__icon" aria-hidden="true">{item.kind === 'success' ? <Check size={17} /> : <X size={17} />}</span>
+        <span className="admin-toast__icon" aria-hidden="true">{item.kind === 'success' ? <Check width={17} height={17} /> : <X width={17} height={17} />}</span>
         <ToastPrimitive.Title className="admin-toast__title">{item.message}</ToastPrimitive.Title>
-        <ToastPrimitive.Close className="admin-action admin-toast__close" aria-label="Dismiss notification"><X size={16} /></ToastPrimitive.Close>
+        <ToastPrimitive.Close className="admin-action admin-toast__close" aria-label="Dismiss notification"><X width={16} height={16} /></ToastPrimitive.Close>
       </ToastPrimitive.Root>)}
       <ToastPrimitive.Viewport className="admin-toast-viewport" aria-label="Notifications" />
     </ToastPrimitive.Provider>

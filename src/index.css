@@ -1022,7 +1022,7 @@ body {
 .mymenders-details__rating, .mymenders-details__review { margin: 0; }
 .mymenders-details__rating { color: var(--mm-text); }
 .mymenders-details__review { white-space: pre-wrap; }
-.mymenders-details__header h2 { margin: 0; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.mymenders-details__header h2 { margin: 0; font-size: 18px; line-height: 1.25; overflow-wrap: anywhere; }
 .mymenders-details__close {
   display: inline-flex;
   align-items: center;
@@ -1075,6 +1075,7 @@ body {
 }
 .mymenders-details__directions:disabled { background: var(--mm-panel-muted); color: var(--mm-muted); cursor: not-allowed; }
 .mymenders-details__contact-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.mymenders-details :is(.mymenders-details__contact-action, .mymenders-details__directions, .mymenders-details__close) > svg { width: 17.6px; height: 17.6px; }
 .mymenders-details__contact-action {
   display: inline-flex;
   flex-shrink: 0;
@@ -1310,6 +1311,7 @@ body {
 }
 
 .mymenders-map__mobile-status { position: absolute; top: 152px; left: 16px; right: 16px; z-index: 10; padding: 16px; border-radius: 16px; background: var(--map-surface); font-size: 13px; }
+.mymenders-map__mobile-status--empty { padding: 8px; color: var(--mm-text-soft); }
 .mymenders-map__mobile-status button { min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
 .mymenders-map .mymenders-map-status { color: var(--mm-text); }
 

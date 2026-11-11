@@ -2,7 +2,7 @@ import { Badge } from "@/src/components/reui/badge"
 
 import { Button } from "@/src/components/ui/button"
 import { Card, CardContent } from "@/src/components/ui/card"
-import { BellIcon, SparklesIcon, ArrowRightIcon } from "lucide-react"
+import { Bell as BellIcon, Sparks as SparklesIcon, ArrowRight as ArrowRightIcon } from "iconoir-react"
 
 export function Pattern() {
   return (

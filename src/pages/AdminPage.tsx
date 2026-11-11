@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, BarChart3, Check, Download, LogOut, Mail, Pencil, Search, ShieldCheck, Store, Trash2 } from 'lucide-react';
+import { ArrowLeft, StatsReport as BarChart3, Check, Download, LogOut, Mail, EditPencil as Pencil, Search, ShieldCheck, Shop as Store, Trash as Trash2 } from 'iconoir-react';
 import type { Vendor } from '../types';
 import { BrandLogo } from '../components/BrandLogo';
 import { MenderEditor } from '../components/MenderEditor';
@@ -32,7 +32,7 @@ function AdminShell({ onLogout }: { onLogout: () => void }) {
         <BrandLogo className="h-6 w-6" color="#fff" /><span className="mymenders-logo-wordmark">My Mender</span>
       </Link>
       <div className="flex items-center gap-4 text-sm">
-        <button onClick={onLogout} className="admin-action flex items-center gap-2 text-white/50 hover:text-white"><LogOut size={16} /> Log out</button>
+        <button onClick={onLogout} className="admin-action flex items-center gap-2 text-white/50 hover:text-white"><LogOut width={16} height={16} /> Log out</button>
       </div>
     </header>
     <div className="admin-layout">
@@ -40,15 +40,15 @@ function AdminShell({ onLogout }: { onLogout: () => void }) {
         <nav className="admin-sidebar__menu" aria-label="Admin">
           <Link to={`/admin${location.search}`} aria-current={mendersActive ? 'page' : undefined}
             className="admin-sidebar__item" data-active={mendersActive}>
-            <Store size={16} aria-hidden="true" /><span>Menders</span>
+            <Store width={16} height={16} aria-hidden="true" /><span>Menders</span>
           </Link>
           <Link to="/admin/email-subscribers" aria-current={isEmailSubscribers ? 'page' : undefined}
             className="admin-sidebar__item" data-active={isEmailSubscribers}>
-            <Mail size={16} aria-hidden="true" /><span>Email Subscribers</span>
+            <Mail width={16} height={16} aria-hidden="true" /><span>Email Subscribers</span>
           </Link>
           <Link to="/admin/analytics" aria-current={isAnalytics ? 'page' : undefined}
             className="admin-sidebar__item" data-active={isAnalytics}>
-            <BarChart3 size={16} aria-hidden="true" /><span>Analytics</span>
+            <BarChart3 width={16} height={16} aria-hidden="true" /><span>Analytics</span>
           </Link>
         </nav>
       </aside>
@@ -115,7 +115,7 @@ function AdminEmailSubscribers() {
       <h1 className="text-4xl">Email Subscribers</h1>
       <button type="button" onClick={downloadCsv} disabled={loading || !data?.items.length}
         className="admin-action inline-flex items-center gap-2 bg-[var(--mm-black)] px-3 py-2 text-sm text-white hover:bg-[var(--mm-black)] disabled:cursor-not-allowed disabled:opacity-40">
-        <Download size={16} aria-hidden="true" /> Download CSV
+        <Download width={16} height={16} aria-hidden="true" /> Download CSV
       </button>
     </div>
     <section aria-label="Subscriber count" className="mb-6 w-full max-w-xs border border-[#e5e5e5] bg-white px-5 py-4">
@@ -297,11 +297,11 @@ function AdminList() {
               <td className="px-4 py-3">
                 <div className="flex justify-end gap-2">
                   {mender.status === 'draft' && <button type="button" disabled={busy?.id === mender.id} onClick={() => void runAction(mender, 'activate')}
-                    className="admin-action admin-table-action inline-flex items-center gap-1.5 rounded-md bg-[#15803d] px-3 py-2 text-xs text-white hover:bg-[#166534] disabled:opacity-50"><Check size={14} /> {busy?.id === mender.id && busy.action === 'activate' ? 'Activating…' : 'Activate'}</button>}
-                  <Link to={`/admin/menders/${mender.id}${location.search}`} className="admin-action admin-table-action inline-flex items-center gap-1.5 rounded-md border border-[#e5e5e5] px-3 py-2 text-xs hover:bg-[#f5f5f5]"><Pencil size={14} /> Edit</Link>
+                    className="admin-action admin-table-action inline-flex items-center gap-1.5 rounded-md bg-[#15803d] px-3 py-2 text-xs text-white hover:bg-[#166534] disabled:opacity-50"><Check width={14} height={14} /> {busy?.id === mender.id && busy.action === 'activate' ? 'Activating…' : 'Activate'}</button>}
+                  <Link to={`/admin/menders/${mender.id}${location.search}`} className="admin-action admin-table-action inline-flex items-center gap-1.5 rounded-md border border-[#e5e5e5] px-3 py-2 text-xs hover:bg-[#f5f5f5]"><Pencil width={14} height={14} /> Edit</Link>
                   <button type="button" disabled={busy?.id === mender.id} onClick={() => void runAction(mender, 'delete')}
                     aria-label={`Delete ${mender.name}`} title={`Delete ${mender.name}`}
-                    className="admin-action admin-table-action inline-flex min-w-11 items-center justify-center rounded-md border border-[#e5e5e5] p-2 text-[#555] hover:bg-[#f5f5f5] disabled:opacity-50"><Trash2 size={15} /></button>
+                    className="admin-action admin-table-action inline-flex min-w-11 items-center justify-center rounded-md border border-[#e5e5e5] p-2 text-[#555] hover:bg-[#f5f5f5] disabled:opacity-50"><Trash2 width={15} height={15} /></button>
                 </div>
               </td>
             </tr>)}
@@ -364,7 +364,7 @@ function AdminEditor() {
     finally { setActivating(false); }
   };
   return <main className="mx-auto max-w-5xl px-5 py-8 md:px-10">
-    <Link to={listUrl} className="admin-action mb-8 inline-flex items-center gap-2 text-sm text-[#555] hover:text-[#111]"><ArrowLeft size={16} /> All menders</Link>
+    <Link to={listUrl} className="admin-action mb-8 inline-flex items-center gap-2 text-sm text-[#555] hover:text-[#111]"><ArrowLeft width={16} height={16} /> All menders</Link>
     {loadError ? <div className="flex items-center gap-4"><p role="alert" className="text-sm text-[#555]">{loadError}</p><button type="button" onClick={() => setReloadKey((key) => key + 1)} className="admin-action border border-[#e5e5e5] px-3 py-2 text-sm hover:bg-[#f5f5f5]">Retry</button></div>
       : !mender ? <p role="status" className="text-sm text-[#555]">Loading mender…</p>
       : <><div className="mb-8 flex flex-wrap items-start justify-between gap-4"><div><p className="mb-2 text-xs uppercase text-[#777]">Mender #{mender.id}</p><h1 className="text-4xl">Edit profile</h1></div>

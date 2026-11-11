@@ -7,7 +7,7 @@ import {
   useLegacyTable,
   type LegacyColumnDef,
 } from '@tanstack/react-table/legacy';
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
+import { Calendar as CalendarDays, NavArrowDown as ChevronDown, NavArrowLeft as ChevronLeft, NavArrowRight as ChevronRight, Sort as ChevronsUpDown } from 'iconoir-react';
 import { Link } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
@@ -136,9 +136,9 @@ export function AdminAnalyticsPage() {
         <Popover open={rangeOpen} onOpenChange={handleRangeOpenChange}>
           <PopoverTrigger asChild>
             <button type="button" className="admin-action inline-flex items-center gap-2 border border-[#e5e5e5] bg-white px-3 py-2 text-sm text-[#333] hover:bg-[#f5f5f5]" aria-label={`Analytics time range: ${rangeLabel}`}>
-              <CalendarDays size={16} aria-hidden="true" />
+              <CalendarDays width={16} height={16} aria-hidden="true" />
               <span>{rangeLabel}</span>
-              <ChevronDown size={14} aria-hidden="true" />
+              <ChevronDown width={14} height={14} aria-hidden="true" />
             </button>
           </PopoverTrigger>
           <PopoverContent aria-label="Choose analytics month range">
@@ -191,7 +191,7 @@ export function AdminAnalyticsPage() {
                 {header.isPlaceholder ? null : header.column.getCanSort()
                   ? <button type="button" onClick={header.column.getToggleSortingHandler()} className="inline-flex min-h-10 items-center gap-1.5 hover:text-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a0a0a]">
                     {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() ? <span aria-hidden="true">{header.column.getIsSorted() === 'asc' ? '↑' : '↓'}</span> : <ChevronsUpDown size={13} aria-hidden="true" />}
+                    {header.column.getIsSorted() ? <span aria-hidden="true">{header.column.getIsSorted() === 'asc' ? '↑' : '↓'}</span> : <ChevronsUpDown width={13} height={13} aria-hidden="true" />}
                   </button>
                   : flexRender(header.column.columnDef.header, header.getContext())}
               </TableHead>)}
@@ -211,9 +211,9 @@ export function AdminAnalyticsPage() {
     {!loading && !loadError && data?.items.length ? <nav aria-label="Analytics table pages" className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-[#555]">
       <p>Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}–{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.items.length)} of {data.items.length}</p>
       <div className="flex items-center gap-2">
-        <button type="button" aria-label="Previous page" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="admin-action inline-flex min-w-11 items-center justify-center border border-[#e5e5e5] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft size={16} /></button>
+        <button type="button" aria-label="Previous page" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="admin-action inline-flex min-w-11 items-center justify-center border border-[#e5e5e5] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"><ChevronLeft width={16} height={16} /></button>
         <span className="min-w-20 text-center">Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}</span>
-        <button type="button" aria-label="Next page" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="admin-action inline-flex min-w-11 items-center justify-center border border-[#e5e5e5] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"><ChevronRight size={16} /></button>
+        <button type="button" aria-label="Next page" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="admin-action inline-flex min-w-11 items-center justify-center border border-[#e5e5e5] hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-40"><ChevronRight width={16} height={16} /></button>
       </div>
     </nav> : null}
   </main>;

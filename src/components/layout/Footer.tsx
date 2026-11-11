@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram } from 'lucide-react';
+import { Instagram } from 'iconoir-react';
 import { Button } from '../ui/button';
 import { ButtonGroup } from '../ui/button-group';
 import { InputGroup, InputGroupInput } from '../ui/input-group';

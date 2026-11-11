@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, MapPin, VectorSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, MapPin, FrameSelect as VectorSquare } from 'iconoir-react';
 import Select, { type GroupBase, type MultiValue, type SingleValue } from 'react-select';
 import { PhoneInput, type CountryIso2 } from 'react-international-phone';
 import { Rating as ReactRating, ThinRoundedStar } from '@smastrom/react-rating';
@@ -697,13 +697,15 @@ export function AddMenderPage() {
           {entryLevel === null ? (
             <>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+              <div className="flex min-h-full flex-col md:justify-center">
               <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on">
-                Add a mender
+                Who are you adding?
               </h2>
               <fieldset>
                 <legend className="sr-only">Choose who is adding the mender</legend>
                 {entryLevelCards}
               </fieldset>
+              </div>
             </div>
             <div className="add-mender-actions shrink-0 px-4 py-3">
               <button
@@ -989,8 +991,6 @@ export function AddMenderPage() {
                 )}
                 </div>
               </div>
-            </div>
-
             <div className="add-mender-actions shrink-0 px-4 py-3">
               <div className="flex gap-3">
                 <button
@@ -1015,6 +1015,7 @@ export function AddMenderPage() {
                 </button>
               </div>
               {submitError && <p className="mt-3 text-xs text-[#ffd0b0]">{submitError}</p>}
+            </div>
             </div>
           </form>
           )}

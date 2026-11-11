@@ -4,18 +4,19 @@ import maplibregl from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
-  Cog,
-  PanelLeft,
+  Settings as Cog,
+  SidebarCollapse,
+  SidebarExpand,
   Globe,
   MapPin,
   Minus,
-  Navigation,
-  Loader2,
+  Position as Navigation,
+  Refresh as Loader2,
   Plus,
   Search,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react';
+  Filter as SlidersHorizontal,
+  Xmark as X,
+} from 'iconoir-react';
 import { MenderDetailsPanel } from '../components/MenderDetailsPanel';
 import { MenderDetailsDrawer } from '../components/MenderDetailsDrawer';
 import { trackMenderClick } from '../lib/menderAnalytics';
@@ -1040,7 +1041,7 @@ export function MapPage() {
     <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen} data-mender-open={Boolean(selectedVendor)} data-mender-expanded={Boolean(selectedVendor) && isMenderExpanded}>
       <div className="mymenders-map__layout">
         <div className="mymenders-map__rail" aria-label="Map tools">
-          <button type="button" className="mymenders-map-control" aria-label={resultsVisible ? 'Hide results' : 'Show results'} aria-expanded={resultsVisible} aria-controls="menders-results" onClick={() => setResultsVisible(value => !value)}><PanelLeft className="h-5 w-5" /></button>
+          <button type="button" className="mymenders-map-control" aria-label={resultsVisible ? 'Hide results' : 'Show results'} aria-expanded={resultsVisible} aria-controls="menders-results" onClick={() => setResultsVisible(value => !value)}>{resultsVisible ? <SidebarCollapse className="h-5 w-5" /> : <SidebarExpand className="h-5 w-5" />}</button>
           <button type="button" className="mymenders-map-control relative" aria-label="Filter menders" aria-expanded={isFilterDrawerOpen} aria-controls="vendor-filter-drawer" onClick={toggleFilterDrawer}><SlidersHorizontal className="h-5 w-5" />{hasActiveFilters && <span className="mymenders-map__badge">{activeFilterCount}</span>}</button>
           <button type="button" className="mymenders-map-control" aria-label="Find nearby menders" disabled={findingLocation} onClick={locateUser}>{findingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}</button>
         </div>
@@ -1060,10 +1061,6 @@ export function MapPage() {
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <label htmlFor="menders-search-desktop" className="sr-only">Search menders</label>
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
-                  aria-hidden="true"
-                />
                 <input
                   id="menders-search-desktop"
                   type="search"
@@ -1071,7 +1068,7 @@ export function MapPage() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search menders…"
                   aria-label="Search menders"
-                  className="w-full py-2 pl-9 pr-8 text-sm placeholder:text-[#8a877d]"
+                  className="w-full py-2 pl-3 pr-8 text-left text-sm placeholder:text-[#8a877d]"
                 />
                 {searchQuery ? (
                   <button
@@ -1202,9 +1199,9 @@ export function MapPage() {
                 );
               })
             ) : (
-              <div className="m-3 p-4">
-                <p className="font-medium text-[var(--mm-text)]">
-                  {hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you right now'}
+              <div className={`m-3 ${hasSearchOrFilters ? 'p-4' : 'p-2'}`}>
+                <p className={`font-medium ${hasSearchOrFilters ? 'text-[var(--mm-text)]' : 'text-[var(--mm-text-soft)]'}`}>
+                  {hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you. Please zoom out to search a larger area'}
                 </p>
                 {hasSearchOrFilters && (
                   <p className="mt-1 text-xs leading-5 text-[var(--mm-muted)]">
@@ -1255,10 +1252,6 @@ export function MapPage() {
           <div id="mobile-map-search" className={`mymenders-map__mobile-search absolute left-4 right-4 z-10 ${isMobileSearchOpen ? 'flex' : 'hidden'} items-center gap-2 md:hidden`}>
             <div className="relative min-w-0 flex-1">
               <label htmlFor="menders-search-mobile" className="sr-only">Search menders</label>
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a877d]"
-                aria-hidden="true"
-              />
               <input
                 id="menders-search-mobile"
                 type="search"
@@ -1266,7 +1259,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders…"
                 aria-label="Search menders"
-                className="w-full py-2.5 pl-9 pr-4 text-sm placeholder:text-[#8a877d]"
+                className="w-full py-2.5 pl-3 pr-4 text-left text-sm placeholder:text-[#8a877d]"
               />
             </div>
             <button
@@ -1287,8 +1280,8 @@ export function MapPage() {
           </div>
 
           {!selectedVendor && !isFilterDrawerOpen && (isLoading || loadError || !displayedVendorsWithDistance.length) && (
-            <div className="mymenders-map__mobile-status md:hidden" role="status" aria-live="polite">
-              <p>{isLoading ? 'Loading menders…' : loadError ? 'Menders are temporarily unavailable' : hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you right now'}</p>
+            <div className={`mymenders-map__mobile-status md:hidden ${!isLoading && !loadError && !hasSearchOrFilters ? 'mymenders-map__mobile-status--empty' : ''}`} role="status" aria-live="polite">
+              <p>{isLoading ? 'Loading menders…' : loadError ? 'Menders are temporarily unavailable' : hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you. Please zoom out to search a larger area'}</p>
               {loadError && <><p>Check your connection and try again.</p><button type="button" onClick={() => { setIsLoading(true); setReloadKey(key => key + 1); }}>Try again</button></>}
               {!isLoading && !loadError && hasSearchOrFilters && <button type="button" onClick={clearAllFilters}>Clear search and filters</button>}
             </div>

@@ -150,24 +150,24 @@ export function Navbar() {
                 to="/#about-mission"
                 data-active={isAbout || undefined}
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-[26px]"
               >
                 About
               </NavLink>
               <NavLink
                 to="/map"
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-[26px]"
               >
                 Map
               </NavLink>
-              <NavLink to="/add" onClick={closeMenu} className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm">Add Mender</NavLink>
+              <NavLink to="/add" onClick={closeMenu} className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-[26px]">Add Mender</NavLink>
               <a
                 href="https://www.instagram.com/my.mender"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-sm"
+                className="mymenders-navbar-link flex min-h-16 items-center justify-center text-center text-[26px]"
               >
                 Instagram
               </a>

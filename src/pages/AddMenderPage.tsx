@@ -32,12 +32,12 @@ type EntryLevelMeta = {
 const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
   Menders: {
     title: "I'm a mender",
-    description: 'List your own work so people can find you.',
+    description: 'List your practice on the map and help people find you easily',
     activePanelClasses: 'add-mender-role--selected',
   },
   'Member of the public': {
     title: 'I know a mender',
-    description: 'Recommend someone you trust to fix things.',
+    description: 'Recommend someone you trust to mend the things that matter',
     activePanelClasses: 'add-mender-role--selected',
   },
 };
@@ -697,10 +697,11 @@ export function AddMenderPage() {
           {entryLevel === null ? (
             <>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
-              <div className="flex min-h-full flex-col md:justify-center">
-              <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on">
-                Who are you adding?
+              <div className="relative flex min-h-full flex-col md:justify-center">
+              <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on md:absolute md:inset-x-0 md:top-0">
+                Put a mender on the map
               </h2>
+              <div aria-hidden="true" className="mymenders-card-title-semi mb-5 hidden text-center text-xl md:block md:invisible">Put a mender on the map</div>
               <fieldset>
                 <legend className="sr-only">Choose who is adding the mender</legend>
                 {entryLevelCards}

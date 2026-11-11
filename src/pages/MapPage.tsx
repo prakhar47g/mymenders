@@ -5,6 +5,7 @@ import type { GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   Cog,
+  PanelLeft,
   Globe,
   MapPin,
   Minus,
@@ -501,6 +502,11 @@ export function MapPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
   const [searchQuery, setSearchQuery] = useState('');
+  const [resultsVisible, setResultsVisible] = useState(true);
+  const resultsRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const mapNavigationRef = useRef<HTMLDivElement>(null);
+  const filterTriggerRef = useRef<HTMLElement | null>(null);
   const [mapBounds, setMapBounds] = useState<maplibregl.LngLatBounds | null>(null);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -508,7 +514,6 @@ export function MapPage() {
   const selectionTriggerRef = useRef<HTMLElement | null>(null);
   const selectedVendorRef = useRef<Vendor | null>(null);
   const styleMenuRef = useRef<HTMLDivElement>(null);
-  const filterButtonRef = useRef<HTMLButtonElement>(null);
   const filterDrawerRef = useRef<HTMLDivElement>(null);
   const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
@@ -551,15 +556,20 @@ export function MapPage() {
     const coordinates = getVendorCoordinates(vendor);
     if (!map || !coordinates) return;
 
-    const { width, height } = map.getContainer().getBoundingClientRect();
+    const bounds = map.getContainer().getBoundingClientRect();
     const mobile = window.matchMedia('(max-width: 767px)').matches;
-    // Target the centre of the uncovered map without changing its dimensions
-    // or retaining camera padding after the panel closes.
-    const panelWidth = Math.min(380, Math.max(0, width - 96));
+    const panel = overlayRef.current?.getBoundingClientRect();
+    const results = resultsRef.current?.getBoundingClientRect();
+    // Measure the committed layout, including the actual short-screen sheet height.
+    const left = mobile ? 0 : Math.max(76, panel?.right ?? 0, results?.right ?? 0) + 12;
+    const top = mobile ? 152 : 96;
+    const right = 16;
+    const navigation = mapNavigationRef.current?.getBoundingClientRect();
+    const bottom = mobile && panel ? bounds.bottom - (navigation?.top ?? panel.top) + 12 : 24;
     map.flyTo({
       center: coordinates,
       zoom: zoom ?? map.getZoom(),
-      offset: mobile ? [0, -height * 0.65 / 2] : [panelWidth / 2, 0],
+      offset: [(left - right) / 2, (top - bottom) / 2],
       duration: DIRECTION_FLY_DURATION_MS,
     });
   }, []);
@@ -569,7 +579,7 @@ export function MapPage() {
     selectedVendorRef.current = vendor;
     setIsFilterDrawerOpen(false);
     setSelectedVendorId(vendor.id);
-    positionSelectedVendor(vendor, zoom);
+    requestAnimationFrame(() => positionSelectedVendor(vendor, zoom));
   }, [positionSelectedVendor]);
 
   const closeDetails = useCallback(() => {
@@ -585,7 +595,8 @@ export function MapPage() {
     setSelectedVendorId(null);
   }, [searchQuery, selectedFilters]);
 
-  const toggleFilterDrawer = () => {
+  const toggleFilterDrawer = (event: React.MouseEvent<HTMLButtonElement>) => {
+    filterTriggerRef.current = event.currentTarget;
     selectedVendorRef.current = null;
     setSelectedVendorId(null);
     setIsFilterDrawerOpen((value) => !value);
@@ -603,11 +614,15 @@ export function MapPage() {
       });
     });
     observer.observe(container);
+    if (overlayRef.current) observer.observe(overlayRef.current);
+    if (resultsRef.current) observer.observe(resultsRef.current);
+    const vendor = selectedVendorRef.current;
+    if (vendor) positionSelectedVendor(vendor);
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [positionSelectedVendor]);
+  }, [positionSelectedVendor, resultsVisible, selectedVendorId]);
 
   const vendorsWithDistance = useMemo(
     () => {
@@ -725,10 +740,11 @@ export function MapPage() {
 
   useEffect(() => {
     if (!isFilterDrawerOpen) return;
+    filterDrawerRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
 
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (filterDrawerRef.current?.contains(target) || filterButtonRef.current?.contains(target)) {
+      if (filterDrawerRef.current?.contains(target) || filterTriggerRef.current?.contains(target)) {
         return;
       }
       setIsFilterDrawerOpen(false);
@@ -737,6 +753,7 @@ export function MapPage() {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsFilterDrawerOpen(false);
+        filterTriggerRef.current?.focus({ preventScroll: true });
       }
     };
 
@@ -957,15 +974,24 @@ export function MapPage() {
   const selectedVendor = vendors.find((vendor) => vendor.id === selectedVendorId);
 
   return (
-    <div className="relative w-full h-[calc(100dvh-80px)] mt-20 z-0">
-      <div className="grid h-full min-h-0 overflow-visible grid-cols-1 md:grid-cols-[25%_75%]">
+    <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen}>
+      <div className="mymenders-map__layout">
+        <div className="mymenders-map__rail" aria-label="Map tools">
+          <button type="button" className="mymenders-map-control" aria-label={resultsVisible ? 'Hide results' : 'Show results'} aria-expanded={resultsVisible} aria-controls="menders-results" onClick={() => setResultsVisible(value => !value)}><PanelLeft className="h-5 w-5" /></button>
+          <button type="button" className="mymenders-map-control relative" aria-label="Filter menders" aria-expanded={isFilterDrawerOpen} aria-controls="vendor-filter-drawer" onClick={toggleFilterDrawer}><SlidersHorizontal className="h-5 w-5" />{hasActiveFilters && <span className="mymenders-map__badge">{activeFilterCount}</span>}</button>
+          <button type="button" className="mymenders-map-control" aria-label="Find nearby menders" disabled={findingLocation} onClick={locateUser}>{findingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}</button>
+        </div>
         <aside
-          className="relative z-20 hidden md:flex md:flex-col min-h-0 overflow-visible bg-[#fafafa] border-r border-[#e5e7eb]"
+          id="menders-results"
+          ref={resultsRef}
+          hidden={!resultsVisible}
+          className="mymenders-map__results"
           onWheel={(event) => {
             event.stopPropagation();
           }}
         >
-          <div className="shrink-0 border-b border-[#e5e7eb] px-3 py-3">
+          <div className="shrink-0 border-b border-[var(--mm-border)] px-3 py-3">
+            <h1 className="mymenders-map__title">Menders <span aria-live="polite">{isLoading ? '…' : displayedVendorsWithDistance.length}</span></h1>
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <label htmlFor="menders-search-desktop" className="sr-only">Search menders</label>
@@ -994,27 +1020,6 @@ export function MapPage() {
                 ) : null}
               </div>
 
-              <button
-                ref={filterButtonRef}
-                type="button"
-                onClick={toggleFilterDrawer}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
-                  isFilterDrawerOpen || hasActiveFilters
-                    ? 'border-brand-dark bg-brand-dark text-brand-dark-on'
-                    : 'border-dashed border-[var(--mm-border-strong)] bg-[var(--mm-panel)] text-[var(--mm-text-soft)] hover:border-[var(--mm-muted)] hover:bg-[var(--mm-panel-muted)]'
-                }`}
-                aria-label="Filter menders"
-                aria-expanded={isFilterDrawerOpen}
-                aria-controls="vendor-filter-drawer"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-                Filters
-                {hasActiveFilters ? (
-                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f4a261] px-1 text-[10px] leading-none text-[var(--mm-black)]">
-                    {activeFilterCount}
-                  </span>
-                ) : null}
-              </button>
             </div>
 
             {activeFilterChips.length ? (
@@ -1024,7 +1029,7 @@ export function MapPage() {
                     key={`${chip.groupKey}-${chip.value}`}
                     type="button"
                     onClick={() => toggleFilterOption(chip.groupKey, chip.value)}
-                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-brand-dark py-1 pl-2.5 pr-1.5 text-xs text-brand-dark-on transition-colors hover:bg-brand-dark-hover"
+                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full bg-[var(--mm-panel-muted)] py-1 pl-2.5 pr-1.5 text-xs text-[var(--mm-text)] transition-colors hover:bg-brand-dark-hover"
                     title={`Remove ${chip.displayLabel}`}
                   >
                     <span className="truncate">{chip.displayLabel}</span>
@@ -1157,7 +1162,7 @@ export function MapPage() {
           <div className="shrink-0 p-3">
             <Link
               to="/add"
-              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar w-full bg-[#1e1e1e]! text-[#f3f5f9]! hover:bg-[#333333]!"
+              className="mymenders-outline-button mymenders-outline-button--compact mymenders-outline-button--navbar w-full"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>Add Mender</span>
@@ -1165,13 +1170,13 @@ export function MapPage() {
           </div>
         </aside>
 
-        <div className="relative z-0">
+        <div className="mymenders-map__canvas-wrap">
           <div ref={mapContainerRef} className="w-full h-full" />
 
-          {selectedVendor && <MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} />}
+          {selectedVendor && <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} /></div>}
 
           {/* Mobile search + filters (below md) */}
-          <div className="absolute left-4 right-4 top-4 z-10 flex items-center gap-2 md:hidden">
+          <div className="mymenders-map__mobile-search absolute left-4 right-4 z-10 flex items-center gap-2 md:hidden">
             <div className="relative min-w-0 flex-1">
               <label htmlFor="menders-search-mobile" className="sr-only">Search menders</label>
               <Search
@@ -1185,7 +1190,7 @@ export function MapPage() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search menders…"
                 aria-label="Search menders"
-                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[var(--mm-black)] shadow-[0_2px_12px_rgba(15,23,42,0.08)] backdrop-blur-sm placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                className="w-full rounded-full border border-[#e5e7eb] bg-white/95 py-2.5 pl-9 pr-4 text-sm text-[var(--mm-black)] shadow-[0_2px_12px_rgba(15,23,42,0.08)] placeholder:text-[#8a877d] focus-visible:border-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
               />
             </div>
             <button
@@ -1203,22 +1208,13 @@ export function MapPage() {
                 </span>
               ) : null}
             </button>
-            <button
-              type="button"
-              onClick={locateUser}
-              disabled={findingLocation}
-              className="mymenders-map-control h-11 shrink-0 px-3 text-xs sm:px-4"
-              title="Near me"
-              aria-label="Find nearby menders"
-            >
-              {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
-              <span>Near me</span>
-            </button>
           </div>
 
-          {isLoading && (
-            <div className="mymenders-map-status absolute bottom-6 left-4 z-10 md:hidden" role="status" aria-live="polite">
-              Loading menders…
+          {!selectedVendor && !isFilterDrawerOpen && (isLoading || loadError || !displayedVendorsWithDistance.length) && (
+            <div className="mymenders-map__mobile-status md:hidden" role="status" aria-live="polite">
+              <p>{isLoading ? 'Loading menders…' : loadError ? 'Menders are temporarily unavailable' : hasSearchOrFilters ? 'No menders match this search' : 'There are no menders near you right now'}</p>
+              {loadError && <><p>Check your connection and try again.</p><button type="button" onClick={() => { setIsLoading(true); setReloadKey(key => key + 1); }}>Try again</button></>}
+              {!isLoading && !loadError && hasSearchOrFilters && <button type="button" onClick={clearAllFilters}>Clear search and filters</button>}
             </div>
           )}
 
@@ -1226,7 +1222,7 @@ export function MapPage() {
             <div
               id="vendor-filter-drawer"
               ref={filterDrawerRef}
-              className="fixed inset-x-0 bottom-0 z-20 flex max-h-[70vh] flex-col rounded-t-2xl border-t border-[#e5e7eb] bg-[#fafafa] shadow-[0_-8px_32px_rgba(15,23,42,0.12)] backdrop-blur-sm md:absolute md:bottom-0 md:left-0 md:top-0 md:max-h-none md:w-[min(340px,calc(100vw-25vw))] md:rounded-none md:border-r md:border-t-0 md:shadow-[18px_0_34px_rgba(15,23,42,0.12)]"
+              className="mymenders-map__filters mymenders-map__adjacent"
               aria-labelledby="vendor-filter-drawer-title"
               onWheel={(event) => {
                 event.stopPropagation();
@@ -1236,8 +1232,8 @@ export function MapPage() {
                 <h2 id="vendor-filter-drawer-title" className="text-sm font-medium text-[var(--mm-text)]">Filter menders</h2>
                 <button
                   type="button"
-                  onClick={() => setIsFilterDrawerOpen(false)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#68665f] transition-colors hover:bg-[#f3f4f6] hover:text-[var(--mm-black)]"
+                  onClick={() => { setIsFilterDrawerOpen(false); filterTriggerRef.current?.focus({ preventScroll: true }); }}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--mm-muted)] transition-colors hover:bg-[#f3f4f6] hover:text-[var(--mm-black)]"
                   aria-label="Close filters"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
@@ -1289,7 +1285,7 @@ export function MapPage() {
                   type="button"
                   onClick={clearAllFilters}
                   disabled={!hasSearchOrFilters}
-                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm text-[#3d403b] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm text-[var(--mm-text)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   Clear search and filters
                 </button>
@@ -1297,21 +1293,8 @@ export function MapPage() {
             </div>
           )}
 
-          <div className="absolute right-6 top-6 z-10 hidden items-center gap-2 md:flex">
-            <button
-              type="button"
-              onClick={locateUser}
-              disabled={findingLocation}
-              className="mymenders-map-control w-[116px] px-4"
-              title="Near me"
-              aria-label="Find nearby menders"
-            >
-              {findingLocation ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#8a877d]" /> : <Navigation className="h-4 w-4 shrink-0" />}
-              <span className="ml-2 text-xs">Near me</span>
-            </button>
-          </div>
-
-          <div className="absolute right-4 top-[4.5rem] z-10 flex flex-col items-end gap-2 md:bottom-6 md:right-6 md:top-auto">
+          <div ref={mapNavigationRef} className="mymenders-map__navigation">
+            <button type="button" onClick={locateUser} disabled={findingLocation} className="mymenders-map-control mymenders-map__mobile-near" aria-label="Find nearby menders">{findingLocation ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}</button>
             <div className="mymenders-map-control-group">
               <button
                 type="button"
@@ -1326,7 +1309,7 @@ export function MapPage() {
                 <Plus className="w-5 h-5" />
               </button>
 
-              <div className="h-px bg-brand-dark-text/15" />
+              <div className="mymenders-map__zoom-divider" />
 
               <button
                 type="button"
@@ -1361,7 +1344,7 @@ export function MapPage() {
               <Globe className="w-5 h-5" />
             </button>
 
-            <div className="relative" ref={styleMenuRef}>
+            <div className="mymenders-map__style" ref={styleMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsStyleMenuOpen((value) => !value)}
@@ -1373,11 +1356,12 @@ export function MapPage() {
               </button>
 
               {isStyleMenuOpen && (
-                <div className="mymenders-map-menu mymenders-cloth-panel absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-2xl border bg-cloth/95 p-1.5 backdrop-blur-sm md:bottom-full md:top-auto md:mb-2 md:mt-0">
+                <div className="mymenders-map-menu absolute z-20 w-48 overflow-hidden rounded-2xl border p-1.5">
                   {BASEMAP_STYLES.map((style) => (
                     <button
                       type="button"
                       key={style.id}
+                      aria-pressed={selectedBasemapStyleId === style.id}
                       onClick={() => {
                         setSelectedBasemapStyleId(style.id);
                         setIsStyleMenuOpen(false);
@@ -1385,7 +1369,7 @@ export function MapPage() {
                       className={`w-full rounded-xl px-3 py-2 text-left text-sm transition-colors ${
                         selectedBasemapStyleId === style.id
                           ? 'bg-brand/20 text-[#2f3e39] '
-                          : 'text-[#3d403b] hover:bg-[#f3f4f6]'
+                          : 'text-[var(--mm-text)] hover:bg-[#f3f4f6]'
                       }`}
                     >
                       {style.label}

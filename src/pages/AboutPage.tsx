@@ -155,13 +155,13 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f3f5f9] pt-20 text-[var(--mm-text)]">
+    <div className={`min-h-screen bg-[#f3f5f9] text-[var(--mm-text)] ${isHomepage ? '' : 'pt-20'}`}>
       <main>
         <section
           ref={heroRef}
           aria-labelledby="about-hero-title"
           className={isHomepage
-            ? 'grid w-full bg-brand-dark/95 lg:min-h-[calc(100svh-5rem)] lg:grid-cols-6'
+            ? 'grid w-full bg-brand-dark/95 lg:min-h-[100svh] lg:grid-cols-6'
             : 'grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12'}
         >
           {isHomepage ? (
@@ -200,9 +200,9 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
             </div>
           )}
 
-          <figure className={isHomepage ? 'relative min-w-0 w-full overflow-hidden pt-[10px] lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
+          <figure className={isHomepage ? 'relative min-w-0 w-full overflow-hidden lg:col-span-2 lg:col-start-5' : 'w-full overflow-hidden'}>
             {isHomepage ? (
-              <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:bottom-0 lg:top-[10px] lg:aspect-auto">
+              <div className="relative aspect-[3/4] w-full overflow-hidden lg:absolute lg:inset-x-0 lg:bottom-0 lg:top-0 lg:aspect-auto">
                 {heroSlides.map((slide, index) => (
                   <img
                     key={slide.src}

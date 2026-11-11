@@ -52,7 +52,7 @@ html {
   }
 }
 
-/* Public-site actions, inspired by the supplied CFDA reference. */
+/* Public action buttons share the map Add Mender button radius. */
 .mymenders-outline-button {
   display: inline-flex;
   min-height: 48px;
@@ -60,7 +60,7 @@ html {
   justify-content: center;
   gap: 8px;
   border: 0;
-  border-radius: 0;
+  border-radius: 12px;
   background: #fff;
   padding: 12px 24px;
   color: #626262;
@@ -100,7 +100,6 @@ html {
 }
 
 .mymenders-outline-button--pill {
-  border-radius: 9999px;
   text-transform: none;
 }
 
@@ -1108,3 +1107,122 @@ body {
     box-shadow: 6px 0 24px rgb(15 23 42 / 10%);
   }
 }
+
+/* Public floating navigation: only the blocks intercept map gestures. */
+.mymenders-public-nav {
+  position: fixed; inset: 0 0 auto; z-index: 1000; height: 80px;
+  pointer-events: none; color: #f4f2eb;
+}
+.mymenders-public-nav__inner { padding: 12px 16px; }
+.mymenders-public-nav__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mymenders-public-nav__logo,
+.mymenders-public-nav__links,
+.mymenders-public-nav__trigger {
+  pointer-events: auto; background: rgba(22,22,24,.88); border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 15%); border-radius: 18px;
+}
+.mymenders-public-nav__logo { min-height: 56px; padding: 10px 18px; padding-right: 62px; }
+.mymenders-public-nav__links { padding: 5px 12px; }
+.mymenders-public-nav__trigger { width: 48px; height: 48px; border-radius: 16px; opacity: 1; }
+.mymenders-public-nav .mymenders-navbar-link { color: inherit; }
+.mymenders-public-nav .mymenders-navbar-link:is(:hover,[aria-current="page"],[data-active="true"]) { text-decoration: underline; text-underline-offset: 6px; }
+.mymenders-public-nav :is(a,button):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.mymenders-public-nav [role="dialog"] { pointer-events: auto; }
+@media (max-width: 767px) {
+  .mymenders-public-nav__logo { gap: 10px; padding: 10px 16px; padding-right: 48px; }
+  .mymenders-public-nav__logo .mymenders-logo-wordmark { font-size: 22px; }
+}
+@media (max-width: 359px) {
+  .mymenders-public-nav__inner { padding-inline: 12px; }
+  .mymenders-public-nav__row { gap: 8px; }
+  .mymenders-public-nav__logo { padding-inline: 12px; padding-right: 42px; }
+  .mymenders-public-nav__logo .mymenders-logo-wordmark { font-size: 20px; }
+}
+
+/* Floating map surfaces keep the existing basemap and pin palette. */
+.mymenders-map {
+  --mm-text: #f4f2eb; --mm-text-soft: #e2e0da; --mm-muted: #c4c2bc; --mm-faint: #c4c2bc;
+  --mm-border: rgba(255,255,255,.14); --mm-border-strong: rgba(255,255,255,.28);
+  --mm-panel: #29292b; --mm-panel-muted: #3a3a3c;
+  --map-surface: rgba(22,22,24,.88); --mm-map-control-bg: var(--map-surface);
+  --mm-map-control-bg-hover: #404042; --mm-map-control-text: #f4f2eb;
+  --mm-map-status-bg: var(--map-surface);
+  --results-width: clamp(240px,25vw,320px); --adjacent-left: calc(104px + var(--results-width));
+  --sheet-height: min(65dvh, calc(100dvh - 264px));
+  position: relative; width: 100%; height: 100dvh; z-index: 0; color: var(--mm-text);
+  color-scheme: dark; accent-color: #f4f2eb;
+}
+.mymenders-map[data-results-visible="false"] { --adjacent-left: 92px; }
+.mymenders-map__layout, .mymenders-map__canvas-wrap { position: absolute; inset: 0; }
+.mymenders-map__rail,
+.mymenders-map__results,
+.mymenders-map__adjacent,
+.mymenders-map .mymenders-map-menu {
+  background: var(--map-surface); border: 1px solid var(--mm-border); border-radius: 18px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+}
+.mymenders-map__rail { position: absolute; z-index: 25; left: 16px; top: 96px; bottom: 16px; width: 60px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0; }
+.mymenders-map .mymenders-map-control { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--mm-border); box-shadow: 0 4px 16px rgb(0 0 0 / 12%); }
+.mymenders-map__rail .mymenders-map-control { background: transparent; border-color: transparent; box-shadow: none; }
+.mymenders-map .mymenders-map-control[aria-expanded="true"] { background: rgba(255,255,255,.15); }
+.mymenders-map__badge { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; border-radius: 8px; background: #f4f2eb; color: #222; font-size: 10px; }
+.mymenders-map__results { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: 92px; width: var(--results-width); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.mymenders-map__results[hidden] { display: none; }
+.mymenders-map__title { display: flex; align-items: baseline; justify-content: space-between; margin: 2px 2px 16px; font-size: 22px; }
+.mymenders-map__title span { font-size: 13px; color: var(--mm-muted); font-variant-numeric: tabular-nums; }
+.mymenders-map input[type="search"] { background: rgba(255,255,255,.07); border: 1px solid var(--mm-border); border-radius: 12px; color: var(--mm-text); min-height: 44px; box-shadow: none; backdrop-filter: none; }
+.mymenders-map input::placeholder { color: var(--mm-muted); }
+.mymenders-map input[type="search"]:focus-visible { outline: 2px solid var(--mm-text); outline-offset: -2px; }
+.mymenders-map__results .mymenders-outline-button { background: #f4f2eb; color: #222; border-color: transparent; }
+.mymenders-map__results .mymenders-outline-button:hover { background: #fff; }
+.mymenders-map__adjacent { position: absolute; z-index: 20; top: 96px; bottom: 16px; left: var(--adjacent-left); width: min(380px, calc(100% - var(--adjacent-left) - 160px)); min-height: 0; overflow: hidden; }
+.mymenders-map .mymenders-details { position: static; width: 100%; height: 100%; background: transparent; box-shadow: none; border-radius: 0; }
+.mymenders-map .mymenders-details__contact-action { background: transparent; color: var(--mm-text); border: 1px solid var(--mm-border-strong); }
+.mymenders-map .mymenders-details__contact-action:hover:not(:disabled) { background: var(--mm-panel-muted); }
+.mymenders-map .mymenders-details__contact-action:disabled { color: #999; background: transparent; opacity: .55; }
+.mymenders-map .mymenders-details__list { color: var(--mm-text-soft); }
+.mymenders-map .mymenders-details__close { background: transparent; }
+.mymenders-map .mymenders-details__directions { color: #222; background: #f4f2eb; border-radius: 12px; }
+.mymenders-map .mymenders-details__directions:hover:not(:disabled) { background: #fff; }
+.mymenders-map .mymenders-details__directions:disabled { color: #bbb; background: var(--mm-panel-muted); }
+.mymenders-map__filters { display: flex; flex-direction: column; }
+.mymenders-map__filters :is(header,section,div) { border-color: var(--mm-border); }
+.mymenders-map__filters button { color: var(--mm-text); }
+.mymenders-map__filters button[aria-pressed="true"] { background: #f4f2eb; color: #222; border-style: solid; }
+.mymenders-map__filters button:hover:not(:disabled):not([aria-pressed="true"]) { background: var(--mm-panel-muted); }
+.mymenders-map :is(button,a):focus-visible { outline: 2px solid var(--mm-text); outline-offset: -3px; box-shadow: none; }
+.mymenders-map :is(div,aside) { scrollbar-width: thin; scrollbar-color: #777 transparent; }
+.mymenders-map ::selection { color: #222; background: #f4f2eb; }
+.mymenders-map__navigation { position: absolute; bottom: max(48px, env(safe-area-inset-bottom)); right: 16px; display: flex; align-items: center; gap: 8px; z-index: 25; }
+.mymenders-map__navigation > button[aria-label="Reset to globe view"] { order: -1; }
+.mymenders-map .mymenders-map-control-group { width: auto; display: flex; flex-direction: row-reverse; border-radius: 16px; background: var(--map-surface); border: 1px solid var(--mm-border); }
+.mymenders-map .mymenders-map-control-group button { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+.mymenders-map__zoom-divider { width: 1px; align-self: stretch; background: var(--mm-border); margin-block: 10px; }
+.mymenders-map__mobile-near { display: none !important; }
+.mymenders-map__style { position: fixed; bottom: 24px; left: 24px; }
+.mymenders-map__style > .mymenders-map-control { border: 0; background: transparent; box-shadow: none; }
+.mymenders-map__style .mymenders-map-menu { left: 60px; bottom: 0; }
+.mymenders-map-menu button { color: var(--mm-text); min-height: 44px; }
+.mymenders-map-menu button:hover { background: var(--mm-panel-muted); }
+.mymenders-map-menu button[aria-pressed="true"] { color: #222; background: #f4f2eb; }
+.mymenders-map__mobile-search { top: 96px; }
+.mymenders-map__mobile-search svg { color: var(--mm-muted); }
+.mymenders-map .mymenders-map-empty-state { background: transparent; border: 0; color: var(--mm-text); }
+.mymenders-map .mymenders-map-empty-state__action { background: #f4f2eb; color: #222; }
+@media (max-width: 767px) {
+  .mymenders-map__rail, .mymenders-map__results { display: none; }
+  .mymenders-map__mobile-search input[type="search"] { background: var(--map-surface); }
+  .mymenders-map__adjacent { inset: auto 0 0; width: 100%; height: var(--sheet-height); border-radius: 18px 18px 0 0; }
+  .mymenders-map__navigation { bottom: max(56px, calc(16px + env(safe-area-inset-bottom))); display: flex; gap: 6px; }
+  .mymenders-map[data-sheet-open="true"] .mymenders-map__navigation { bottom: calc(var(--sheet-height) + 12px); }
+  .mymenders-map__style { position: relative; inset: auto; }
+  .mymenders-map__style > .mymenders-map-control { background: var(--map-surface); border: 1px solid var(--mm-border); }
+  .mymenders-map__style .mymenders-map-menu { left: auto; right: 0; bottom: 56px; max-height: calc(100dvh - 164px); overflow-y: auto; }
+  .mymenders-map__mobile-near { display: inline-flex !important; }
+  .mymenders-map__filters > div:last-child { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .mymenders-map__filters [aria-label="Close filters"] { width: 44px; height: 44px; }
+}
+
+.mymenders-map__mobile-status { position: absolute; top: 152px; left: 16px; right: 16px; z-index: 10; padding: 16px; border-radius: 16px; background: var(--map-surface); font-size: 13px; }
+.mymenders-map__mobile-status button { min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
+.mymenders-map .mymenders-map-status { color: var(--mm-text); }

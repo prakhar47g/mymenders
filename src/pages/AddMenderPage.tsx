@@ -674,10 +674,10 @@ export function AddMenderPage() {
   // ------------------------------------------------------------------
 
   return (
-    <div className="relative z-0 mt-20 h-[calc(100vh-80px)] w-full">
+    <div className="relative z-0 h-[100dvh] w-full">
       <div className="grid h-full min-h-0 grid-cols-1 md:grid-cols-[30%_70%]">
         {/* ==================== FORM SIDEBAR ==================== */}
-        <aside className="order-2 flex h-[calc(60vh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full">
+        <aside className="order-2 flex h-[calc(60dvh-80px)] min-h-0 flex-col border-r border-[#e5e7eb] bg-[#fafafa] md:order-1 md:h-full md:pt-20">
           {entryLevel === null ? (
             <div className="flex min-h-0 flex-1 flex-col justify-start overflow-y-auto px-4 py-6">
               <h2 className="mymenders-card-title-semi mb-5 text-center text-xl text-brand-dark-on">
@@ -1001,7 +1001,7 @@ export function AddMenderPage() {
         </aside>
 
         {/* ==================== MAP ==================== */}
-        <div className="relative order-1 h-[40vh] min-h-0 md:order-2 md:h-full">
+        <div className="relative order-1 h-[calc(40dvh+80px)] min-h-0 md:order-2 md:h-full">
           <div ref={mapContainerRef} className="h-full w-full" />
         </div>
       </div>

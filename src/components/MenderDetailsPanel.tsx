@@ -82,6 +82,21 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
     </nav>
   );
 
+  const renderDirectionsRow = (placement: 'desktop' | 'mobile') => (
+    <footer className={`mymenders-details__actions mymenders-details__actions--${placement}`}>
+      {approximate ? (
+        <button type="button" disabled title="Directions unavailable for approximate locations" className="mymenders-details__directions">
+          <Route className="h-4 w-4" aria-hidden="true" /> Directions
+        </button>
+      ) : (
+        <a href={directions} target="_blank" rel="noopener noreferrer" className="mymenders-details__directions">
+          <Route className="h-4 w-4" aria-hidden="true" /> Directions
+        </a>
+      )}
+      {placement === 'mobile' && renderContactActions('mobile')}
+    </footer>
+  );
+
   useEffect(() => {
     setActiveTab('about');
     scrollRef.current?.scrollTo(0, 0);
@@ -170,19 +185,9 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
           {rating !== null && <p className="mymenders-details__rating">{rating} out of 5{ratingCount !== null && <span> · {ratingCount} {ratingCount === 1 ? 'rating' : 'ratings'}</span>}</p>}
           <p className="mymenders-details__review">{review || (rating !== null ? 'No written reviews yet.' : 'No reviews yet.')}</p>
         </div>
+        {renderDirectionsRow('mobile')}
       </div>
-      <footer className="mymenders-details__actions">
-        {approximate ? (
-          <button type="button" disabled title="Directions unavailable for approximate locations" className="mymenders-details__directions">
-            <Route className="h-4 w-4" aria-hidden="true" /> Directions
-          </button>
-        ) : (
-          <a href={directions} target="_blank" rel="noopener noreferrer" className="mymenders-details__directions">
-            <Route className="h-4 w-4" aria-hidden="true" /> Directions
-          </a>
-        )}
-        {renderContactActions('mobile')}
-      </footer>
+      {renderDirectionsRow('desktop')}
     </section>
   );
 }

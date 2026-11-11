@@ -1089,15 +1089,17 @@ body {
 }
 .mymenders-details__contact-action:disabled { cursor: not-allowed; background: var(--mm-panel-muted); border-color: var(--mm-border-strong); color: var(--mm-muted); }
 .mymenders-details__contact-actions--mobile { display: none; }
+.mymenders-details__actions--mobile { display: none; }
 @media (max-width: 767px) {
   .mymenders-details { height: 50%; }
   .mymenders-details__contact-actions--desktop { display: none; }
   .mymenders-details__actions { display: flex; align-items: center; gap: 6px; }
+  .mymenders-details__actions--desktop { display: none; }
   .mymenders-details__directions { flex: 1; min-width: 0; width: auto; gap: 4px; padding-inline: 4px; font-size: 12px; }
   .mymenders-details__directions svg { flex-shrink: 0; }
   .mymenders-details__contact-actions--mobile { display: flex; flex-wrap: nowrap; gap: 6px; }
   .mymenders-map .mymenders-details__contact-actions--mobile .mymenders-details__contact-action {
-    background: #f4f2eb; color: #222; border: 0; border-radius: 12px;
+    background: #f4f2eb; color: #222; border: 0; border-radius: 50%;
   }
   .mymenders-map .mymenders-details__contact-actions--mobile .mymenders-details__contact-action:disabled { color: #777; }
   .mymenders-map .mymenders-details__contact-actions--mobile .mymenders-details__contact-action:hover:not(:disabled) { background: #fff; }

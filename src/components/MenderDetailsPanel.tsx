@@ -93,7 +93,6 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
           <Route className="h-4 w-4" aria-hidden="true" /> Directions
         </a>
       )}
-      {placement === 'mobile' && renderContactActions('mobile')}
     </footer>
   );
 
@@ -156,6 +155,7 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
               </section>
             )}
             {renderContactActions('desktop')}
+            {renderContactActions('mobile')}
             {vendor.contact?.trim() && <p className="mymenders-details__contact-info">{vendor.contact}</p>}
           </div>
           {groups.some(({ values }) => values?.length) && (

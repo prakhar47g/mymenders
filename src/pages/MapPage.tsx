@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { MenderDetailsPanel } from '../components/MenderDetailsPanel';
+import { MenderDetailsDrawer } from '../components/MenderDetailsDrawer';
 import { trackMenderClick } from '../lib/menderAnalytics';
 import { Vendor } from '../types';
 import {
@@ -499,6 +500,8 @@ export function MapPage() {
   const [selectedBasemapStyleId, setSelectedBasemapStyleId] =
     useState<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
   const [selectedVendorId, setSelectedVendorId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
+  const [isMenderExpanded, setIsMenderExpanded] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<VendorFilterState>(createEmptyFilterState);
   const [searchQuery, setSearchQuery] = useState('');
@@ -523,6 +526,13 @@ export function MapPage() {
   const vendorsRef = useRef<Vendor[]>([]);
   const hasAutoCentered = useRef(false);
   const activeBasemapStyleIdRef = useRef<(typeof BASEMAP_STYLES)[number]['id']>(DEFAULT_BASEMAP_STYLE_ID);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const update = () => { setIsMobile(query.matches); setIsMenderExpanded(false); };
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -590,7 +600,9 @@ export function MapPage() {
       const top = mobile ? 152 : 96;
       const right = 16;
       const navigation = mapNavigationRef.current?.getBoundingClientRect();
-      const bottom = mobile && panel ? bounds.bottom - (navigation?.top ?? panel.top) + 12 : 24;
+      const bottom = mobile && panel
+        ? Math.min(bounds.height - top - 48, bounds.bottom - (navigation?.top ?? panel.top) + 12)
+        : 24;
       const zoom = selectionZoomRef.current ?? map.getZoom();
       // Camera round trips can change zoom by a floating-point epsilon.
       const key = JSON.stringify([
@@ -634,6 +646,7 @@ export function MapPage() {
     selectedVendorRef.current = vendor;
     selectionZoomRef.current = destinationZoom;
     setIsFilterDrawerOpen(false);
+    setIsMenderExpanded(false);
     setSelectedVendorId(vendor.id);
     scheduleSelectionCamera();
   }, [cancelSelectionCamera, scheduleSelectionCamera]);
@@ -672,7 +685,7 @@ export function MapPage() {
     if (resultsRef.current) observer.observe(resultsRef.current);
     scheduleSelectionCamera();
     return () => observer.disconnect();
-  }, [scheduleSelectionCamera, resultsVisible, selectedVendorId]);
+  }, [scheduleSelectionCamera, resultsVisible, selectedVendorId, isMobile]);
 
   const vendorsWithDistance = useMemo(
     () => {
@@ -1024,7 +1037,7 @@ export function MapPage() {
   const selectedVendor = vendors.find((vendor) => vendor.id === selectedVendorId);
 
   return (
-    <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen} data-mender-open={Boolean(selectedVendor)}>
+    <div className="mymenders-map" data-results-visible={resultsVisible} data-sheet-open={Boolean(selectedVendor) || isFilterDrawerOpen} data-mender-open={Boolean(selectedVendor)} data-mender-expanded={Boolean(selectedVendor) && isMenderExpanded}>
       <div className="mymenders-map__layout">
         <div className="mymenders-map__rail" aria-label="Map tools">
           <button type="button" className="mymenders-map-control" aria-label={resultsVisible ? 'Hide results' : 'Show results'} aria-expanded={resultsVisible} aria-controls="menders-results" onClick={() => setResultsVisible(value => !value)}><PanelLeft className="h-5 w-5" /></button>
@@ -1224,7 +1237,19 @@ export function MapPage() {
         <div className="mymenders-map__canvas-wrap">
           <div ref={mapContainerRef} className="w-full h-full" />
 
-          {selectedVendor && <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} /></div>}
+          {selectedVendor && (isMobile ? (
+            <MenderDetailsDrawer
+              key={selectedVendor.id}
+              vendor={selectedVendor}
+              container={mapContainerRef.current?.parentElement ?? null}
+              panelRef={overlayRef}
+              expanded={isMenderExpanded}
+              onExpandedChange={setIsMenderExpanded}
+              onClose={closeDetails}
+            />
+          ) : (
+            <div ref={overlayRef} className="mymenders-map__adjacent"><MenderDetailsPanel vendor={selectedVendor} onClose={closeDetails} /></div>
+          ))}
 
           {/* Mobile search + filters (below md) */}
           <div id="mobile-map-search" className={`mymenders-map__mobile-search absolute left-4 right-4 z-10 ${isMobileSearchOpen ? 'flex' : 'hidden'} items-center gap-2 md:hidden`}>

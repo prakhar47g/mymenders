@@ -1330,16 +1330,6 @@ export function MapPage() {
                 })}
               </div>
 
-              <div className="shrink-0 border-t border-[#e5e7eb] p-3">
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  disabled={!hasSearchOrFilters}
-                  className="mymenders-field flex h-10 w-full items-center justify-center border px-3 text-sm text-[var(--mm-text)] transition-colors hover:bg-[#f3f4f6] disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  Clear search and filters
-                </button>
-              </div>
             </div>
           )}
 

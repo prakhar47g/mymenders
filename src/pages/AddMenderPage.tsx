@@ -22,14 +22,9 @@ import {
 const ENTRY_LEVEL_OPTIONS = ['Menders', 'Member of the public'] as const;
 type EntryLevelOption = (typeof ENTRY_LEVEL_OPTIONS)[number];
 
-const MENDER_ICON_URL =
-  'https://img.icons8.com/external-kmg-design-outline-color-kmg-design/64/external-sewing-sewing-kmg-design-outline-color-kmg-design-3.png';
-const CONTRIBUTOR_ICON_URL = 'https://img.icons8.com/office/80/map-marker.png';
-
 type EntryLevelMeta = {
   title: string;
   description: string;
-  iconSrc: string;
   activePanelClasses: string;
 };
 
@@ -37,13 +32,11 @@ const ENTRY_LEVEL_META: Record<EntryLevelOption, EntryLevelMeta> = {
   Menders: {
     title: "I'm a mender",
     description: 'List your own work so people can find you.',
-    iconSrc: MENDER_ICON_URL,
     activePanelClasses: 'add-mender-role--selected',
   },
   'Member of the public': {
     title: 'I know a mender',
     description: 'Recommend someone you trust to fix things.',
-    iconSrc: CONTRIBUTOR_ICON_URL,
     activePanelClasses: 'add-mender-role--selected',
   },
 };
@@ -669,23 +662,12 @@ export function AddMenderPage() {
               className="peer sr-only"
             />
             <span
-              className={`add-mender-role relative flex min-h-[112px] items-center gap-3 rounded-2xl border px-4 py-4 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-[#f4f2eb] sm:min-h-[128px] sm:gap-4 sm:px-5 ${
+              className={`add-mender-role relative flex min-h-[78px] items-center gap-3 rounded-2xl border px-4 py-2 transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-[#f4f2eb] sm:min-h-[90px] sm:gap-4 sm:px-5 ${
                 isSelected
                   ? meta.activePanelClasses
                   : 'add-mender-role--idle'
               }`}
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f3f4f6] sm:h-14 sm:w-14">
-                <img
-                  src={meta.iconSrc}
-                  alt=""
-                  aria-hidden="true"
-                  className={`h-7 w-7 object-contain transition-all duration-200 ${
-                    isSelected ? '' : 'opacity-60 saturate-50'
-                  }`}
-                />
-              </span>
-
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold leading-tight text-[var(--mm-black)]">
                   {meta.title}

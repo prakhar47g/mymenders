@@ -93,6 +93,18 @@ html {
   opacity: 0.5;
 }
 
+.mymenders-outline-button.mymenders-hero-action {
+  background: #e2e2df;
+  color: #222;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.mymenders-outline-button.mymenders-hero-action:hover:not(:disabled) {
+  background: #d6d6d2;
+  color: #111;
+}
+
 .mymenders-outline-button--compact {
   min-height: 44px;
   padding: 10px 14px;
@@ -1155,6 +1167,15 @@ body {
 .mymenders-map[data-results-visible="false"] { --adjacent-left: 92px; }
 .mymenders-map__layout, .mymenders-map__canvas-wrap { position: absolute; inset: 0; }
 .mymenders-map__canvas-wrap { background: #000; }
+.mymenders-map__canvas-wrap::after {
+  content: ""; position: absolute; z-index: 5; inset: 0; pointer-events: none;
+  background-image: url("/images/map-stars.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  -webkit-mask-image: radial-gradient(ellipse 48vmin 48vmin at 50% 52%, transparent 97%, #000 100%);
+  mask-image: radial-gradient(ellipse 48vmin 48vmin at 50% 52%, transparent 97%, #000 100%);
+}
 .mymenders-map__rail,
 .mymenders-map__results,
 .mymenders-map__adjacent,
@@ -1265,7 +1286,6 @@ body {
 .add-mender-panel .add-mender-role { background: #29292b; border-color: #5b5b5d; }
 .add-mender-panel .add-mender-role:hover { background: #353537; border-color: #c4c2bc; }
 .add-mender-panel .add-mender-role--selected { background: #48484a; border-color: #f4f2eb; }
-.add-mender-role > span:first-child { background: #e2e0da; }
 .add-mender-panel .add-mender-visibility { background: #29292b; border-color: #5b5b5d; }
 .add-mender-visibility label > span { border-color: #777; }
 .add-mender-visibility label:hover > span { background: #3a3a3c; }

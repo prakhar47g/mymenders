@@ -67,6 +67,7 @@ export function Navbar() {
   return (
     <nav
       className="mymenders-public-nav"
+      data-homepage={pathname === '/' || undefined}
     >
       <div className="mymenders-public-nav__inner">
         <div className="mymenders-public-nav__row">

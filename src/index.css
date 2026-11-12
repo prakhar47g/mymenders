@@ -1131,7 +1131,6 @@ body {
   pointer-events: none; color: #f4f2eb;
 }
 .mymenders-public-nav__inner { padding: 12px 16px; }
-.mymenders-public-nav[data-homepage] .mymenders-public-nav__inner { padding-left: 30px; }
 .mymenders-public-nav__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .mymenders-public-nav__logo,
 .mymenders-public-nav__links,

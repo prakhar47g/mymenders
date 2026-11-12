@@ -165,7 +165,7 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
             : 'grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12'}
         >
           {isHomepage ? (
-            <div className="flex min-w-0 flex-col justify-end pb-8 pl-[30px] pr-8 pt-[200px] text-left lg:col-span-3 lg:pt-0 xl:pb-12 xl:pr-12">
+            <div className="flex min-w-0 flex-col justify-end pb-8 pl-[30px] pr-8 pt-[400px] text-left md:pt-[200px] lg:col-span-3 lg:pt-0 xl:pb-12 xl:pr-12">
               <h1 id="about-hero-title" className="font-display text-[clamp(36px,4vw,72px)] leading-[1.05] text-[var(--mm-text-soft)] lg:whitespace-nowrap">
                 Find trusted menders
               </h1>

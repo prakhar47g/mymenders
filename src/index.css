@@ -1131,12 +1131,13 @@ body {
   pointer-events: none; color: #f4f2eb;
 }
 .mymenders-public-nav__inner { padding: 12px 16px; }
+.mymenders-public-nav[data-homepage] .mymenders-public-nav__inner { padding-left: 30px; }
 .mymenders-public-nav__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .mymenders-public-nav__logo,
 .mymenders-public-nav__links,
 .mymenders-public-nav__trigger {
   pointer-events: auto; background: rgba(22,22,24,.88); border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 6px 24px rgb(0 0 0 / 15%); border-radius: 18px;
+  border-radius: 18px;
 }
 .mymenders-public-nav__logo { min-height: 56px; padding: 10px 18px; padding-right: 62px; }
 .mymenders-public-nav__links { padding: 5px 12px; }

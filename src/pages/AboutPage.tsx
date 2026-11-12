@@ -165,8 +165,8 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
             : 'grid w-full bg-brand-dark/95 lg:h-[calc(100svh-5rem)] lg:grid-cols-[2fr_1fr] lg:gap-x-12'}
         >
           {isHomepage ? (
-            <div className="flex min-w-0 flex-col justify-end pb-8 pl-[30px] pr-8 pt-[400px] text-left md:pt-[200px] lg:col-span-3 lg:pt-0 xl:pb-12 xl:pr-12">
-              <h1 id="about-hero-title" className="font-display text-[clamp(36px,4vw,72px)] leading-[1.05] text-[var(--mm-text-soft)] lg:whitespace-nowrap">
+            <div className="flex min-w-0 flex-col justify-end px-[30px] pb-8 pt-[400px] text-left md:pt-[200px] lg:col-span-3 lg:pt-0 xl:pb-12">
+              <h1 id="about-hero-title" className="text-center font-display text-[clamp(36px,4vw,72px)] leading-[1.05] text-[var(--mm-text-soft)] md:text-left lg:whitespace-nowrap">
                 Find trusted menders
               </h1>
               <div className="mt-8 inline-grid w-full max-w-full grid-cols-2 gap-3 sm:w-[374.5px]">
@@ -232,7 +232,7 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
         <section
           id="about-mission"
           aria-labelledby="about-mission-title"
-          className="scroll-mt-20 px-[30px] pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40"
+          className={`scroll-mt-20 ${isHomepage ? 'px-4' : 'px-[30px]'} pb-12 pt-24 text-center sm:pb-16 sm:pt-32 lg:pb-20 lg:pt-40`}
         >
           <div className="mx-auto max-w-3xl">
             <h2
@@ -249,7 +249,7 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
 
         <section
           aria-labelledby="how-it-works-title"
-          className="px-[30px] pb-24 pt-12 text-center sm:pb-32 sm:pt-16 lg:pb-40 lg:pt-20"
+          className={`${isHomepage ? 'px-4' : 'px-[30px]'} pb-24 pt-12 text-center sm:pb-32 sm:pt-16 lg:pb-40 lg:pt-20`}
         >
           <div className="mx-auto max-w-6xl">
             <h2
@@ -273,7 +273,7 @@ export function AboutPage({ homepage = false }: { homepage?: boolean }) {
         </section>
 
         <section aria-label="Organizations">
-          <div className="grid gap-y-9 px-[30px] py-10 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0">
+          <div className={`grid gap-y-9 ${isHomepage ? 'px-4' : 'px-[30px]'} py-10 sm:py-12 lg:grid-cols-2 lg:items-center lg:gap-x-0`}>
             <div className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-x-4 lg:flex lg:justify-center lg:gap-x-0">
               <h2 className="mymenders-field-label-font text-[10px] uppercase text-[var(--mm-faint)] lg:mr-[50px] lg:shrink-0">
                 Initiative Of

@@ -1156,6 +1156,7 @@ body {
 }
 @media (max-width: 359px) {
   .mymenders-public-nav__inner { padding-inline: 12px; }
+  .mymenders-public-nav[data-homepage] .mymenders-public-nav__inner { padding-inline: 16px; }
   .mymenders-public-nav__row { gap: 8px; }
   .mymenders-public-nav__logo { padding-inline: 12px; padding-right: 42px; }
   .mymenders-public-nav__logo .mymenders-logo-wordmark { font-size: 20px; }

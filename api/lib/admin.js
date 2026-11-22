@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { Pool } from 'pg';
 import { activateVendor, safeParseMetadata, updateVendor, ValidationError } from './db.js';
+import { purgePublicMendersCache } from './public-mender-cache.js';
 import { normalizeTaxonomyValues } from '../../shared/vendorTaxonomy.js';
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -152,16 +153,29 @@ export async function handleAdminRequest(request, path) {
     return result.rows[0] ? json(adminVendor(result.rows[0])) : json({ error: 'Mender not found' }, 404);
   }
   if (match && method === 'PATCH' && !match[2]) {
-    try { return json(adminVendor(await updateVendor(pool, match[1], await parseBody(request)))); }
-    catch (error) { return json({ error: error.message }, error instanceof ValidationError && error.message === 'Mender not found' ? 404 : 400); }
+    try {
+      const vendor = await updateVendor(pool, match[1], await parseBody(request));
+      await purgePublicMendersCache('edit', vendor.id);
+      return json(adminVendor(vendor));
+    } catch (error) {
+      return json({ error: error.message }, error instanceof ValidationError && error.message === 'Mender not found' ? 404 : 400);
+    }
   }
   if (match && method === 'POST' && match[2]) {
-    try { return json(adminVendor(await activateVendor(pool, match[1]))); }
-    catch (error) { return json({ error: error.message }, 404); }
+    try {
+      const vendor = await activateVendor(pool, match[1]);
+      await purgePublicMendersCache('activate', vendor.id);
+      return json(adminVendor(vendor));
+    } catch (error) {
+      return json({ error: error.message }, 404);
+    }
   }
   if (match && method === 'DELETE' && !match[2]) {
     const result = await pool.query('UPDATE vendors SET is_deleted = true WHERE id=$1 AND is_deleted = false RETURNING id', [Number(match[1])]);
-    return result.rows[0] ? json({ ok: true }) : json({ error: 'Mender not found' }, 404);
+    const vendor = result.rows[0];
+    if (!vendor) return json({ error: 'Mender not found' }, 404);
+    await purgePublicMendersCache('soft-delete', vendor.id);
+    return json({ ok: true });
   }
   return json({ error: 'Not found' }, 404);
 }

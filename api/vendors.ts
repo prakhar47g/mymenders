@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { insertVendor, publicVendor, ValidationError } from './lib/db.js';
+import { PUBLIC_MENDERS_CACHE_TAG } from './lib/public-mender-cache.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -13,9 +14,8 @@ export async function GET() {
     return new Response(JSON.stringify(result.rows.map(publicVendor)), {
       headers: {
         'Content-Type': 'application/json',
-        // Share the public list at Vercel's edge for six hours. Browsers
-        // revalidate so they receive refreshed data once the CDN entry expires.
-        'Vercel-CDN-Cache-Control': 'max-age=21600',
+        'Vercel-Cache-Tag': PUBLIC_MENDERS_CACHE_TAG,
+        'Vercel-CDN-Cache-Control': 'max-age=300',
         'Cache-Control': 'public, max-age=0, must-revalidate',
       },
     });

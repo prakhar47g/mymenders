@@ -1316,19 +1316,34 @@ body {
 .mymenders-map__mobile-status button { min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
 .mymenders-map .mymenders-map-status { color: var(--mm-text); }
 
-/* /add contribution panel. Keep tokens off the success dialog and other routes. */
+/* /add contribution surfaces */
 .add-mender-layout { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-.add-mender-map { order: 0; position: relative; height: calc(40dvh + 80px); flex-shrink: 0; }
-.add-mender-panel {
+.add-mender-map { order: 0; position: relative; height: clamp(220px, 40dvh, 420px); flex-shrink: 0; background: #323234; }
+.add-mender-step-header { flex-shrink: 0; }
+.add-mender-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.add-mender-progress span { height: 2px; border-radius: 1px; background: #5b5b5d; }
+.add-mender-progress span[data-reached="true"] { background: #f4f2eb; }
+@media (max-width: 767px) {
+  .add-mender-layout[data-mobile-map="false"] .add-mender-map { display: none; }
+  .add-mender-layout[data-mobile-map="false"] .add-mender-panel { margin-top: 96px; }
+  .add-mender-panel :is(input:not([type="radio"]), textarea) { font-size: 16px; }
+  .add-mender-surface .mymenders-outline-button { min-height: 44px; }
+}
+@media (max-width: 767px) and (max-height: 640px) {
+  .add-mender-map { height: clamp(140px, 36dvh, 220px); }
+}
+.add-mender-surface {
   --mm-black: #f4f2eb; --mm-text: #f4f2eb; --mm-text-soft: #e2e0da;
   --mm-muted: #c4c2bc; --mm-faint: #c4c2bc; --mm-border: rgba(255,255,255,.14);
-  --mm-focus: rgba(244,242,235,.22);
-  position: relative; z-index: 20; display: flex; flex-direction: column;
-  order: 1; min-height: 0; flex: 1; margin: 16px;
+  --mm-focus: rgba(244,242,235,.22); --mm-panel-muted: #3a3a3c;
   background: rgba(22,22,24,.88); color: var(--mm-text);
   border: 1px solid var(--mm-border); border-radius: 18px;
-  box-shadow: 0 8px 28px rgb(0 0 0 / 18%); overflow: hidden;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
   color-scheme: dark; accent-color: #f4f2eb;
+}
+.add-mender-panel {
+  position: relative; z-index: 20; display: flex; flex-direction: column;
+  order: 1; min-height: 0; flex: 1; margin: 16px; overflow: hidden;
 }
 .add-mender-panel :is(div, ul) { scrollbar-width: thin; scrollbar-color: #777 transparent; }
 .add-mender-panel ::selection { background: #f4f2eb; color: #222; }
@@ -1339,13 +1354,13 @@ body {
 }
 .add-mender-panel .mymenders-field::placeholder { color: var(--mm-muted); opacity: 1; }
 .add-mender-panel .mymenders-field:focus { border-color: #f4f2eb; box-shadow: 0 0 0 1px #f4f2eb; }
-.add-mender-panel :is(button,a):focus-visible { outline: 2px solid #f4f2eb; outline-offset: -3px; }
-.add-mender-panel .mymenders-outline-button {
+.add-mender-surface :is(button,a):focus-visible { outline: 2px solid #f4f2eb; outline-offset: -3px; }
+.add-mender-surface .mymenders-outline-button {
   min-height: 40px; border-radius: 12px; color: #222; background: #f4f2eb;
   white-space: normal; text-align: center; border-color: transparent;
 }
-.add-mender-panel .mymenders-outline-button:hover:not(:disabled) { background: #fff; color: #222; }
-.add-mender-panel .mymenders-outline-button:disabled { opacity: .45; cursor: not-allowed; }
+.add-mender-surface .mymenders-outline-button:hover:not(:disabled) { background: #fff; color: #222; }
+.add-mender-surface .mymenders-outline-button:disabled { opacity: .45; cursor: not-allowed; }
 .add-mender-panel .add-mender-role { background: #29292b; border-color: #5b5b5d; }
 .add-mender-panel .add-mender-role:hover { background: #353537; border-color: #c4c2bc; }
 .add-mender-panel .add-mender-role--selected { background: #48484a; border-color: #f4f2eb; }
@@ -1353,7 +1368,7 @@ body {
 .add-mender-visibility label > span { border-color: #777; }
 .add-mender-visibility label:hover > span { background: #3a3a3c; }
 .add-mender-actions { border-top: 1px solid var(--mm-border); background: #242426; }
-.add-mender-panel .add-mender-cancel { background: #3a3a3c; color: var(--mm-text); }
+.add-mender-panel .add-mender-cancel { background: var(--mm-panel-muted); color: var(--mm-text); }
 .add-mender-panel .add-mender-cancel:hover:not(:disabled) { background: #48484a; color: var(--mm-text); }
 .add-mender-panel .mymenders-phone-input {
   --react-international-phone-background-color: #29292b;
@@ -1375,14 +1390,6 @@ body {
 .add-mender-panel .mymenders-phone-input:focus-within :is(.react-international-phone-country-selector-button,.react-international-phone-input) {
   border-color: #f4f2eb; box-shadow: 0 0 0 1px #f4f2eb;
 }
-/* Google renders its address menu in document.body. */
-body.mymenders-add-active .pac-container {
-  background: #29292b; color: #f4f2eb; border: 1px solid #5b5b5d;
-  border-radius: 12px; box-shadow: 0 12px 28px rgb(0 0 0 / 22%); z-index: 3300;
-}
-body.mymenders-add-active .pac-item { color: #c4c2bc; border-color: #5b5b5d; padding: 6px 10px; }
-body.mymenders-add-active .pac-item-query { color: #f4f2eb; }
-body.mymenders-add-active :is(.pac-item:hover,.pac-item-selected) { background: #48484a; }
 @media (min-width: 768px) {
   .add-mender-map { position: absolute; inset: 0; height: 100%; }
   .add-mender-panel { position: absolute; top: 96px; bottom: 16px; left: 16px; width: clamp(320px,30vw,440px); margin: 0; }
@@ -1394,12 +1401,12 @@ body.mymenders-add-active :is(.pac-item:hover,.pac-item-selected) { background: 
 .add-mender-panel .mymenders-fade-in { animation-name: mm-add-fade-in; }
 @keyframes mm-add-fade-in { from { opacity: 0; } to { opacity: 1; } }
 body.mymenders-add-active .add-mender-suggestions {
+  --mm-muted: #c4c2bc;
   margin: 0; background: #29292b; color: #f4f2eb; border-color: #5b5b5d;
   border-radius: 12px; color-scheme: dark; scrollbar-width: thin; scrollbar-color: #777 transparent;
 }
 body.mymenders-add-active .add-mender-suggestions li { color: #f4f2eb; border-color: #5b5b5d; }
-body.mymenders-add-active .add-mender-suggestions li:is(:hover,[class*="bg-[#f3f4f6]"]) { background: #48484a; }
-body.mymenders-add-active .add-mender-suggestions li span + span { color: #c4c2bc; }
+body.mymenders-add-active .add-mender-suggestions li:is(:hover,[aria-selected="true"]) { background: #48484a; }
 
 .add-mender-panel .mymenders-phone-input__dropdown:focus-visible {
   outline: 2px solid #f4f2eb; outline-offset: -2px;

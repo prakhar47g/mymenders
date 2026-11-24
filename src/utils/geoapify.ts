@@ -1,3 +1,6 @@
+import { normalizeGeocodingCredit } from '../../shared/geocodingCredit.js';
+import type { GeocodingAttribution } from '../types';
+
 const GEOAPIFY_KEY = '4566ba494f5a4c6d8ad8cb137d73aae2';
 const BASE = 'https://api.geoapify.com/v1/geocode';
 
@@ -11,6 +14,7 @@ export interface GeoapifySuggestion {
   postcode?: string;
   country?: string;
   countryCode?: string;
+  credit: GeocodingAttribution;
 }
 
 export interface GeoapifyResult {
@@ -30,6 +34,7 @@ type GeoapifyRawResult = {
   postcode?: string;
   country?: string;
   country_code?: string;
+  datasource?: { attribution?: string; sourcename?: string; url?: string };
 };
 
 const toSuggestion = (raw: GeoapifyRawResult): GeoapifySuggestion | null => {
@@ -51,6 +56,10 @@ const toSuggestion = (raw: GeoapifyRawResult): GeoapifySuggestion | null => {
     postcode: raw.postcode,
     country: raw.country,
     countryCode: raw.country_code,
+    credit: normalizeGeocodingCredit({
+      provider: 'geoapify',
+      sources: [{ label: raw.datasource?.attribution || raw.datasource?.sourcename, url: raw.datasource?.url }],
+    }) ?? { provider: 'geoapify', sources: [] },
   };
 };
 
@@ -83,11 +92,11 @@ export async function autocomplete(query: string): Promise<GeoapifySuggestion[]>
 }
 
 /** Reverse geocode: lat/lng → address string */
-export async function reverseGeocodeDetails(lat: number, lng: number): Promise<GeoapifySuggestion | null> {
+export async function reverseGeocodeDetails(lat: number, lng: number, signal?: AbortSignal): Promise<GeoapifySuggestion | null> {
   const url = `${BASE}/reverse?lat=${lat}&lon=${lng}&format=json&apiKey=${GEOAPIFY_KEY}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal });
     if (!res.ok) return null;
     const data = await res.json();
     return toSuggestion(readResults(data)[0] || {});

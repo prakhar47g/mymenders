@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { normalizeGeocodingCredit } from '../../shared/geocodingCredit.js';
 import { normalizeTaxonomyValues } from '../../shared/vendorTaxonomy.js';
 
 export const APPROXIMATE_RADIUS_KM = 0.2;
@@ -159,6 +160,7 @@ export const publicVendor = (row) => {
     status: row.status,
     name: row.name,
     ...location,
+    geocoding_credit: normalizeGeocodingCredit(metadata.geocoding_credit),
     category: row.category,
     entry_level: metadata.entry_level || row.entry_level || row.category,
     types: normalizeTaxonomyValues('types', metadata.types || []),
@@ -224,6 +226,7 @@ export async function insertVendor(pool, data) {
 
   const parsedPhotos = {
     ...incomingPhotos,
+    geocoding_credit: normalizeGeocodingCredit(incomingPhotos.geocoding_credit),
     entry_level: resolvedEntryLevel,
     types: resolvedTypes,
     categories: canonicalizeTaxonomyArray('categories', categories ?? incomingPhotos.categories),
@@ -288,6 +291,7 @@ export async function updateVendor(pool, id, data) {
     : data.entry_level || data.category || 'Menders';
   const nextPhotos = {
     ...photos,
+    geocoding_credit: normalizeGeocodingCredit(safeParseMetadata(current.photos).geocoding_credit),
     entry_level: entryLevel,
     types: nextTypes,
     categories: canonicalizeTaxonomyArray('categories', data.categories),

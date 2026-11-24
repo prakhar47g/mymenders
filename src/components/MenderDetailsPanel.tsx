@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Www, Instagram, Mail, Phone, RhombusArrowRight, Xmark as X } from 'iconoir-react';
 import type { Vendor } from '../types';
+import { GeocodingCredit } from './GeocodingCredit';
 import { trackMenderClick } from '../lib/menderAnalytics';
 import { getTaxonomyLabel } from '../../shared/vendorTaxonomy.js';
 
@@ -144,6 +145,7 @@ export function MenderDetailsPanel({ vendor, onClose }: MenderDetailsPanelProps)
                 <p>{approximate ? 'Approximate location. Contact the mender for the exact location.' : vendor.address}</p>
               </section>
             )}
+            {vendor.geocoding_credit && <GeocodingCredit sources={vendor.geocoding_credit.sources} />}
             {renderContactActions('desktop')}
             {renderContactActions('mobile')}
             {vendor.contact?.trim() && <p className="mymenders-details__contact-info">{vendor.contact}</p>}

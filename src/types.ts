@@ -1,3 +1,8 @@
+export interface GeocodingAttribution {
+  provider: 'geoapify';
+  sources: { label: string; url?: string }[];
+}
+
 export interface Vendor {
   id: number;
   status?: 'draft' | 'active';
@@ -7,6 +12,7 @@ export interface Vendor {
   longitude: number;
   location_visibility?: 'exact' | 'approx';
   location_radius_km?: number;
+  geocoding_credit?: GeocodingAttribution;
   category?: string;
   entry_level?: 'Menders' | 'Member of the public' | string;
   types?: string[];
